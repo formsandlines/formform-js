@@ -1,0 +1,68 @@
+[
+	{
+		"type" : "form",
+		"space" : [
+			{
+				"type" : "var",
+				"value" : "c"
+			},
+			{
+				"type" : "reentry",
+				"reven" : true,
+				"open" : true,
+				"nested" : [
+					{
+						"type" : "group",
+						"content" : [
+							{
+								"type" : "form",
+								"space" : [
+									{
+										"type" : "var",
+										"value" : "z"
+									}
+								]
+							},
+							{
+								"type" : "var",
+								"value" : "y"
+							}
+						]
+					},
+					{
+						"type" : "group",
+						"content" : [
+							{
+								"type" : "var",
+								"value" : "x"
+							}
+						]
+					}
+				]
+			}
+		]
+	}, 
+	{
+		"type" : "form",
+		"space" : [
+			{
+				"type" : "form",
+				"space" : [
+					{
+						"type" : "var",
+						"value" : "b"
+					},
+					{ 
+						"type" : "form",
+						"space" : [
+							{
+								"type" : "var",
+								"value" : "a"
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+]
