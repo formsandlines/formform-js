@@ -120,15 +120,18 @@ input[value] {
     font-family: monospace;
     font-size: 1.2em;
 }
-.output {
-    /*display: flex;*/
+main > section {
+    margin-bottom: 1em;
 }
 #output-vals ul {
     font-size: 0.8em;
     list-style-type: none;
 }
 
-
+.graph > svg {
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
 
 
 

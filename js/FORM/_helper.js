@@ -1,3 +1,39 @@
+function pad(num, size) {
+    /* Source: https://stackoverflow.com/a/2998822
+    Credits to: InfinitiesLoop */
+    var s = num+"";
+    while (s.length < size) s = "0" + s;
+    return s;
+}
+
+function textSize(text, fontSize=12) {
+    /* Source: https://gist.github.com/huytd/327e453c95ca3edadb32d0c867e2561b 
+    Credits to: Huy Tr. */
+    if (!d3) return;
+    var container = d3.select('body').append('svg');
+    container.append('text').style('font-size',fontSize)
+        .attr('x','-9999').attr('y','-9999').text(text);
+    var size = container.node().getBBox();
+    container.remove();
+    return { width: size.width, height: size.height };
+}
+
+function saveSvg(svgEl, name) {
+    /* Source: https://stackoverflow.com/a/46403589
+    Credits to: defghi1977, DaveTheScientist, senz */
+    svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    var svgData = svgEl.outerHTML;
+    var preface = '<?xml version="1.0" standalone="no"?>\r\n';
+    var svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
+    var svgUrl = URL.createObjectURL(svgBlob);
+    var downloadLink = document.createElement("a");
+    downloadLink.href = svgUrl;
+    downloadLink.download = name;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+
 function flatten(arr) {
     /* Source: https://stackoverflow.com/a/15030117 
     Credits to: Noah Freitas */

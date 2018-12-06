@@ -23,7 +23,7 @@
 
   <!-- Add your site or application content here -->
 <header>
-  <h1>FForm Calculator 1.0a</h1>
+  <h1>FForm Calculator 1.5a</h1>
   <p class="metainfo">Concept and Development by <a href="https://designhofmann.de" target="_blank">Peter Hofmann</a>, october 2018.<br/>Calculation algorithms based on demonstrations in the book <a href="https://uformiform.info" target="_blank">uFORM iFORM</a> by Ralf Peyn, 2017 and the Laws of Form by George Spencer-Brown, 1969–2015.</p>
 </header>
 
@@ -33,11 +33,13 @@
   <p></p>
 
   <section id="explanations">
-    <p><strong>Calculate FORMs with 4 values</strong> <span class="formula">(…)</span> either as <em>constants</em> (0: unmarked, 1: marked, 2: undetermined, 3: imaginary) or <em>variables</em> (single characters: a,b,c,… or labels, using quotes: "Ball", "The Earth", "3×2=12", …). When using variables, all possible interpretations will be computed.</p>
+    <p><strong>Calculate FORMs with 4 values</strong> <span class="formula">(…)</span> either as <em>constants</em> (0: unmarked, 1: marked, 2: undetermined, 3: imaginary), <em>variables</em> (single characters: a,b,c,… or labels, using quotes: "Ball", "door is open", "3×2=12", …) or <em>unclear FORMs</em> (using slashes: /God/, /World Peace/, …). When using variables, all possible interpretations will be computed. Unclear FORMs are processed as marked inside uFORMs (according to page 48 in uFORM iFORM) and interpreted with an undetermined value.</p>
 
     <p><strong>Self-equivalent re-entry forms</strong> with <em>nested arguments</em> (as described in the book <a href="https://uformiform.info" target="_blank">uFORM iFORM</a> by Ralf Peyn) can also be processed by using curly brackets <span class="formula">{…}</span> to mark the re-entry form and separating the nested variables/constants/forms with a comma: <span class="formula">{a,b,…}</span>. Using pipes before the arguments, you can also specify <em>open forms</em> (without the outer cross) <span class="formula">{open|a,…}</span> and either <em>even</em> <span class="formula">{2r|a,…}</span> or <em>odd</em> <span class="formula">{2r+1|a,…}</span> <em>re-entry numbers</em> as well as combinations <span class="formula">{2r|open|a,…}</span>.</p>
 
     <p><strong>Enter a formula in parenthesis notation</strong> (see examples below) and click "calculate" to calculate the whole FORM and "view JSON" to display a <em>JSON-representation</em> of the FORM that the calculator is working with. In this representation, forms with the property <span class="formula">"unmarked": true</span> behave like groups and will not be displayed or computed.
+
+    <p><strong><span style="color:red;">Update:</span> visualize FORMs in a tree or graph representation</strong>. However, re-entry forms appear to be flat, even though they are nested – there is also no distinction between open and closed re-entry forms yet; an accurate representation of them is still being worked on. For now, re-entry forms are outlined red and their nested variables appear in dashed outlines. Forms symbolized unclear (between <span class="formula">/…/</span>) are represented with slanted rectangles to match the notation in uFORM iFORM.</p>
 
     <p>Notation examples:</p>
     <ul>
@@ -52,19 +54,42 @@
 </aside>
 
 <main>
-  <label>Enter formula:</label>
-  <input id="form_entry" type="text" size="80" value="">
-  <input type="button" value="calculate" onclick="btnCalc('form_entry');"/>
-  <input type="button" value="view JSON" onclick="btnViewJSON('form_entry');"/>
+  <section id="entry">
+    <label>Enter formula:</label>
+    <input id="form_entry" type="text" size="80" value="">
+  </section>
+  <section id="action">
+    <input type="button" value="calculate" onclick="btnCalc();"/>
+    <input type="button" value="view JSON" onclick="btnViewJSON();"/>
+    <input type="button" value="render Tree" onclick="btnRender('tree');"/>
+    <input type="button" value="render Graph" onclick="btnRender('pack');"/>
+  </section>
 
-  <div class="output-wrapper" id="output-wrapper-vals">
-    <p>Calculated values:</p>
-    <pre class="output" id="output-vals"></pre>
+  <section id="output">
+    <div class="output-wrapper" id="output-wrapper-vals">
+      <p>Calculated values:</p>
+      <pre class="output" id="output-vals"></pre>
+    </div>
+    <div class="output-wrapper" id="output-wrapper-json">
+      <p>JSON-Tree:</p>
+      <pre class="output" id="output-json"></pre>
+    </div>
+  </section>
+
+
+
+<div id="graph-tree" class="graph">
+  <div>
+  <input type="button" value="save SVG" onclick="exportRender('tree');"/>
   </div>
-  <div class="output-wrapper" id="output-wrapper-json">
-    <p>JSON-Tree:</p>
-    <pre class="output" id="output-json"></pre>
+</div>
+<div id="graph-pack" class="graph">
+  <div>
+  <input type="button" value="save SVG" onclick="exportRender('pack');"/>
   </div>
+</div>
+
+
 </main>
 
 <footer>
@@ -81,12 +106,14 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
 
   <script src="js/plugins.js"></script>
   <script src="js/vendor/esrever.js"></script>
   <script src="js/FORM/_helper.js"></script>
   <script src="js/FORM/_FCalc.js"></script>
   <script src="js/FORM/_FForm.js"></script>
+  <script src="js/FORM/_FGraph.js"></script>
   <script src="js/main.js"></script>
 
   <!-- Google Analytics: change UA-XXXXX-Y to be your site's ID. -->

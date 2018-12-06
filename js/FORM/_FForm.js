@@ -1,7 +1,7 @@
 class FForm extends FCalc {
     /*
     =======================================================
-          FORM FORM alpha 0.2 by Peter Hofmann, 2018
+          FORM FORM alpha 1.0 by Peter Hofmann, 2018
     =======================================================
      Extension of FORM Calculator to make use of my jsonFORM format
     */
@@ -503,13 +503,14 @@ class FForm extends FCalc {
 
     static traverseForm(form,func) {
         /* traverses only form-types in a json tree */
-        func.apply(this,[form,form.depth,form.space]);
+        let breakTrav = func.apply(this,[form,form.depth,form.space]);
 
         if (form.type === 'form') {
             if (form.space.length > 0) {
                 for (var i in form.space) {
                     if (form.space[i].type === 'form' || form.space[i].type === 'reEntry') {
-                        this.traverseForm(form.space[i],func);
+                        let breakLoop = this.traverseForm(form.space[i],func);
+                        if (breakLoop) break;
                     }
                 }
             }
@@ -517,11 +518,14 @@ class FForm extends FCalc {
         else if (form.type === 'reEntry') {
             if (form.nested.length > 0) {
                 for (var i in form.nested) {
-                    this.traverseForm(form.nested[i],func);
+                    let breakLoop = this.traverseForm(form.nested[i],func);
+                    if (breakLoop) break;
                 }
             }
         }
         else console.log('ERROR: Not a form!');
+
+        return breakTrav;
     };
 
 }
