@@ -42,7 +42,9 @@ class FForm extends FCalc {
                 for (var j in fReEntry.nested) {
                     nestedVals.push( this.calc(fReEntry.nested[j]) );
                 }
-                fx = this.rel( fx,this.reEntry(fReEntry.reEven, fReEntry.lastOpen, ...nestedVals) );
+                
+                // notation reading: {deepest, ..., shallowest}  use nestedVals.reverse() to reverse variables
+                fx = this.rel( fx,this.reEntry(fReEntry.reEven, fReEntry.lastOpen, fReEntry.altInterpretation, ...nestedVals) );
             }
         }
         if(form.unmarked) return fx;
@@ -387,11 +389,14 @@ class FForm extends FCalc {
 
                 var reParts = content.split(optChar);
 
-                if (reParts[0] === '2r' || reParts[1] === '2r') comp.push('"reEven":true,');
+                if (reParts[0] === '2r' || reParts[1] === '2r' || reParts[2] === '2r') comp.push('"reEven":true,');
                 else comp.push('"reEven":false,');
 
-                if (reParts[0] === 'open' || reParts[1] === 'open') comp.push('"lastOpen":true,');
+                if (reParts[0] === 'open' || reParts[1] === 'open' || reParts[2] === 'open') comp.push('"lastOpen":true,');
                 else comp.push('"lastOpen":false,');
+
+                if (reParts[0] === 'alt' || reParts[1] === 'alt' || reParts[2] === 'alt') comp.push('"altInterpretation":true,');
+                else comp.push('"altInterpretation":false,');
 
                 var reNested = reParts[reParts.length-1].split(nestChar);
 
@@ -505,7 +510,7 @@ class FForm extends FCalc {
         /* traverses only form-types in a json tree */
         let breakTrav = func.apply(this,[form,form.depth,form.space]);
 
-        if (form.type === 'form') {
+        if (form.space) { // form.type === 'form'
             if (form.space.length > 0) {
                 for (var i in form.space) {
                     if (form.space[i].type === 'form' || form.space[i].type === 'reEntry') {
@@ -515,7 +520,7 @@ class FForm extends FCalc {
                 }
             }
         }
-        else if (form.type === 'reEntry') {
+        else if (form.nested) { // form.type === 'reEntry'
             if (form.nested.length > 0) {
                 for (var i in form.nested) {
                     let breakLoop = this.traverseForm(form.nested[i],func);

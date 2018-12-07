@@ -1,9 +1,7 @@
-var altInterpr = false;
-
 class FCalc {
     /*
     =======================================================
-          FORM CALCULATOR 1.5 by Peter Hofmann, 2018
+          FORM CALCULATOR 1.6 by Peter Hofmann, 2018
     =======================================================
      For information/reference about FORMs, see
      - "uFORM iFORM" by Ralf Peyn, 2017 (https://uformiform.info)
@@ -76,29 +74,29 @@ class FCalc {
     //  RE-ENTRY FORM CALCULATION
     // ---------------------------
 
-    static uForm2(fA, fB) { // calculation verified (both interpr.)
-        return this.reEntry(false, false, fA, fB);
+    static uForm2(fA, fB, altInterpr=false) { // calculation verified (both interpr.)
+        return this.reEntry(false, false, altInterpr, fA, fB);
     };
-    static iForm2(fA, fB) { // calculation verified (both interpr.)
-        return this.reEntry(false, true, fA, fB);
+    static iForm2(fA, fB, altInterpr=false) { // calculation verified (both interpr.)
+        return this.reEntry(false, true, altInterpr, fA, fB);
     };
-    static uForm3(lastOpen, fA, fB, fC) { // calculation verified closed & open (both interpr.)
-        return this.reEntry(true, lastOpen, fA, fB, fC);
+    static uForm3(lastOpen, fA, fB, fC, altInterpr=false) { // calculation verified closed & open (both interpr.)
+        return this.reEntry(true, lastOpen, altInterpr, fA, fB, fC);
     };
-    static iForm3(lastOpen, fA, fB, fC) { // calculation verified closed & open (both interpr.)
-        return this.reEntry(false, lastOpen, fA, fB, fC);
+    static iForm3(lastOpen, fA, fB, fC, altInterpr=false) { // calculation verified closed & open (both interpr.)
+        return this.reEntry(false, lastOpen, altInterpr, fA, fB, fC);
     };
-    static uForm4(fA, fB, fC, fD) {
-        return this.reEntry(false, false, fA, fB, fC, fD);
+    static uForm4(fA, fB, fC, fD, altInterpr=false) {
+        return this.reEntry(false, false, altInterpr, fA, fB, fC, fD);
     };
-    static iForm4(fA, fB, fC, fD) {
-        return this.reEntry(false, true, fA, fB, fC, fD);
+    static iForm4(fA, fB, fC, fD, altInterpr=false) {
+        return this.reEntry(false, true, altInterpr, fA, fB, fC, fD);
     };
-    static uForm5(lastOpen, fA, fB, fC, fD, fE) {
-        return this.reEntry(true, lastOpen, fA, fB, fC, fD, fE);
+    static uForm5(lastOpen, fA, fB, fC, fD, fE, altInterpr=false) {
+        return this.reEntry(true, lastOpen, altInterpr, fA, fB, fC, fD, fE);
     };
-    static iForm5(lastOpen, fA, fB, fC, fD, fE) {
-        return this.reEntry(false, lastOpen, fA, fB, fC, fD, fE);
+    static iForm5(lastOpen, fA, fB, fC, fD, fE, altInterpr=false) {
+        return this.reEntry(false, lastOpen, altInterpr, fA, fB, fC, fD, fE);
     };
 
     // static reEntry(... vars) {
@@ -108,7 +106,7 @@ class FCalc {
     //     return this.reEntry(reEven, false, vars);
     // }
 
-    static reEntry(reEven, lastOpen, ...fVals) {
+    static reEntry(reEven, lastOpen, altInterpr, ...fVals) {
         /* FORM arithmetic for different self-equivalent re-entry FORMs
          [Arguments] reEven: even re-entry-number? | lastOpen: last variable not crossed? | fVals: variables (0/1/2/3)
 

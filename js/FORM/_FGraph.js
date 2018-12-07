@@ -16,16 +16,34 @@ class FGraph extends FForm {
   // Graph representation
   // ----------------------------------------------------
 
+  static jsonString(form) {
+    // if(typeof(_form) === 'string') _form = this.parseLinear(_form);
+
+    // console.log(form);
+    const expandedForm = this.expand_reEntry(form);
+    // console.log(expandedForm);
+    return JSON.stringify(expandedForm, undefined, 2);
+  }
+
   static constructNested(reForm) {
     let space = reForm.space = [];
+    reForm.nested.reverse(); // MUST be reversed, because notation: {deepest, ..., shallowest}
 
     for(const i in reForm.nested) {
       if (i > 0) {
-        space.push( {type: 'form', space: []} );
-        const nestedForm = space[space.length-1];
+        // prepend the reEntry nesting before everything else in the space
+        space.unshift( {type: 'form', reChild: true, space: []} ); // space.push <- order last
+        const nestedForm = space[0]; // space[space.length-1] <- order last
         
-        for(const j in reForm.nested[i].space) {
-          nestedForm.space.push(reForm.nested[i].space[j]);
+        if (!reForm.nested[i].unmarked) {
+          // if not unmarked, we can push the whole form to the new space
+          nestedForm.space.push(reForm.nested[i]);
+        }
+        else {
+          // else, just push all contents of its space to the new space
+          for(const j in reForm.nested[i].space) {
+            nestedForm.space.push(reForm.nested[i].space[j]);
+          }
         }
         space = nestedForm.space;
       }
@@ -35,6 +53,9 @@ class FGraph extends FForm {
         }
       }
     }
+
+    // reForm.test = Array.from(reForm.nested);
+    delete reForm.nested;
     return reForm;
   }
 
@@ -43,11 +64,11 @@ class FGraph extends FForm {
     const refForm = this.parseLinear(_form);
     let targetForm = this.parseLinear(_form);
 
-    this.traverseForm(refForm, function(refBranch,depth,space) {
+    this.traverseForm(refForm, function(refBranch) {
 
       if(refBranch.type === 'reEntry') {
         
-        this.traverseForm(targetForm, function(targetBranch,depth,space) {
+        this.traverseForm(targetForm, function(targetBranch) {
 
           if(JSON.stringify(refBranch) === JSON.stringify(targetBranch)) {
             // console.log('CLICK!!!');
@@ -58,17 +79,21 @@ class FGraph extends FForm {
 
       }
     });
+
+    // targetBranch
+    // delete reForm.nested;
+
+    // this.traverseForm(targetForm, function(fBranch) {
+    //   if(refBranch.type === 'reEntry') 
+    // }
     return targetForm;
   }
 
   static tree(_form) {
-    if(typeof(_form) === 'string') _form = this.parseLinear(_form);
-    const data = expand_reEntry(_form);
+    // if(typeof(_form) === 'string') _form = this.parseLinear(_form);
+    const data = this.expand_reEntry(_form);
 
-    const hr = d3.hierarchy(data, d => {
-      if(d.type === 'reEntry') return d.nested;
-      else if(d.type === 'form') return d.space;
-    });
+    const hr = d3.hierarchy(data, d => d.space);
 
     const stepSize = 100;
     let {width,height,margin, fontSize} = 
@@ -101,11 +126,9 @@ class FGraph extends FForm {
           M${d.source.x} ${d.source.y} 
           L${d.target.x} ${d.target.y}
         `)
-    .filter(d => {
-      return d.target.data.unmarked && d.source.data.type === 'reEntry';
-    })
-      .attr('stroke','#ff0000')
-      .attr('stroke-dasharray','1%,2%');
+    .filter(d => d.target.data.reChild)
+      .attr('stroke','red')
+      .attr('stroke-dasharray','0.5%,0.5%');
 
     const node = g.append('g')
     .selectAll('g')
@@ -113,15 +136,18 @@ class FGraph extends FForm {
       .enter().append('g')
         .attr('transform', d => `translate(${d.x},${d.y})`);
 
-    node.filter(d => !d.data.unmarked).append('circle')
+    const nodeCircle = node.filter(d => !d.data.unmarked).append('circle')
       .attr('fill','black')
-      .attr('r', 2.5)
-    .filter(d => (d.children))
+      .attr('r', 2.5);
+    const formCircle = nodeCircle.filter(d => d.children)
       .attr('fill','white')
       .attr('stroke','black')
-      .attr('r', 5.0)
-    .filter(d => d.data.type === 'reEntry')
+      .attr('r', 5.0);
+    formCircle.filter(d => d.data.type === 'reEntry')
       .attr('stroke','red');
+    formCircle.filter(d => d.data.reChild)
+      .attr('stroke','red')
+      .attr('stroke-dasharray','0.5%,0.5%');
 
     const label = node.append('g')
       .attr('class','labels')
@@ -135,21 +161,21 @@ class FGraph extends FForm {
       })
       .attr('text-anchor', 'start')
     .filter(d => d.children)
-      .attr('x','0.8em')
-    .filter(d => {
-        if(d.parent) {
-          return d.data.unmarked && d.parent.data.type === 'reEntry';
-        } else return false;
-      })
-      .attr('fill','#ff0000')
-      .attr('x','0.4em')
-      .text(d => {
-        let index = -1;
-        d.parent.children.forEach((obj,i) => {
-          if(d === obj) index = i;
-        });
-        return 'depth ' + index;
-      });
+      .attr('x','0.8em');
+    // .filter(d => {
+    //     if(d.parent) {
+    //       return d.data.unmarked && d.parent.data.type === 'reEntry';
+    //     } else return false;
+    //   })
+    //   .attr('fill','#ff0000')
+    //   .attr('x','0.4em')
+    //   .text(d => {
+    //     let index = -1;
+    //     d.parent.children.forEach((obj,i) => {
+    //       if(d === obj) index = i;
+    //     });
+    //     return 'depth ' + index;
+    //   });
       
 
     label.filter(d => !d.children)
@@ -168,13 +194,11 @@ class FGraph extends FForm {
   }
 
   static pack(_form) {
-    if(typeof(_form) === 'string') _form = this.parseLinear(_form);
-    const data = expand_reEntry(_form);
+    // if(typeof(_form) === 'string') _form = this.parseLinear(_form);
 
-    const hr = d3.hierarchy(data, d => {
-      if(d.type === 'reEntry') return d.nested;
-      else if(d.type === 'form') return d.space;
-    })
+    const data = this.expand_reEntry(_form);
+
+    const hr = d3.hierarchy(data, d => d.space)
     .sum(d => d.children ? 0 : 1);
 
     let {width,height,fontSize,margin,padding, doublePad} = 
@@ -221,14 +245,17 @@ class FGraph extends FForm {
       .attr('r', d => d.r)
       .attr('fill','none')
       .attr('stroke','#555')
-
-    node.filter(d => (d.parent && d.parent.data.type === 'reEntry'))
-      .attr('class','nested form')
-      .append('circle')
-      .attr('r', d => d.r)
-      .attr('fill','none')
+    .filter(d => (d.data.reChild))
       .attr('stroke','red')
-      .attr('stroke-dasharray','1%,2%');
+      .attr('stroke-dasharray','1%,1%');
+
+    // node.filter(d => (d.parent && d.parent.data.type === 'reEntry'))
+    //   .attr('class','nested form')
+    //   .append('circle')
+    //   .attr('r', d => d.r)
+    //   .attr('fill','none')
+    //   .attr('stroke','red')
+    //   .attr('stroke-dasharray','1%,2%');
 
     node.filter(d => (d.data.type === 'reEntry' && !d.data.unmarked))
       .attr('class','reEntry')
@@ -282,8 +309,36 @@ class FGraph extends FForm {
     const vars = node.filter(d => d.data.type === 'var')
       .attr('class','var')
       .append('text')
-      .text(d => d.data.symbol)
-      .attr('dominant-baseline','middle');
+      .attr('dominant-baseline','middle')
+      .each( function(d,i) {
+        const split = d.data.symbol.split('_');
+        if (split.length === 2) {
+
+          d3.select(this).append('tspan')
+            .text(d => split[0]);
+
+          d3.select(this).append('tspan')
+            .text(d => split[1])
+            .attr('dx', 1)
+            .attr('dy', 6)
+            .attr('font-size', '.8em');
+            // .style('baseline-shift','sub');
+        }
+        else {
+          d3.select(this)
+            .text(d.data.symbol);
+        }
+
+      });
+    // .filter(d => d.data.symbol.split('_').length > 1)
+    //   .text(d => {
+    //     const split = d.data.symbol.split('_');
+    //     if(split.length === 2) {
+    //       return '<tspan>' + split[0] + '</tspan><tspan>' + split[1] + '</tspan>';
+    //     }
+    //     else return d.data.symbol;
+    //   })
+    //   .attr('dominant-baseline','middle');
 
     const unclear = node.filter(d => d.data.type === 'unclear')
       .attr('class','unclear');

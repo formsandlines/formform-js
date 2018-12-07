@@ -22,16 +22,17 @@ $(document).ready(function(){
 });
 
 function btnCalc() {
-    var txtbox = document.getElementById(txtboxID);
-    var json = FForm.parseLinear(txtbox.value)
-    var vals = FForm.calcAll(json);
+	// const alt_interpr = document.getElementById('check-interpr2').checked;
+    const txtbox = document.getElementById(txtboxID);
+    const json = FForm.parseLinear(txtbox.value)
+    const vals = FForm.calcAll(json);
 
-	var keys = Object.keys(vals);
+	let keys = Object.keys(vals);
 
 	keys.sort();
 
-    var str = '<ul>';
-	for (var i = 0; i < keys.length; i++) {
+    let str = '<ul>';
+	for (let i = 0; i < keys.length; i++) {
 		var k = keys[i];
     	str += '<li>';
 		str += k + ': ' + vals[k];
@@ -46,17 +47,17 @@ function btnCalc() {
 }
 function btnViewJSON() {
     var txtbox = document.getElementById(txtboxID);
-    var json = FForm.parseLinear(txtbox.value)
+    // var json = FForm.parseLinear(txtbox.value)
 
     $('#output-wrapper-vals').hide();
 	$('#output-wrapper-json').show();
 	$('#graph-tree, #graph-pack').hide();
-    $('#output-json').html( '<code>'+JSON.stringify(json, undefined, 2)+'</code>' );
+    $('#output-json').html( '<code>'+FGraph.jsonString(txtbox.value)+'</code>' );
 }
 
 function btnRender(type) {
 	var txtbox = document.getElementById(txtboxID);
-	var json = FForm.parseLinear(txtbox.value);
+	// var json = FForm.parseLinear(txtbox.value);
 
 	$('#output-wrapper-vals').hide();
 	$('#output-wrapper-json').hide();
@@ -64,12 +65,12 @@ function btnRender(type) {
 	if(type === 'tree') {
 		$('#graph-tree').show();
 		$('#graph-pack').hide();
-		FGraph.tree(json);
+		FGraph.tree(txtbox.value);
 	}
 	else if(type === 'pack') {
 		$('#graph-pack').show();
 		$('#graph-tree').hide();
-		FGraph.pack(json);
+		FGraph.pack(txtbox.value);
 	}
 }
 
