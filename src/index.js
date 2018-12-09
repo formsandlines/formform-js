@@ -1,6 +1,17 @@
-txtboxID = 'form_entry';
-svgTreeID = 'svg-tree';
-svgPackID = 'svg-pack';
+import { pad, saveSvg } from './lib/helper';
+import formform from './lib/main';
+
+window.formform = formform;
+// console.log(formform);
+// import { FCalc } from './lib/core/fcalc';
+
+// console.log(FCalc);
+// import FForm from './lib/core/fform';
+// console.log('is: '+FForm.calc('(0)1'));
+
+const txtboxID = 'form_entry';
+const svgTreeID = 'svg-tree';
+const svgPackID = 'svg-pack';
 
 $(document).ready(function(){
 
@@ -21,11 +32,11 @@ $(document).ready(function(){
 
 });
 
-function btnCalc() {
+window.btnCalc = function() {
 	// const alt_interpr = document.getElementById('check-interpr2').checked;
     const txtbox = document.getElementById(txtboxID);
-    const json = FForm.parseLinear(txtbox.value)
-    const vals = FForm.calcAll(json);
+    const json = formform.parseLinear(txtbox.value)
+    const vals = formform.calcAll(json);
 
 	let keys = Object.keys(vals);
 
@@ -45,19 +56,19 @@ function btnCalc() {
 	$('#graph-tree, #graph-pack').hide();
     $('#output-vals').html( str );
 }
-function btnViewJSON() {
+window.btnViewJSON = function() {
     var txtbox = document.getElementById(txtboxID);
-    // var json = FForm.parseLinear(txtbox.value)
+    // var json = formform.parseLinear(txtbox.value)
 
     $('#output-wrapper-vals').hide();
 	$('#output-wrapper-json').show();
 	$('#graph-tree, #graph-pack').hide();
-    $('#output-json').html( '<code>'+FGraph.jsonString(txtbox.value)+'</code>' );
+    $('#output-json').html( '<code>'+formform.jsonString(txtbox.value)+'</code>' );
 }
 
-function btnRender(type) {
+window.btnRender = function(type) {
 	var txtbox = document.getElementById(txtboxID);
-	// var json = FForm.parseLinear(txtbox.value);
+	// var json = formform.parseLinear(txtbox.value);
 
 	$('#output-wrapper-vals').hide();
 	$('#output-wrapper-json').hide();
@@ -65,25 +76,25 @@ function btnRender(type) {
 	if(type === 'tree') {
 		$('#graph-tree').show();
 		$('#graph-pack').hide();
-		FGraph.tree(txtbox.value);
+		formform.tree(txtbox.value);
 	}
 	else if(type === 'pack') {
 		$('#graph-pack').show();
 		$('#graph-tree').hide();
-		FGraph.pack(txtbox.value);
+		formform.pack(txtbox.value);
 	}
 }
 
-function exportRender(type) {
+window.exportRender = function(type) {
 	let svg = '';
 	let name = '';
 	if(type === 'tree') {
 		svg = document.getElementById(svgTreeID);
-		name = 'FForm-export_tree';
+		name = 'formform-export_tree';
 	}
 	else if(type === 'pack') {
 		svg = document.getElementById(svgPackID);
-		name = 'FForm-export_graph';
+		name = 'formform-export_graph';
 	}
 
 	try {

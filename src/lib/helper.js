@@ -1,4 +1,6 @@
-function pad(num, size) {
+import * as d3 from 'd3';
+
+export function pad(num, size) {
     /* Source: https://stackoverflow.com/a/2998822
     Credits to: InfinitiesLoop */
     var s = num+"";
@@ -6,7 +8,7 @@ function pad(num, size) {
     return s;
 }
 
-function textSize(text, fontSize=12) {
+export function textSize(text, fontSize=12) {
     /* Source: https://gist.github.com/huytd/327e453c95ca3edadb32d0c867e2561b 
     Credits to: Huy Tr. */
     if (!d3) return;
@@ -18,7 +20,7 @@ function textSize(text, fontSize=12) {
     return { width: size.width, height: size.height };
 }
 
-function saveSvg(svgEl, name) {
+export function saveSvg(svgEl, name) {
     /* Source: https://stackoverflow.com/a/46403589
     Credits to: defghi1977, DaveTheScientist, senz */
     svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
@@ -34,7 +36,7 @@ function saveSvg(svgEl, name) {
     document.body.removeChild(downloadLink);
 }
 
-function flatten(arr) {
+export function flatten(arr) {
     /* Source: https://stackoverflow.com/a/15030117 
     Credits to: Noah Freitas */
   return arr.reduce(function (flat, toFlatten) {
@@ -42,13 +44,13 @@ function flatten(arr) {
   }, []);
 }
 
-function include(arr,obj) {
+export function include(arr,obj) {
     /*  Source: https://stackoverflow.com/a/143863
     Credits to: Vinko Vrsalovic */
     return (arr.indexOf(obj) != -1);
 }
 
-function traverse(o,func) {
+export function traverse(o,func) {
     /*  Source: https://stackoverflow.com/questions/722668/traverse-all-the-nodes-of-a-json-object-tree-with-javascript 
     Credits to: TheHippo */
     for (var i in o) {
@@ -65,19 +67,19 @@ String.prototype.replaceAll = function(find, replace, escapeMeta) {
     if(escapeMeta) find = escapeRegExp(find);
     return this.replace(new RegExp(find, 'g'), replace);
 };
-function escapeRegExp(str) {
+export function escapeRegExp(str) {
     return str.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
 }
 String.prototype.addBefore=function(index, replacement) {
     return this.substr(0, index) + replacement+ this.substr(index);
 }
 
-function map(value, start1, stop1, start2, stop2) {
+export function map(value, start1, stop1, start2, stop2) {
     // Processing-like map function
     return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
 }
 
-function arrayMoveItem(arr, from, to) {
+export function arrayMoveItem(arr, from, to) {
   arr.splice(to, 0, arr.splice(from, 1)[0]);
 }
 

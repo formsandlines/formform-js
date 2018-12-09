@@ -1,4 +1,4 @@
-class FCalc {
+export default class FCalc {
     /*
     =======================================================
           FORM CALCULATOR 1.6 by Peter Hofmann, 2018
@@ -11,6 +11,10 @@ class FCalc {
     */
     constructor() {
     };
+
+    static test() {
+        console.log('worked');
+    }
 
     static rel_logic(fx, fy) { // verified
         /* FORM arithmetic for commutative relation: x y */

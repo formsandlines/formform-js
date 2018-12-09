@@ -1,6 +1,10 @@
+import * as d3 from 'd3';
+import { textSize } from '../helper';
+import FForm from './fform';
+
 let g1 = {}; let g2 = {};
 
-class FGraph extends FForm {
+export default class FGraph extends FForm {
   /*
   =======================================================
         FORM GRAPH alpha 0.1 by Peter Hofmann, 2018
@@ -29,28 +33,35 @@ class FGraph extends FForm {
     let space = reForm.space = [];
     reForm.nested.reverse(); // MUST be reversed, because notation: {deepest, ..., shallowest}
 
-    for(const i in reForm.nested) {
+    for(let i in reForm.nested) {
       if (i > 0) {
         // prepend the reEntry nesting before everything else in the space
         space.unshift( {type: 'form', reChild: true, space: []} ); // space.push <- order last
         const nestedForm = space[0]; // space[space.length-1] <- order last
         
-        if (!reForm.nested[i].unmarked) {
-          // if not unmarked, we can push the whole form to the new space
-          nestedForm.space.push(reForm.nested[i]);
-        }
-        else {
-          // else, just push all contents of its space to the new space
-          for(const j in reForm.nested[i].space) {
-            nestedForm.space.push(reForm.nested[i].space[j]);
-          }
+        nestedForm.space.push(reForm.nested[i]);
+        // if (!reForm.nested[i].unmarked) {
+        //   // if not unmarked, we can push the whole form to the new space
+        //   nestedForm.space.push(reForm.nested[i]);
+        // }
+        // else {
+        //   // else, just push all contents of its space to the new space
+        //   for(let j in reForm.nested[i].space) {
+        //     nestedForm.space.push(reForm.nested[i].space[j]);
+        //   }
+        // }
+
+        // if last nesting, add the point of re-entry there
+        if (i == reForm.nested.length-1) {
+          nestedForm.space.unshift( {type: 'reEntryPoint'} );
         }
         space = nestedForm.space;
       }
       else {
-        for(const j in reForm.nested[i].space) {
-          space.push(reForm.nested[i].space[j]);
-        }
+        space.push(reForm.nested[i]);
+        // for(let j in reForm.nested[i].space) {
+        //   space.push(reForm.nested[i].space[j]);
+        // }
       }
     }
 
@@ -127,7 +138,7 @@ class FGraph extends FForm {
           L${d.target.x} ${d.target.y}
         `)
     .filter(d => d.target.data.reChild)
-      .attr('stroke','red')
+      .attr('stroke',col_indef)
       .attr('stroke-dasharray','0.5%,0.5%');
 
     const node = g.append('g')
@@ -143,11 +154,27 @@ class FGraph extends FForm {
       .attr('fill','white')
       .attr('stroke','black')
       .attr('r', 5.0);
-    formCircle.filter(d => d.data.type === 'reEntry')
-      .attr('stroke','red');
-    formCircle.filter(d => d.data.reChild)
-      .attr('stroke','red')
-      .attr('stroke-dasharray','0.5%,0.5%');
+    formCircle.each( function(d,i) {
+      const sel = d3.select(this);
+      if( d.data.type === 'reEntry' ) {
+        sel.attr('stroke','red');
+      }
+      else if( d.data.reChild ) {
+        sel.attr('stroke','red')
+        
+        if( !d.data.space[0].reChild ) {
+          node.append('circle')
+          .attr('fill','red')
+          .attr('stroke','none')
+          .attr('r', 1.0);
+        }
+      }
+    });
+    // formCircle.filter(d => d.data.type === 'reEntry')
+    //   .attr('stroke','red');
+    // formCircle.filter(d => d.data.reChild)
+    //   .attr('stroke','red')
+    //   .attr('stroke-dasharray','0.5%,0.5%');
 
     const label = node.append('g')
       .attr('class','labels')
@@ -193,29 +220,36 @@ class FGraph extends FForm {
     g1.root = root;
   }
 
-  static pack(_form) {
-    // if(typeof(_form) === 'string') _form = this.parseLinear(_form);
 
+
+
+
+  static pack(_form) {
     const data = this.expand_reEntry(_form);
 
     const hr = d3.hierarchy(data, d => d.space)
     .sum(d => d.children ? 0 : 1);
 
-    let {width,height,fontSize,margin,padding, doublePad} = 
-      {width: 600, height: 600, fontSize: 12,
-      margin: {x: 10, y: 10}, padding: 12, doublePad: 6};
+    let {width,height,fontSize,margin,padding, doublePad, 
+      col_marked, col_unmarked, col_indef, col_imag} = 
+      {width: 600, height: 600, fontSize: 14,
+      margin: {x: 10, y: 10}, padding: 12, doublePad: 6,
+      col_marked: '#858ef7', col_unmarked: '#626274',
+      col_indef: '#ff6771', col_imag: '#60f4c5'};
 
     const layout = d3.pack()
-      // .size([width - margin.x*2, height - margin.y*2])
-      .padding(padding)
+      .padding(d => {
+        let pad = padding;
+        if (d.data.unmarked && d.children.length === 1) pad = 0;
+        return pad;
+      })
       .radius(d => {
         let rad = 15;
         if(typeof(d.data.symbol) === 'string') {
           rad = textSize(d.data.symbol, fontSize).width /2;
           if(d.data.type === 'unclear') rad += padding*2;
         }
-        else if(d.data.children) rad = 0;
-        // else if(d.data.value === (0 || 3)) rad = 15 + padding;
+        else if(d.data.children || d.data.type === 'reEntryPoint') rad = 0;
         return rad;
       });
     const root = layout(hr);
@@ -224,8 +258,6 @@ class FGraph extends FForm {
     const svg = d3.select('#graph-pack')
       .append('svg').lower()
       .attr('id','svg-pack')
-      // .attr('width', width)
-      // .attr('height', height);
       .style('width', root.r*2 + margin.x*2)
       .style('height', root.r*2 + margin.y*2);
 
@@ -237,32 +269,38 @@ class FGraph extends FForm {
     const node = g.selectAll('g')
       .data(root.descendants())
       .enter().append('g')
-        .attr('transform', d => `translate(${d.x + 1},${d.y + 1})`);
+        .attr('transform', d => `translate(${d.x + 1},${d.y + 1})`)
+        .attr('stroke', 'black')
+        .attr('stroke-width', 1.0);
 
     node.filter(d => (d.data.type === 'form' && !d.data.unmarked))
       .attr('class','form')
       .append('circle')
       .attr('r', d => d.r)
       .attr('fill','none')
-      .attr('stroke','#555')
     .filter(d => (d.data.reChild))
-      .attr('stroke','red')
-      .attr('stroke-dasharray','1%,1%');
-
-    // node.filter(d => (d.parent && d.parent.data.type === 'reEntry'))
-    //   .attr('class','nested form')
-    //   .append('circle')
-    //   .attr('r', d => d.r)
-    //   .attr('fill','none')
-    //   .attr('stroke','red')
-    //   .attr('stroke-dasharray','1%,2%');
+      .attr('stroke',col_indef)
+      .attr('stroke-width', 0.5);
+    // .filter(d => d.parent.data.lastOpen)
+    //   .attr('stroke-width', 1.0);
+      // .attr('stroke-dasharray','1%,1%');
 
     node.filter(d => (d.data.type === 'reEntry' && !d.data.unmarked))
       .attr('class','reEntry')
       .append('circle')
       .attr('r', d => d.r)
       .attr('fill','none')
-      .attr('stroke','red');
+      .attr('stroke',col_indef)
+    .filter(d => d.data.lastOpen)
+      .attr('stroke-dasharray','0.5%, 1.0%');
+      // .attr('stroke-width', 1.5);
+
+    node.filter(d => d.data.type === 'reEntryPoint')
+      .append('circle')
+      .attr('r', 1.5)
+      // .attr('cx', -5)
+      .attr('fill',col_indef)
+      .attr('stroke','none');
 
     const value = node.filter(d => d.data.type === 'const');
 
@@ -270,43 +308,55 @@ class FGraph extends FForm {
       .attr('class','marked')
       .append('circle')
       .attr('r', d => d.r)
-      .attr('fill','none')
-      .attr('stroke','#555');
+      .attr('fill', col_marked)
+      .attr('stroke','none');
+      // .attr('fill','none');
 
     const val2 = value.filter(d => d.data.value === 2)
       .attr('class','undef')
       .append('circle')
       .attr('r', d => d.r)
-      .attr('fill','none')
-      .attr('stroke','#ff0000');
-
+      .attr('fill', col_indef)
+      .attr('stroke','none');
+  
     const val3 = value.filter(d => d.data.value === 3)
-      .attr('class','imag');
-    val3.append('circle')
-      .attr('class','imag-outer')
+      .attr('class','imag')
+      .append('circle')
       .attr('r', d => d.r)
-      .attr('fill','none')
-      .attr('stroke','#00ff00');
-    val3.append('circle')
-      .attr('class','imag-inner')
-      .attr('r', d => d.r - doublePad)
-      .attr('fill','none')
-      .attr('stroke','#ff0000');
+      .attr('fill', col_imag)
+      .attr('stroke','none');
+    // const val3 = value.filter(d => d.data.value === 3)
+    //   .attr('class','imag');
+    // val3.append('circle')
+    //   .attr('class','imag-outer')
+    //   .attr('r', d => d.r)
+    //   .attr('fill', 'none)
+    //   .attr('stroke', col_imag);
+    // val3.append('circle')
+    //   .attr('class','imag-inner')
+    //   .attr('r', d => d.r - doublePad)
+    //   .attr('fill','none')
+    //   .attr('stroke', col_indef);
 
     const val0 = value.filter(d => d.data.value === 0)
-      .attr('class','unmarked');
-    val0.append('circle')
-      .attr('class','unmarked-outer')
+      .attr('class','unmarked')
+      .append('circle')
       .attr('r', d => d.r)
-      .attr('fill','none')
-      .attr('stroke','#555');
-    val0.append('circle')
-      .attr('class','unmarked-inner')
-      .attr('r', d => d.r - doublePad)
-      .attr('fill','none')
-      .attr('stroke','#555');
+      .attr('fill', col_unmarked)
+      .attr('stroke','none');
+    // const val0 = value.filter(d => d.data.value === 0)
+    //   .attr('class','unmarked');
+    // val0.append('circle')
+    //   .attr('class','unmarked-outer')
+    //   .attr('r', d => d.r)
+    //   .attr('fill','none');
+    // val0.append('circle')
+    //   .attr('class','unmarked-inner')
+    //   .attr('r', d => d.r - doublePad)
+    //   .attr('fill','none');
 
     const vars = node.filter(d => d.data.type === 'var')
+      .attr('stroke','none')
       .attr('class','var')
       .append('text')
       .attr('dominant-baseline','middle')
@@ -322,7 +372,6 @@ class FGraph extends FForm {
             .attr('dx', 1)
             .attr('dy', 6)
             .attr('font-size', '.8em');
-            // .style('baseline-shift','sub');
         }
         else {
           d3.select(this)
@@ -330,21 +379,10 @@ class FGraph extends FForm {
         }
 
       });
-    // .filter(d => d.data.symbol.split('_').length > 1)
-    //   .text(d => {
-    //     const split = d.data.symbol.split('_');
-    //     if(split.length === 2) {
-    //       return '<tspan>' + split[0] + '</tspan><tspan>' + split[1] + '</tspan>';
-    //     }
-    //     else return d.data.symbol;
-    //   })
-    //   .attr('dominant-baseline','middle');
 
     const unclear = node.filter(d => d.data.type === 'unclear')
+      .attr('stroke','none')
       .attr('class','unclear');
-    // unclear.append('circle')
-    //   .attr('fill','#ff0000')
-    //   .attr('r', d => d.r);
     unclear.append('rect')
       .attr('transform', d => 
         `skewX(-30) translate(${-(d.r - padding)},

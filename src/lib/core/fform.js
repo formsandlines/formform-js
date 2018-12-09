@@ -1,4 +1,7 @@
-class FForm extends FCalc {
+import { flatten, include } from '../helper';
+import FCalc from './fcalc';
+
+export default class FForm extends FCalc {
     /*
     =======================================================
           FORM FORM alpha 1.0 by Peter Hofmann, 2018
