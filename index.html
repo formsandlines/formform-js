@@ -79,6 +79,7 @@
     <input type="button" value="view JSON" onclick="btnViewJSON();"/>
     <input type="button" value="render Tree" onclick="btnRender('tree');"/>
     <input type="button" value="render Graph" onclick="btnRender('pack');"/>
+    <input type="button" value="render GSB-Hooks" onclick="btnRender('gsb');"/>
     <!-- <input type="checkbox" name="interpr2" id="check-interpr2">
       <label for="interpr2">Interpretation 2</label> -->
   </section>
@@ -104,6 +105,11 @@
 <div id="graph-pack" class="graph">
   <div>
   <input type="button" value="save SVG" onclick="exportRender('pack');"/>
+  </div>
+</div>
+<div id="graph-gsb" class="graph">
+  <div>
+  <input type="button" value="save SVG" onclick="exportRender('gsb');"/>
   </div>
 </div>
 

@@ -1,4 +1,4 @@
-import { flatten, include } from '../helper';
+import { flatten, include } from '../../common/helper';
 import FCalc from './fcalc';
 
 export default class FForm extends FCalc {

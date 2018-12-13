@@ -1,6 +1,7 @@
 const path = require('path');
 
 module.exports = {
+    mode: 'development',
     entry: './src/index.js',
     output: {
         filename: 'bundle.js',
@@ -16,6 +17,21 @@ module.exports = {
                     presets: ['@babel/preset-env']
                 }
             }
+        },
+        {
+            test: /\.css$/,
+            use: [
+                {loader: 'style-loader'},
+                {loader: 'css-loader'}
+            ]
+        },
+        {
+            test: /\.scss$/,
+            use: [
+                {loader: 'style-loader'},
+                {loader: 'css-loader'},
+                {loader: 'sass-loader'}
+            ]
         }]
     }
 };

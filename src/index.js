@@ -1,6 +1,8 @@
-import { pad, saveSvg } from './lib/helper';
+import * as d3 from 'd3';
+import { pad, saveSvg } from './common/helper';
 import formform from './lib/main';
 
+window.d3 = d3;
 window.formform = formform;
 // console.log(formform);
 // import { FCalc } from './lib/core/fcalc';
@@ -12,6 +14,7 @@ window.formform = formform;
 const txtboxID = 'form_entry';
 const svgTreeID = 'svg-tree';
 const svgPackID = 'svg-pack';
+const svgGsbID = 'svg-gsb';
 
 $(document).ready(function(){
 
@@ -76,12 +79,16 @@ window.btnRender = function(type) {
 	if(type === 'tree') {
 		$('#graph-tree').show();
 		$('#graph-pack').hide();
-		formform.tree(txtbox.value);
+		const graph = formform.createGraph('tree', txtbox.value);
+		console.log(graph);
+		// formform.tree(txtbox.value);
 	}
 	else if(type === 'pack') {
 		$('#graph-pack').show();
 		$('#graph-tree').hide();
-		formform.pack(txtbox.value);
+		const graph = formform.createGraph('pack', txtbox.value);
+		console.log(graph);
+		// formform.pack(txtbox.value);
 	}
 }
 
@@ -95,6 +102,10 @@ window.exportRender = function(type) {
 	else if(type === 'pack') {
 		svg = document.getElementById(svgPackID);
 		name = 'formform-export_graph';
+	}
+	else if(type === 'gsb') {
+		svg = document.getElementById(svgGsbID);
+		name = 'formform-export_gsb';
 	}
 
 	try {
