@@ -1,26 +1,16 @@
 import * as d3 from 'd3';
-import { pad, saveSvg } from './common/helper';
 import formform from './lib/main';
 
-window.d3 = d3;
-window.formform = formform;
-// console.log(formform);
-// import { FCalc } from './lib/core/fcalc';
-
-// console.log(FCalc);
-// import FForm from './lib/core/fform';
-// console.log('is: '+FForm.calc('(0)1'));
-
 const txtboxID = 'form_entry';
-const svgTreeID = 'svg-tree';
-const svgPackID = 'svg-pack';
-const svgGsbID = 'svg-gsb';
+const graphTreeID = 'graph-tree';
+const graphPackID = 'graph-pack';
+const graphGsbID = 'graph-gsb';
 
 $(document).ready(function(){
 
 	$('#output-wrapper-vals').hide();
 	$('#output-wrapper-json').hide();
-	$('#graph-tree, #graph-pack').hide();
+	$(`#${graphTreeID}, #${graphPackID}`).hide();
 	
 	$('#explanations').hide();
 	$('#toggle_explanations').html('Show explanations');
@@ -33,10 +23,25 @@ $(document).ready(function(){
 	  });
 	});
 
+	// debugging:
+	// const testFormula = '(("vaa20"("vaaa30"{}{1,2})"va21")"va10"("vab20"())) (((()())()())())';
+	// const testFormula = '{"what"("cool"),1}(a)b{a,b,c}';
+	const testFormula = '( (/What/) ( ( {1,("a_n"({c})b)2,3} ) 1 "else") 0 ){}';
+
+	$(`#${graphTreeID}`).show();
+	$(`#${graphPackID}`).show();
+
+	const graphTree = formform.createGraph('tree', testFormula,
+	{parentId: graphTreeID, width: 600, height: 600});
+	
+	const graphPack = formform.createGraph('pack', testFormula,
+	{parentId: graphPackID, width: 800, height: 800});
+
+	[window.graphTree, window.graphPack] = [graphTree, graphPack];
+
 });
 
 window.btnCalc = function() {
-	// const alt_interpr = document.getElementById('check-interpr2').checked;
     const txtbox = document.getElementById(txtboxID);
     const json = formform.parseLinear(txtbox.value)
     const vals = formform.calcAll(json);
@@ -47,7 +52,7 @@ window.btnCalc = function() {
 
     let str = '<ul>';
 	for (let i = 0; i < keys.length; i++) {
-		var k = keys[i];
+		const k = keys[i];
     	str += '<li>';
 		str += k + ': ' + vals[k];
     	str += '</li>';
@@ -56,39 +61,49 @@ window.btnCalc = function() {
 
     $('#output-wrapper-json').hide();
 	$('#output-wrapper-vals').show();
-	$('#graph-tree, #graph-pack').hide();
+	$(`#${graphTreeID}, #${graphPackID}`).hide();
     $('#output-vals').html( str );
 }
 window.btnViewJSON = function() {
-    var txtbox = document.getElementById(txtboxID);
-    // var json = formform.parseLinear(txtbox.value)
+    const txtbox = document.getElementById(txtboxID);
 
     $('#output-wrapper-vals').hide();
 	$('#output-wrapper-json').show();
-	$('#graph-tree, #graph-pack').hide();
+	$(`#${graphTreeID}, #${graphPackID}`).hide();
     $('#output-json').html( '<code>'+formform.jsonString(txtbox.value)+'</code>' );
 }
 
 window.btnRender = function(type) {
-	var txtbox = document.getElementById(txtboxID);
-	// var json = formform.parseLinear(txtbox.value);
+	const txtbox = document.getElementById(txtboxID);
 
 	$('#output-wrapper-vals').hide();
 	$('#output-wrapper-json').hide();
 	
 	if(type === 'tree') {
-		$('#graph-tree').show();
-		$('#graph-pack').hide();
-		const graph = formform.createGraph('tree', txtbox.value);
+		$(`#${graphTreeID}`).show();
+		$(`#${graphPackID}`).hide();
+		$(`#${graphGsbID}`).hide();
+		$(`#${graphTreeID} > svg`).remove();
+
+		const graph = formform.createGraph('tree', txtbox.value,
+			{parentId: graphTreeID, width: 600, height: 600});
+
+		// debugging:
 		console.log(graph);
-		// formform.tree(txtbox.value);
+		window.graph = graph;
 	}
 	else if(type === 'pack') {
-		$('#graph-pack').show();
-		$('#graph-tree').hide();
-		const graph = formform.createGraph('pack', txtbox.value);
+		$(`#${graphPackID}`).show();
+		$(`#${graphTreeID}`).hide();
+		$(`#${graphGsbID}`).hide();
+		$(`#${graphPackID} > svg`).remove();
+
+		const graph = formform.createGraph('pack', txtbox.value, 
+			{parentId: graphPackID, width: 600, height: 600});
+
+		// debugging:
 		console.log(graph);
-		// formform.pack(txtbox.value);
+		window.graph = graph;
 	}
 }
 
@@ -96,30 +111,24 @@ window.exportRender = function(type) {
 	let svg = '';
 	let name = '';
 	if(type === 'tree') {
-		svg = document.getElementById(svgTreeID);
+		svg = $(`#${graphTreeID} > svg`).get().pop();
 		name = 'formform-export_tree';
 	}
 	else if(type === 'pack') {
-		svg = document.getElementById(svgPackID);
+		svg = $(`#${graphPackID} > svg`).get().pop();
 		name = 'formform-export_graph';
 	}
 	else if(type === 'gsb') {
-		svg = document.getElementById(svgGsbID);
+		svg = $(`#${graphGsbID} > svg`).get().pop();
 		name = 'formform-export_gsb';
 	}
 
-	try {
-		const date = new Date();
-		let timestamp = (''
-		+ date.getUTCFullYear()).substr(2) 
-		+ (pad((date.getUTCMonth()+1),2)) 
-		+ (pad(date.getUTCDate(),2)) + '-'
-		+ (pad((date.getHours()),2))
-		+ (pad((date.getMinutes()),2))
-		+ (pad((date.getSeconds()),2));
-
-		saveSvg(svg, timestamp+'_'+name+'.svg');
-	} catch(e) {
-		console.log(e);
-	}
+	formform.saveGraph('svg', svg, name);
 }
+
+
+
+// debugging:
+
+window.d3 = d3;
+window.formform = formform;

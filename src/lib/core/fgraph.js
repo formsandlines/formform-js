@@ -1,5 +1,5 @@
 import FForm from './fform';
-import graph from '../modules/d3-graph';
+import graph, { save } from '../modules/d3-graph';
 
 let g1 = {}; let g2 = {};
 
@@ -19,11 +19,17 @@ export default class FGraph extends FForm {
   // Graph representation
   // ----------------------------------------------------
 
-  static createGraph(graphType, _form) {
-    const data = this.expand_reEntry(_form);
-    graph.init(graphType, data);
+  static createGraph(graphType, _form, options) {
+    // expand re-entry structure to be usable for graphs
+    const form = this.expand_reEntry(_form);
+    // initialize the graph
+    graph.init(graphType, form, options);
 
     return graph;
+  }
+
+  static saveGraph(format, svg, name) {
+    save(format, svg, name);
   }
 
   static jsonString(form) {
@@ -69,6 +75,13 @@ export default class FGraph extends FForm {
         //   space.push(reForm.nested[i].space[j]);
         // }
       }
+    }
+
+    if (reForm.space.findIndex(f => f.reChild) < 0) {
+      // if there is no reEntry nesting at all, prepend the point of re-entry there
+      // because it will not have been set in the loop
+      // console.log(reForm.space);
+      reForm.space.unshift( {type: 'reEntryPoint'} );
     }
 
     // reForm.test = Array.from(reForm.nested);

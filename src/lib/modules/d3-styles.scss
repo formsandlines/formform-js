@@ -1,0 +1,53 @@
+@mixin Basic() {
+    $baseC: black;
+    $indefC: red;
+
+    font-family: georgia, serif;
+    fill: none;
+    stroke: none;
+
+    text {
+        fill: $baseC;
+    }
+
+    .graph-tree {
+        .link {
+            fill: none;
+            stroke: $baseC;
+        }
+        .node {
+            fill: $baseC;
+            stroke: none;
+        }
+    }
+
+    .graph-pack {
+        .form {
+            fill: none;
+            stroke: $baseC;
+        }
+        .reEntry {
+            stroke: $indefC;
+        }
+    }
+
+}
+
+@mixin Gestalt() {
+
+    font-family: sans-serif;
+    fill: none;
+    stroke: none;
+
+    .graph-tree {
+
+    }
+
+    .graph-pack {
+
+    }
+
+}
+
+.basic { @include Basic(); }
+.gestalt { @include Gestalt(); }
