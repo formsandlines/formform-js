@@ -1,33 +1,30 @@
 @mixin Basic() {
-    $baseC: black;
-    $indefC: red;
+    // $baseC: black;
+    // $indefC: red;
 
     font-family: georgia, serif;
     fill: none;
     stroke: none;
 
     text {
-        fill: $baseC;
+        // fill: $baseC;
     }
 
     .graph-tree {
         .link {
-            fill: none;
-            stroke: $baseC;
+
         }
         .node {
-            fill: $baseC;
-            stroke: none;
+
         }
     }
 
     .graph-pack {
         .form {
-            fill: none;
-            stroke: $baseC;
+
         }
         .reEntry {
-            stroke: $indefC;
+
         }
     }
 

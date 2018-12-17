@@ -32,10 +32,10 @@ $(document).ready(function(){
 	$(`#${graphPackID}`).show();
 
 	const graphTree = formform.createGraph('tree', testFormula,
-	{parentId: graphTreeID, width: 600, height: 600});
+		{parentId: graphTreeID, width: 800, height: 800, styleClass: 'gestalt'});
 	
 	const graphPack = formform.createGraph('pack', testFormula,
-	{parentId: graphPackID, width: 800, height: 800});
+		{parentId: graphPackID, styleClass: 'gestalt'});
 
 	[window.graphTree, window.graphPack] = [graphTree, graphPack];
 
@@ -86,10 +86,10 @@ window.btnRender = function(type) {
 		$(`#${graphTreeID} > svg`).remove();
 
 		const graph = formform.createGraph('tree', txtbox.value,
-			{parentId: graphTreeID, width: 600, height: 600});
-
+			{parentId: graphTreeID, width: window.innerWidth, height: 800});
+			
 		// debugging:
-		console.log(graph);
+		// console.log(graph);
 		window.graph = graph;
 	}
 	else if(type === 'pack') {
@@ -99,10 +99,10 @@ window.btnRender = function(type) {
 		$(`#${graphPackID} > svg`).remove();
 
 		const graph = formform.createGraph('pack', txtbox.value, 
-			{parentId: graphPackID, width: 600, height: 600});
+			{parentId: graphPackID});
 
 		// debugging:
-		console.log(graph);
+		// console.log(graph);
 		window.graph = graph;
 	}
 }

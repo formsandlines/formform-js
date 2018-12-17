@@ -32,6 +32,13 @@ export default function chartFactory(opts, proto = protoChart) {
   return chart;
 }
 
+export function fitChart(chart, padding) {
+  // calculate real dimensions of a chart (assumes chart is a g-element wrapped inside an svg)
+  d3.select(chart.node().parentElement)
+      .attr('width', chart.node().getBBox().width + padding.left + padding.right)
+      .attr('height', chart.node().getBBox().height + padding.top + padding.bottom);
+}
+
 export function getRealDepth(d) {
   // calculates the real depth of a FORM by subtracting unmarked and open reEntry FORMs
   const ghosts = d.ancestors()

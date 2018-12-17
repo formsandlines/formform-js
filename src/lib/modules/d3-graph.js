@@ -1,216 +1,315 @@
 import * as d3 from 'd3';
 
 import { textSize, saveSvg, pad } from '../../common/helper';
-import chartFactory, { textSubscript } from '../../common/d3-helper';
+import chartFactory, { fitChart, textSubscript } from '../../common/d3-helper';
 
 import './d3-styles.scss';
 import * as styles from './d3-styles.js';
 
 
 function resolveNodes(root, nodes) {
-  // resolves descendant nodes into filtered selections
-  const leaves = nodes.filter(d => root.leaves().filter(l => l === d).pop() )
-      .classed('leaf', true);
+    // resolves descendant nodes into filtered selections
+    const leaves = nodes.filter(d => root.leaves().filter(l => l === d).pop() )
+        .classed('leaf', true);
 
-  const sets = nodes.filter(d => d.data.type === 'form' || d.data.type === 'reEntry')
-      .classed('form', true)
-  const forms = sets.filter(d => d.data.type === 'form')
-      .classed('form', true);
-  const reEntries = sets.filter(d => d.data.type === 'reEntry')
-      .classed('reEntry', true);
+    const sets = nodes.filter(d => d.data.type === 'form' || d.data.type === 'reEntry')
+        .classed('form', true)
+    const forms = sets.filter(d => d.data.type === 'form')
+        .classed('form', true);
+    const reEntries = sets.filter(d => d.data.type === 'reEntry')
+        .classed('reEntry', true);
 
-  const elements = nodes.filter(d => !(d.data.type === 'form' || d.data.type === 'reEntry'))
-      .classed('element', true);
-  const vars = elements.filter(d => d.data.type === 'var')
-      .classed('var', true);
-  let consts = elements.filter(d => d.data.type === 'const')
-      .classed('const', true);
-  consts.unmarked = elements.filter(d => d.data.value == 0).classed('unmarked', true);
-  consts.marked = elements.filter(d => d.data.value == 1).classed('marked', true);
-  consts.indef = elements.filter(d => d.data.value == 2).classed('indef', true);
-  consts.imag = elements.filter(d => d.data.value == 3).classed('imag', true);
+    const elements = nodes.filter(d => !(d.data.type === 'form' || d.data.type === 'reEntry'))
+        .classed('element', true);
+    const vars = elements.filter(d => d.data.type === 'var')
+        .classed('var', true);
+    let consts = elements.filter(d => d.data.type === 'const')
+        .classed('const', true);
+    consts.unmarked = elements.filter(d => d.data.value == 0).classed('unmarked', true);
+    consts.marked = elements.filter(d => d.data.value == 1).classed('marked', true);
+    consts.indef = elements.filter(d => d.data.value == 2).classed('indef', true);
+    consts.imag = elements.filter(d => d.data.value == 3).classed('imag', true);
 
-  const unclear = elements.filter(d => d.data.type === 'unclear')
-      .classed('unclear', true);
+    const unclear = elements.filter(d => d.data.type === 'unclear')
+        .classed('unclear', true);
 
-  const rePoints = elements.filter(d => d.data.type === 'reEntryPoint')
-      .classed('reEntryPoint', true);
+    const reChilds = forms.filter(d => d.data.reChild)
+        .classed('reChild', true);
 
-  return [leaves, sets, forms, reEntries, rePoints, elements, vars, consts, unclear];
+    const rePoints = elements.filter(d => d.data.type === 'reEntryPoint')
+        .classed('reEntryPoint', true);
+
+    return [leaves, sets, forms, reEntries, reChilds, rePoints, elements, vars, consts, unclear];
 }
 
 function resolveLinks(root, links) {
-  return [];
+    // resolves links between descendant nodes into filtered selections
+    const reChildLink = links.filter(d => d.target.data.reChild)
+        .classed('reChildLink', true);
+
+    return [reChildLink];
 }
 
+export default class D3Graph {
 
-const graph = {};
+    constructor(graphType, data, opts, ...args) {
+        // create basic svg-structure from chartFactory and merge options with configuration
+        const proto = chartFactory( { 
+            ...{ margin: { left: 50, right: 50, top: 50, bottom: 50 }, 
+                padding: { left: 10, right: 10, top: 10, bottom: 10 },
+                styleClass: 'gestalt' },
+            ...opts
+        } );
 
-graph.init = function init(graphType, data, opts, ...args) {
-  // create basic svg-structure from chartFactory and merge options with configuration
-  const proto = chartFactory( { 
-    ...{ margin: { left: 50, right: 50, top: 50, bottom: 50 }, 
-         padding: { left: 10, right: 10, top: 10, bottom: 10 },
-         styleClass: 'basic' },
-    ...opts
-  } );
+        // merge this graph with the chart structure
+        Object.assign(this, proto);
+        // calculate inner dimensions of the svg-chart
+        this.innerHeight = this.height - this.margin.top - this.margin.bottom - this.padding.top - this.padding.bottom;
+        this.innerWidth = this.width - this.margin.left - this.margin.right - this.padding.left - this.padding.right;
 
-  // merge this graph with the chart structure
-  Object.assign(this, proto);
-  // calculate inner dimensions of the svg-chart
-  this.innerHeight = this.height - this.margin.top - this.margin.bottom - this.padding.top - this.padding.bottom;
-  this.innerWidth = this.width - this.margin.left - this.margin.right - this.padding.left - this.padding.right;
+        // call the appropriate method to build the graph
+        this.constructor[graphType].call(this, data, ...args);
+        //   this[graphType](data);
+        //   this[graphType].call(this, data, ...args);
+    }
+// (()())((()))((()))
+// (((c)(a)b))()()
+    static tree(data) {
+        const chart = this.container;
+        // create a d3-hierarchy from our form-json
+        const root = d3.hierarchy(data, d => d.space);
 
-  // call the appropriate method to build the graph
-  this[graphType].call(this, data, ...args);
+        // set up design variables
+        const design = styles.tree[this.styleClass];
+        const [fontSize, nodeSize, nodeSep] = [design.fontSize, design.nodeSize, design.nodeSeparation];
+
+        root.dx = nodeSize.w + nodeSep.hz;
+        root.dy = this.width / (root.height + 1);
+
+        // define tree layout
+        const layout = d3.tree()
+            // .size([ this.innerWidth, // - this.padding.left , 
+            //         this.innerHeight //- this.padding.top
+            //       ]);
+            .nodeSize([
+                root.dx,
+                root.dy
+            ]) // ([nodeSize.w + nodeSep.hz, nodeSize.h + nodeSep.vt])
+            .separation((a,b) => {
+                return a.parent == b.parent ? 1 : 2;
+            });
+        const tree = layout(root);
+
+        let x0 = Infinity;
+        let x1 = -x0;
+        tree.each(d => {
+            if (d.x > x1) x1 = d.x;
+            if (d.x < x0) x0 = d.x;
+        });
+
+        this.svg
+            .attr('width', this.width)
+            .attr('height', x1 - x0 + this.padding.top*2) // + root.dx*2)
+            .style('width', '100%')
+            .style('height', 'auto');
+
+        // setup basic chart structure
+        chart
+            .classed('graph-tree', true)
+                .attr('transform', `translate(${this.padding.left},${this.padding.top - x0})`); // root.dy / 3
+                // .attr('transform', `translate(${0},${0})`);
+            // .attr('transform', `translate(${this.innerWidth/2},${0})`);
+            // .attr('transform', `translate(${this.padding.left},${this.padding.top})`);
+        
+        const links = chart.selectAll('.link')
+            .data(tree.links()) // tree.descendants().slice(1))
+            .enter().append('g')
+                .classed('link', true)
+
+        const nodes = chart.selectAll('.node')
+            .data(tree.descendants())
+            .enter().append('g')
+                .classed('node', true)
+                .attr('transform', d => `translate(${d.y},${d.x})`);
+
+        // generate link partition selections
+        const linkPartitions = resolveLinks(tree, links);
+        const [reChildLink] = linkPartitions;
+
+        // generate node partition selections
+        const nodePartitions = resolveNodes(tree, nodes);
+        const [leaves, sets, forms, reEntries, reChilds, rePoints, elements, vars, consts, unclear] = nodePartitions;
+
+
+        // curved line generator
+        const line = d3.line().curve(d3.curveBasis);
+
+        links
+            .append('path')
+                .attr('d', d3.linkHorizontal()
+                    .x(d => d.y)
+                    .y(d => d.x));
+            // .attr('d', d => line([
+            //     [d.target.x, d.target.y],
+            //     [d.target.x, (d.target.y + d.source.y) / 2],
+            //     [d.source.x, (d.target.y + d.source.y) / 2],
+            //     [d.source.x, d.source.y]],
+            //     ));
+
+        // nodes.filter(d => !d.data.unmarked)
+        //     // .filter(d => d.data.reChild)
+        nodes.filter(d => !d.data.unmarked)
+            .append('circle')
+            .attr('r', nodeSize.w/2)
+            // .attr('cx', d => d.x)
+            // .attr('cy', d => d.y);
+        rePoints.selectAll('circle')
+            // .attr('r', design.radiusSml);
+
+        elements.selectAll('circle')
+            .attr('r', (nodeSize.w/2)/2);
+
+        nodes
+            .append('text')
+            .attr('x', nodeSize.w/2 + 2)
+            // .attr('y', 5)
+        
+        vars.selectAll('text')
+            .call(textSubscript(d => d.data.symbol));
+            //.text(d => `${d.data.symbol}`);
+        consts.selectAll('text')
+            .text(d => `= ${d.data.value}`);
+        unclear.selectAll('text')
+            .text(d => `/${d.data.symbol}/`);
+
+        sets.filter(d => d.children)
+            .append('circle')
+            .classed('inner',true)
+            .attr('r', (nodeSize.w/2)/2);
+
+        // apply all style-related attributes to the selections
+        design.applyLinkStyles(links, linkPartitions);
+        design.applyNodeStyles(nodes, nodePartitions);
+
+        // fitChart(chart, this.padding);
+
+        // chart.attr('transform', `translate(${chart.node().getBBox().width/2},${0})`);
+
+        // debugging:
+        [this.root, this.layout, this.chart, this.tree, this.design] = 
+            [root, layout, chart, tree, design];
+    }
+
+    static pack(data) {
+        const chart = this.container;
+        // create a d3-hierarchy from our form-json
+        // data.forEach()
+
+        const root = d3.hierarchy(data, d => d.space)
+            .sum(d => d.children ? 0 : 1);
+
+        // set up design variables
+        const design = styles.pack[this.styleClass];
+        const [radius, padding, fontSize] = [design.radius, design.padding, design.fontSize];
+
+        // define pack layout
+        const layout = d3.pack()
+        .padding(d => {
+            let pad = padding;
+            if (d.data.unmarked && d.children.length === 1) pad = 0;
+            return pad;
+        })
+        .radius(d => {
+            let rad = radius;
+            if(typeof(d.data.symbol) === 'string') {
+                rad = textSize(d.data.symbol, fontSize).width /2;
+                if(d.data.type === 'unclear') rad += padding*2;
+            }
+            else if(d.data.children || d.data.type === 'reEntryPoint') rad = 0;
+            return rad;
+        });
+        // .size([ this.innerWidth, this.innerHeight ]);
+        const pack = layout(root);
+
+        // d3.select(chart.node().parentElement)
+        //     .attr('width', pack.r*2 + this.padding.left)
+        //     .attr('height', pack.r*2 + this.padding.top);
+
+
+        // setup basic chart structure
+        chart.attr('class', 'graph-pack')
+            .attr('transform', `translate(${pack.r + this.padding.left},${pack.r + this.padding.top})`);
+
+        const nodes = chart.selectAll('.node')
+            .data(pack.descendants())
+            .enter().append('g')
+                .classed('node', true)
+                .attr('transform', d => `translate(${d.x},${d.y})`);
+
+        // generate node partition selections
+        const nodePartitions = resolveNodes(pack, nodes);
+        const [leaves, sets, forms, reEntries, reChilds, rePoints, elements, vars, consts, unclear] = nodePartitions;
+
+        // define detailled structure/logic
+
+        sets.append('circle')
+            .attr('r', d => d.r);
+        // forms //.filter(d => !d.data.unmarked)
+        //     // .filter(d => d.data.reChild)
+        // reEntries //.filter(d => !d.data.lastOpen)
+        vars.append('text')
+            .call(textSubscript(d => d.data.symbol));
+
+        consts.append('text')
+            .text(d => d.data.value);
+
+        unclear.append('rect')
+            .attr('transform', d => 
+            `skewX(-30) translate(${-(d.r - padding)},
+            ${-(textSize('x',fontSize).height + padding*2)/2})`)
+            .attr('width', d => d.r*2 - padding*2)
+            .attr('height', d => (textSize('x',fontSize).height + padding*2))
+        unclear.append('text')
+            .text(d => d.data.symbol);
+
+        rePoints
+            .append('circle')
+            .attr('r', 1.5);
+            // .attr('cx', -5)
+
+
+        // apply all style-related attributes to the selections
+        design.applyNodeStyles(nodes, nodePartitions);
+
+        fitChart(chart, this.padding);
+
+        // debugging:
+        [this.root, this.layout, this.chart, this.pack, this.design] = 
+            [root, layout, chart, pack, design];
+    }
+
+    static treemap(data) {
+
+    }
+
+    static force(data) {
+
+    }
+
 }
 
-graph.tree = function Tree(data) {
-  const chart = this.container;
-  // create a d3-hierarchy from our form-json
-  const root = d3.hierarchy(data, d => d.space);
-  // define tree layout
-  const layout = d3.tree()
-    .size([
-      this.innerWidth,
-      this.innerHeight,
-    ]);
-  const tree = layout(root);
-
-  const design = styles.tree[this.styleClass];
-  const [fontSize] = 
-      [design.fontSize];
-
-  const line = d3.line().curve(d3.curveBasis);
-  chart.attr('class', 'graph-tree');
-
-  chart.selectAll('.link')
-      .data(tree.descendants().slice(1))
-          .enter().append('path')
-          .attr('class', 'link')
-          .attr('d', d => line([
-              [d.x, d.y],
-              [d.x, (d.y + d.parent.y) / 2],
-              [d.parent.x, (d.y + d.parent.y) / 2],
-              [d.parent.x, d.parent.y]],
-  ));
-  // const [] = resolveLinks(tree, links);
-
-  const nodes = chart.selectAll('.node')
-      .data(tree.descendants())
-      .enter().append('g')
-          .attr('transform', d => `translate(${d.x},${d.y})`);
-  const [leaves, sets, forms, reEntries, elements, vars, consts, unclear] = resolveNodes(tree, nodes);
-
-  nodes.append('circle')
-      .attr('class', 'node')
-      .attr('r', 4.5);
-      // .attr('cx', d => d.x)
-      // .attr('cy', d => d.y);
-
-  nodes.append('text')
-      .attr('x', 10)
-      .attr('y', 5)
-      .style('font-size', fontSize)
-      .text(d => `${d.data.type}: ${d.data.symbol}`);
-
-console.log(root);
-  [this.root, this.layout, this.chart, this.tree, this.design] = 
-    [root, layout, chart, tree, design];
-}
-
-graph.pack = function Pack(data) {
-  const chart = this.container;
-  // create a d3-hierarchy from our form-json
-  const root = d3.hierarchy(data, d => d.space)
-    .sum(d => d.children ? 0 : 1);
-
-  // set up design variables
-  const design = styles.pack[this.styleClass];
-  const [radius, padding, fontSize] = 
-      [design.radius, design.padding, design.fontSize];
-
-  // define pack layout
-  const layout = d3.pack()
-    .padding(d => {
-      let pad = padding;
-      if (d.data.unmarked && d.children.length === 1) pad = 0;
-      return pad;
-    })
-    .radius(d => {
-      let rad = radius;
-      if(typeof(d.data.symbol) === 'string') {
-        rad = textSize(d.data.symbol, fontSize).width /2;
-        if(d.data.type === 'unclear') rad += padding*2;
-      }
-      else if(d.data.children || d.data.type === 'reEntryPoint') rad = 0;
-      return rad;
-    });
-  const pack = layout(root);
-
-  chart.attr('class', 'graph-pack')
-      .attr('transform', `translate(${pack.r + this.padding.left},${pack.r + this.padding.top})`);
-
-  const nodes = chart.selectAll('.node')
-      .data(pack.descendants())
-      .enter().append('g')
-      .classed('node', true)
-      .attr('transform', d => `translate(${d.x},${d.y})`);
-
-  const nodePartitions = resolveNodes(pack, nodes);
-  const [leaves, sets, forms, reEntries, rePoints, elements, vars, consts, unclear] = nodePartitions;
-
-  sets.append('circle')
-      .attr('r', d => d.r);
-  // forms //.filter(d => !d.data.unmarked)
-  //     // .filter(d => d.data.reChild)
-  // reEntries //.filter(d => !d.data.lastOpen)
-  vars.append('text')
-      .call(textSubscript(d => d.data.symbol));
-
-  consts.append('text')
-      .text(d => d.data.value);
-
-  unclear.append('rect')
-      .attr('transform', d => 
-        `skewX(-30) translate(${-(d.r - padding)},
-        ${-(textSize('x',fontSize).height + padding*2)/2})`)
-      .attr('width', d => d.r*2 - padding*2)
-      .attr('height', d => (textSize('x',fontSize).height + padding*2))
-  unclear.append('text')
-      .text(d => d.data.symbol);
-
-  rePoints
-      .append('circle')
-      .attr('r', 1.5);
-      // .attr('cx', -5)
-
-  design.applyAttr(nodePartitions);
-
-  [this.root, this.layout, this.chart, this.pack, this.design] = 
-    [root, layout, chart, pack, design];
-}
-
-graph.treemap = function Pack(data) {
-
-}
-
-graph.force = function Pack(data) {
-
-}
-
-export function save(format, svg, name) {
-  console.log(name);
-  
-  name = name || d3.select(svg.parentNode).attr('id');
-  const date = new Date();
-  let timestamp = (''
-  + date.getUTCFullYear()).substr(2) 
-  + (pad((date.getUTCMonth()+1),2)) 
-  + (pad(date.getUTCDate(),2)) + '-'
-  + (pad((date.getHours()),2))
-  + (pad((date.getMinutes()),2))
-  + (pad((date.getSeconds()),2));
+export const save = function(format, svg, name) {
+    // exports graphs into svg
+    
+    name = name || d3.select(svg.parentNode).attr('id');
+    const date = new Date();
+    let timestamp = (''
+    + date.getUTCFullYear()).substr(2) 
+    + (pad((date.getUTCMonth()+1),2)) 
+    + (pad(date.getUTCDate(),2)) + '-'
+    + (pad((date.getHours()),2))
+    + (pad((date.getMinutes()),2))
+    + (pad((date.getSeconds()),2));
 
 	try {
     switch(format) {
@@ -222,5 +321,4 @@ export function save(format, svg, name) {
 		console.log(e);
 	}
 }
-
-export default graph;
+// export default graph;

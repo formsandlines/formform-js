@@ -1,5 +1,5 @@
 import FForm from './fform';
-import graph, { save } from '../modules/d3-graph';
+import D3Graph, { save } from '../modules/d3-graph';
 
 let g1 = {}; let g2 = {};
 
@@ -23,7 +23,9 @@ export default class FGraph extends FForm {
     // expand re-entry structure to be usable for graphs
     const form = this.expand_reEntry(_form);
     // initialize the graph
-    graph.init(graphType, form, options);
+
+    let graph = new D3Graph(graphType, form, options);
+    // graph.init(graphType, form, options);
 
     return graph;
   }
@@ -35,9 +37,7 @@ export default class FGraph extends FForm {
   static jsonString(form) {
     // if(typeof(_form) === 'string') _form = this.parseLinear(_form);
 
-    // console.log(form);
     const expandedForm = this.expand_reEntry(form);
-    // console.log(expandedForm);
     return JSON.stringify(expandedForm, undefined, 2);
   }
 
@@ -51,17 +51,8 @@ export default class FGraph extends FForm {
         space.unshift( {type: 'form', reChild: true, space: []} ); // space.push <- order last
         const nestedForm = space[0]; // space[space.length-1] <- order last
         
-        nestedForm.space.push(reForm.nested[i]);
-        // if (!reForm.nested[i].unmarked) {
-        //   // if not unmarked, we can push the whole form to the new space
-        //   nestedForm.space.push(reForm.nested[i]);
-        // }
-        // else {
-        //   // else, just push all contents of its space to the new space
-        //   for(let j in reForm.nested[i].space) {
-        //     nestedForm.space.push(reForm.nested[i].space[j]);
-        //   }
-        // }
+        if(!reForm.nested[i].unmarked) nestedForm.space.push(reForm.nested[i]);
+        else nestedForm.space.push(...reForm.nested[i].space);
 
         // if last nesting, add the point of re-entry there
         if (i == reForm.nested.length-1) {
@@ -70,7 +61,8 @@ export default class FGraph extends FForm {
         space = nestedForm.space;
       }
       else {
-        space.push(reForm.nested[i]);
+        if(!reForm.nested[i].unmarked) space.push(reForm.nested[i]);
+        else space.push(...reForm.nested[i].space);
         // for(let j in reForm.nested[i].space) {
         //   space.push(reForm.nested[i].space[j]);
         // }
@@ -80,7 +72,6 @@ export default class FGraph extends FForm {
     if (reForm.space.findIndex(f => f.reChild) < 0) {
       // if there is no reEntry nesting at all, prepend the point of re-entry there
       // because it will not have been set in the loop
-      // console.log(reForm.space);
       reForm.space.unshift( {type: 'reEntryPoint'} );
     }
 
@@ -101,7 +92,7 @@ export default class FGraph extends FForm {
         this.traverseForm(targetForm, function(targetBranch) {
 
           if(JSON.stringify(refBranch) === JSON.stringify(targetBranch)) {
-            // console.log('CLICK!!!');
+            
             targetBranch = this.constructNested(targetBranch);
             return true;
           }
@@ -110,12 +101,6 @@ export default class FGraph extends FForm {
       }
     });
 
-    // targetBranch
-    // delete reForm.nested;
-
-    // this.traverseForm(targetForm, function(fBranch) {
-    //   if(refBranch.type === 'reEntry') 
-    // }
     return targetForm;
   }
 
