@@ -72,3 +72,89 @@ export function textSubscript(text) {
     })
   };
 }
+
+export function textSize(text, fontSize='inherit', fontFamily='inherit', fontStyle='normal') {
+  /* Source: https://gist.github.com/huytd/327e453c95ca3edadb32d0c867e2561b 
+  Credits to: Huy Tr. */
+  if (!d3) return;
+  var container = d3.select('body').append('svg');
+  container.append('text').style('font',`${fontStyle} ${fontSize} ${fontFamily}`)
+      .attr('x','-9999').attr('y','-9999').text(text);
+  var size = container.node().getBBox();
+  container.remove();
+  return { width: size.width, height: size.height };
+}
+
+export function opacity(color, alpha) {
+  const colorCopy = d3.color(color);
+colorCopy.opacity = alpha;
+return colorCopy;
+}
+
+export function reduceRemainder(num, _den) {
+  let count = 0;
+  let sign = 1;
+  let den = Math.round(_den);
+  let candidate = den;
+  while (num % den > 0.3) {
+      candidate += sign * 0.001;
+      if (num%candidate < num%den) den = candidate;
+
+      if(count >= 5000) {
+          candidate = Math.round(_den);
+          sign = -1;
+      }
+      if(count >= 10000) break;
+      count++;
+  }
+  // console.log(num%den);
+  return den;
+}
+export function calcCircleDash(r, unit, fraction) {
+  const circ = Math.PI*2 * r;
+  return reduceRemainder(circ, unit) * fraction;
+}
+export function circleDashArray(r, unit, fractions) {
+  let str = '';
+  for (let i in fractions) {
+      str = str.concat(`${ calcCircleDash(r, unit, fractions[i]) }px `);
+  }
+  return str;
+}
+
+// export function dashArray(r, unit, fractions) {
+//   let str = '';
+//   for (let i in fractions) {
+//       str = str.concat(`${ calcCircleDash(r, unit, fractions[i]) }px `);
+//   }
+//   return str;
+// }
+
+export function circleLabel(text, fontSize='inherit', fontFamily='inherit') {
+  // selection module to split text into parts for subscripts (e.g. "x_n")
+  return (selection) => {
+
+      selection.each(function(d) {
+
+          const textSz = textSize(text(d), fontSize, fontFamily);
+          const margin = 50;
+
+          d3.select(this).append('text')
+              .style('font', `normal ${fontSize} ${fontFamily}`)
+              .style('text-anchor', 'middle')
+              .raise()
+              .text(d => text(d));
+
+          d3.select(this).filter(d => d.r*2 >= textSz.width + margin).select('text')
+              .classed('label inside', true)
+              .attr('y', d => d.r - textSz.height*0.5 )
+              .attr('dominant-baseline','baseline');
+
+          d3.select(this).filter(d => d.r*2 < textSz.width + margin).select('text')
+              .classed('label outside', true)
+              .attr('y', d => d.r + 4)
+              .attr('dominant-baseline','hanging');
+
+      });
+  };
+}

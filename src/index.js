@@ -6,11 +6,17 @@ const graphTreeID = 'graph-tree';
 const graphPackID = 'graph-pack';
 const graphGsbID = 'graph-gsb';
 
-$(document).ready(function(){
+window.graphs = [];
 
+const styleSwitcher = {
+	tree: $('#graph-tree > #style-switch'),
+	pack: $('#graph-pack > #style-switch')
+}
+
+$(document).ready(function(){
 	$('#output-wrapper-vals').hide();
 	$('#output-wrapper-json').hide();
-	$(`#${graphTreeID}, #${graphPackID}`).hide();
+	$(`#${graphTreeID}, #${graphPackID}, #${graphGsbID}`).hide();
 	
 	$('#explanations').hide();
 	$('#toggle_explanations').html('Show explanations');
@@ -24,20 +30,23 @@ $(document).ready(function(){
 	});
 
 	// debugging:
+
 	// const testFormula = '(("vaa20"("vaaa30"{}{1,2})"va21")"va10"("vab20"())) (((()())()())())';
-	// const testFormula = '{"what"("cool"),1}(a)b{a,b,c}';
-	const testFormula = '( (/What/) ( ( {1,("a_n"({c})b)2,3} ) 1 "else") 0 ){}';
+	//{open|{/meinen/,/mitteilen/,/verstehen/},/meinen/,/mitteilen/,/verstehen/}
+	// const testFormula = '{}{open|}({}{open|}){c,b,a}{open|c,b,a}({c,b,a}{open|c,b,a})';
+	// const testFormula = '{open|{}{open|}({}{open|}){c,b,a}{open|2r|c,b,a}({c,b,a{open|a,b}}{open|c,b,{open|a}a}),a}';
 
-	$(`#${graphTreeID}`).show();
-	$(`#${graphPackID}`).show();
+	// $(`#${graphTreeID}`).show();
+	// $(`#${graphPackID}`).show();
 
-	const graphTree = formform.createGraph('tree', testFormula,
-		{parentId: graphTreeID, width: 800, height: 800, styleClass: 'gestalt'});
+	// // const graphTree = {};
+	// const graphTree = formform.createGraph('tree', testFormula,
+	// 	{parentId: graphTreeID, width: 800, height: 800, styleClass: 'basic'});
 	
-	const graphPack = formform.createGraph('pack', testFormula,
-		{parentId: graphPackID, styleClass: 'gestalt'});
+	// const graphPack = formform.createGraph('pack', testFormula,
+	// 	{parentId: graphPackID, styleClass: 'basic'});
 
-	[window.graphTree, window.graphPack] = [graphTree, graphPack];
+	// [window.graphTree, window.graphPack] = [graphTree, graphPack];
 
 });
 
@@ -79,32 +88,51 @@ window.btnRender = function(type) {
 	$('#output-wrapper-vals').hide();
 	$('#output-wrapper-json').hide();
 	
-	if(type === 'tree') {
-		$(`#${graphTreeID}`).show();
-		$(`#${graphPackID}`).hide();
-		$(`#${graphGsbID}`).hide();
-		$(`#${graphTreeID} > svg`).remove();
-
-		const graph = formform.createGraph('tree', txtbox.value,
-			{parentId: graphTreeID, width: window.innerWidth, height: 800});
-			
-		// debugging:
-		// console.log(graph);
-		window.graph = graph;
+	switch(type) {
+		case 'tree':
+			$(`#${graphTreeID}`).show();
+			$(`#${graphPackID}`).hide();
+			$(`#${graphGsbID}`).hide();
+			break;
+		case 'pack':
+			$(`#${graphPackID}`).show();
+			$(`#${graphTreeID}`).hide();
+			$(`#${graphGsbID}`).hide();
+			break;
 	}
-	else if(type === 'pack') {
-		$(`#${graphPackID}`).show();
-		$(`#${graphTreeID}`).hide();
-		$(`#${graphGsbID}`).hide();
-		$(`#${graphPackID} > svg`).remove();
 
-		const graph = formform.createGraph('pack', txtbox.value, 
-			{parentId: graphPackID});
+	let style = styleSwitcher[type].children().filter((i,d) => d.checked).attr('value');
+	if (!style) style = 'basic';
 
-		// debugging:
-		// console.log(graph);
-		window.graph = graph;
+	const graph = renderGraph(type, txtbox.value, {styleClass: style});
+
+	if (graph && window.graphs.length > 0) window.graphs.shift();
+
+	// debugging:
+	// console.log(graph);
+	window.graphs.push(graph);
+}
+
+function renderGraph(type, formula, options={}) {
+	switch(type) {
+		case 'tree':
+			$(`#${graphTreeID} > svg`).remove();
+			return formform.createGraph('tree', formula,
+				{parentId: graphTreeID, width: window.innerWidth, height: 800, ...options});
+		case 'pack':
+			$(`#${graphPackID} > svg`).remove();
+			return formform.createGraph('pack', formula, 
+				{parentId: graphPackID, ...options});
 	}
+}
+
+window.graphStyle = function(type, style) {
+	const graphsNext = [];
+	window.graphs.forEach(g => {
+		
+		graphsNext.push( renderGraph(type, g.formula, {styleClass: style}) );
+	});
+	window.graphs = graphsNext;
 }
 
 window.exportRender = function(type) {

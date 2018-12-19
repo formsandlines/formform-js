@@ -8,18 +8,6 @@ export function pad(num, size) {
     return s;
 }
 
-export function textSize(text, fontSize=12) {
-    /* Source: https://gist.github.com/huytd/327e453c95ca3edadb32d0c867e2561b 
-    Credits to: Huy Tr. */
-    if (!d3) return;
-    var container = d3.select('body').append('svg');
-    container.append('text').style('font-size',fontSize)
-        .attr('x','-9999').attr('y','-9999').text(text);
-    var size = container.node().getBBox();
-    container.remove();
-    return { width: size.width, height: size.height };
-}
-
 export function saveSvg(svgEl, name) {
     /* Source: https://stackoverflow.com/a/46403589
     Credits to: defghi1977, DaveTheScientist, senz */

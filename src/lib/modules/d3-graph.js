@@ -1,7 +1,7 @@
 import * as d3 from 'd3';
 
-import { textSize, saveSvg, pad } from '../../common/helper';
-import chartFactory, { fitChart, textSubscript } from '../../common/d3-helper';
+import { saveSvg, pad } from '../../common/helper';
+import chartFactory, { fitChart, textSize, textSubscript, circleLabel } from '../../common/d3-helper';
 
 import './d3-styles.scss';
 import * as styles from './d3-styles.js';
@@ -47,7 +47,10 @@ function resolveLinks(root, links) {
     const reChildLink = links.filter(d => d.target.data.reChild)
         .classed('reChildLink', true);
 
-    return [reChildLink];
+    const rePointLink = links.filter(d => d.target.data.type === 'reEntryPoint')
+        .classed('rePointLink', true);
+
+    return [reChildLink, rePointLink];
 }
 
 export default class D3Graph {
@@ -81,7 +84,8 @@ export default class D3Graph {
 
         // set up design variables
         const design = styles.tree[this.styleClass];
-        const [fontSize, nodeSize, nodeSep] = [design.fontSize, design.nodeSize, design.nodeSeparation];
+        const [nodeSize, nodeSep] = [design.nodeSize, design.nodeSeparation];
+        const [fontSize, font] = [design.font.size, design.font.family];
 
         root.dx = nodeSize.w + nodeSep.hz;
         root.dy = this.width / (root.height + 1);
@@ -100,27 +104,63 @@ export default class D3Graph {
             });
         const tree = layout(root);
 
+        // compute min/max x-values
         let x0 = Infinity;
         let x1 = -x0;
         tree.each(d => {
             if (d.x > x1) x1 = d.x;
             if (d.x < x0) x0 = d.x;
         });
+        // compute new height based on the difference of min/max x-values of tree nodes + twice the padding
+        const rootUnmarked = root.data.unmarked;
+        const axisHeight = 30;
+        this.height = x1 - x0 + this.padding.top*2 + axisHeight;
 
+        // setup svg container
         this.svg
             .attr('width', this.width)
-            .attr('height', x1 - x0 + this.padding.top*2) // + root.dx*2)
+            .attr('height', this.height) // + root.dx*2)
             .style('width', '100%')
             .style('height', 'auto');
+        styles.clearDefaults(this.svg); // clear default styles for svg export
 
         // setup basic chart structure
         chart
             .classed('graph-tree', true)
-                .attr('transform', `translate(${this.padding.left},${this.padding.top - x0})`); // root.dy / 3
+                .attr('transform', `translate(${this.padding.left + (root.data.unmarked ? -root.dy : 0)},${this.padding.top - x0})`);
+                // .attr('transform', `translate(${(root.data.unmarked ? -root.dy : 0)},${0})`);
+                // .attr('transform', () => {
+                //     if (root.data.unmarked) return `translate(${-root.dy},${0})`
+                // }); 
+                // root.dy / 3
                 // .attr('transform', `translate(${0},${0})`);
             // .attr('transform', `translate(${this.innerWidth/2},${0})`);
             // .attr('transform', `translate(${this.padding.left},${this.padding.top})`);
         
+        // add vertical axis lines for depth
+
+        const rootHeights = d3.range(root.height + (rootUnmarked ? 0:1));
+
+        this.depthScale = d3.scaleOrdinal()
+            .domain( rootHeights )
+            .range( rootHeights.map(i => (i+(rootUnmarked ? 1:0))*root.dy) );
+        
+        const depthAxis = d3.axisBottom()
+            .scale(this.depthScale)
+            .tickSizeInner(-this.height)
+            .tickSizeOuter(0)
+            .tickPadding(8)
+            .tickValues( this.depthScale.domain().map(i => 'Depth '+i) );
+
+        const axis = chart.append('g')
+            .classed('depthAxis', true)
+            .attr('transform', `translate(0, ${x1 + this.padding.bottom})`)
+            .call(depthAxis);
+        axis.select('.domain').remove();
+        
+
+        // add groups for links and nodes
+
         const links = chart.selectAll('.link')
             .data(tree.links()) // tree.descendants().slice(1))
             .enter().append('g')
@@ -132,14 +172,21 @@ export default class D3Graph {
                 .classed('node', true)
                 .attr('transform', d => `translate(${d.y},${d.x})`);
 
+        if (rootUnmarked) {
+            links.filter(d => d.source.depth === 0)
+                .remove();
+
+            nodes.filter(d => d.depth === 0)
+                .remove();
+        }
+
         // generate link partition selections
         const linkPartitions = resolveLinks(tree, links);
-        const [reChildLink] = linkPartitions;
+        const [reChildLink, rePointLink] = linkPartitions;
 
         // generate node partition selections
         const nodePartitions = resolveNodes(tree, nodes);
         const [leaves, sets, forms, reEntries, reChilds, rePoints, elements, vars, consts, unclear] = nodePartitions;
-
 
         // curved line generator
         const line = d3.line().curve(d3.curveBasis);
@@ -163,7 +210,21 @@ export default class D3Graph {
             .attr('r', nodeSize.w/2)
             // .attr('cx', d => d.x)
             // .attr('cy', d => d.y);
-        rePoints.selectAll('circle')
+        // rePoints.selectAll('circle')
+        rePoints.append('text')
+            .attr('x', nodeSize.w/2 + 2)
+            .text(d => {
+                let p = d.parent;
+                let counter = 0;
+                while(p.data.type !== 'reEntry') {
+                    p = p.parent;
+                    if (counter > 1000) return null; // security
+                    counter++;
+                }
+                // const reEven = p.data.reEven ? 'even' : 'odd';
+                // return `${reEven} re-entry №`;
+                return p.data.reEven ? '2|r|' : '2|r|+1';
+            });
             // .attr('r', design.radiusSml);
 
         elements.selectAll('circle')
@@ -187,7 +248,9 @@ export default class D3Graph {
             .classed('inner',true)
             .attr('r', (nodeSize.w/2)/2);
 
+
         // apply all style-related attributes to the selections
+        design.applyAxisStyles(axis);
         design.applyLinkStyles(links, linkPartitions);
         design.applyNodeStyles(nodes, nodePartitions);
 
@@ -204,26 +267,35 @@ export default class D3Graph {
         const chart = this.container;
         // create a d3-hierarchy from our form-json
         // data.forEach()
+        styles.clearDefaults(this.svg); // clear default styles for svg export
 
         const root = d3.hierarchy(data, d => d.space)
             .sum(d => d.children ? 0 : 1);
 
         // set up design variables
         const design = styles.pack[this.styleClass];
-        const [radius, padding, fontSize] = [design.radius, design.padding, design.fontSize];
+        const [radius, padding] = [design.radius, design.padding];
+        const [fontSize, font] = [design.font.size, design.font.family];
 
         // define pack layout
         const layout = d3.pack()
         .padding(d => {
             let pad = padding;
+            if (d.data.type === 'form' && d.children.length === 1) {
+                if (d.children[0].data.type === 'form')
+                    pad = pad * 0.4;
+            }
             if (d.data.unmarked && d.children.length === 1) pad = 0;
             return pad;
         })
         .radius(d => {
             let rad = radius;
             if(typeof(d.data.symbol) === 'string') {
-                rad = textSize(d.data.symbol, fontSize).width /2;
+                rad = textSize(d.data.symbol, fontSize, font).width /2;
                 if(d.data.type === 'unclear') rad += padding*2;
+            }
+            else if(d.data.value) {
+                rad = textSize(d.data.value+'', fontSize, font).width /2;
             }
             else if(d.data.children || d.data.type === 'reEntryPoint') rad = 0;
             return rad;
@@ -266,9 +338,9 @@ export default class D3Graph {
         unclear.append('rect')
             .attr('transform', d => 
             `skewX(-30) translate(${-(d.r - padding)},
-            ${-(textSize('x',fontSize).height + padding*2)/2})`)
+            ${-(textSize('x',fontSize, font).height + padding*2)/2})`)
             .attr('width', d => d.r*2 - padding*2)
-            .attr('height', d => (textSize('x',fontSize).height + padding*2))
+            .attr('height', d => (textSize('x',fontSize, font).height + padding*2))
         unclear.append('text')
             .text(d => d.data.symbol);
 
@@ -277,9 +349,15 @@ export default class D3Graph {
             .attr('r', 1.5);
             // .attr('cx', -5)
 
+        reEntries
+            .call(circleLabel( d => d.data.reEven ? '2|r|' : '2|r|+1', design.fontContext.size, design.fontContext.family ));
+            // .append('text')
+            // .raise()
+            // .text(d => d.data.reEven ? '2|r|' : '2|r|+1');
+
 
         // apply all style-related attributes to the selections
-        design.applyNodeStyles(nodes, nodePartitions);
+        design.applyNodeStyles(nodes, nodePartitions, chart);
 
         fitChart(chart, this.padding);
 

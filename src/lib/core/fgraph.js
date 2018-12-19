@@ -13,6 +13,7 @@ export default class FGraph extends FForm {
   */
 
   constructor() {
+    // this.graphs = [];
   };
 
   // ----------------------------------------------------
@@ -24,8 +25,9 @@ export default class FGraph extends FForm {
     const form = this.expand_reEntry(_form);
     // initialize the graph
 
-    let graph = new D3Graph(graphType, form, options);
-    // graph.init(graphType, form, options);
+    const graph = new D3Graph(graphType, form, options);
+    graph.formula = _form;
+    // graphs.push( new D3Graph(graphType, form, options) );
 
     return graph;
   }
@@ -42,6 +44,7 @@ export default class FGraph extends FForm {
   }
 
   static constructNested(reForm) {
+    /* Constructs a (real) nested form structure from the .nested array of the original re-entry json */
     let space = reForm.space = [];
     reForm.nested.reverse(); // MUST be reversed, because notation: {deepest, ..., shallowest}
 
@@ -52,30 +55,39 @@ export default class FGraph extends FForm {
         const nestedForm = space[0]; // space[space.length-1] <- order last
         
         if(!reForm.nested[i].unmarked) nestedForm.space.push(reForm.nested[i]);
-        else nestedForm.space.push(...reForm.nested[i].space);
+        // else nestedForm.space.push(reForm.nested[i]);
+        else nestedForm.space.push(...reForm.nested[i].space); // push(reForm.nested[i]) for grouping
 
-        // if last nesting, add the point of re-entry there
-        if (i == reForm.nested.length-1) {
-          nestedForm.space.unshift( {type: 'reEntryPoint'} );
-        }
         space = nestedForm.space;
       }
       else {
         if(!reForm.nested[i].unmarked) space.push(reForm.nested[i]);
-        else space.push(...reForm.nested[i].space);
-        // for(let j in reForm.nested[i].space) {
-        //   space.push(reForm.nested[i].space[j]);
-        // }
+        // else space.push(reForm.nested[i]);
+        else space.push(...reForm.nested[i].space); // push(reForm.nested[i]) for grouping
+      }
+    }    
+
+    // we need to add a point of re-entry to the last nested form
+    // first, lets assume this is the form itself
+    let lastNested = reForm;
+    
+    if(reForm.space.length > 0) {
+      // then loop until the last reChild is found and make this our last nested form
+      
+      while (lastNested.space[0].hasOwnProperty('reChild')) {        
+        lastNested = lastNested.space[0];
+        if (lastNested.space.length < 1) break; // prevent errors when nothing is found
       }
     }
-
-    if (reForm.space.findIndex(f => f.reChild) < 0) {
-      // if there is no reEntry nesting at all, prepend the point of re-entry there
-      // because it will not have been set in the loop
-      reForm.space.unshift( {type: 'reEntryPoint'} );
+    // for open re-entries, we need to add another nesting (see uFORM iFORM for reference)
+    if(reForm.lastOpen) {
+      lastNested.space.unshift( {type: 'form', reChild: true, space: []} );
+      // then add the re-entry point to either space
+      lastNested.space[0].space.unshift( {type: 'reEntryPoint'} );
     }
+    else lastNested.space.unshift( {type: 'reEntryPoint'} );
 
-    // reForm.test = Array.from(reForm.nested);
+    // last, delete the nested structure, we don't need it anymore
     delete reForm.nested;
     return reForm;
   }
