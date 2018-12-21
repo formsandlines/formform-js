@@ -1,7 +1,7 @@
 {
     "name": "formform",
-    "version": "0.1.0",
-    "description": "Javacript-library to calculate and visualize LoF-FORMs (Laws of Form by George Spencer-Brown) as well as undetermined FORMs (uFORM iFORM by Ralf Peyn) using a JSON-datastructure and D3.js for visualization.",
+    "version": "0.2.0",
+    "description": "Javacript-library to calculate and visualize LoF-FORMs (Laws of Form by George Spencer-Brown) as well as undetermined FORMs (uFORM iFORM by Ralf Peyn) using a JSON-datastructure and modules like D3.js for visualization and other shenanigans.",
     "keywords": [
         "laws of form",
         "uFORM iFORM",
@@ -11,9 +11,9 @@
         "FORMWELT",
         "logic"
     ],
-    "homepage": "<prj. home page>",
+    "homepage": "https://prototype.designhofmann.de/formform",
     "author": {
-        "name": "Peter",
+        "name": "Peter Hofmann",
         "url": "https://linesofthought.xyz"
     },
     "license": "ISC",
