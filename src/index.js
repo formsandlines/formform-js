@@ -1,3 +1,8 @@
+import 'bootstrap';
+import './scss/index.scss';
+
+import * as $ from 'jquery';
+
 import * as d3 from 'd3';
 import formform from './lib/main';
 
@@ -5,6 +10,8 @@ const txtboxID = 'form_entry';
 const graphTreeID = 'graph-tree';
 const graphPackID = 'graph-pack';
 const graphGsbID = 'graph-gsb';
+
+const tempData = { csv: null };
 
 window.graphs = [];
 
@@ -56,22 +63,62 @@ window.btnCalc = function() {
     const vals = formform.calcAll(json);
 
 	let keys = Object.keys(vals);
+	let table = '';
 
-	keys.sort();
+	// console.log(vals);
+	// console.log(keys);
 
-    let str = '<ul>';
-	for (let i = 0; i < keys.length; i++) {
-		const k = keys[i];
-    	str += '<li>';
-		str += k + ': ' + vals[k];
-    	str += '</li>';
+	if (keys.length === 1 && keys[0] === 'Result') {
+
+		table = `<p>${keys[0]}: <span class="result">${vals['Result']}</span></p>`;
+
+		$('#output-vals-csv').hide();
 	}
-    str += '</ul>'
+	else {
 
-    $('#output-wrapper-json').hide();
+		keys.sort();
+
+		const header = ['Variables','Interpretation','Result'];
+		const varLblClass = 'varLabels-data';
+		const varValClass = 'varValues-data';
+		table = `
+		<table class="table table-sm table-hover w-auto">
+			<thead>
+				<tr>
+					<th scope="col">${header[0]}</th>
+					<th scope="col">${header[1]}</th>
+					<th scope="col">${header[2]}</th>
+				</tr>
+			</thead>
+			<tbody>`;
+		let csv = header.join(';') + '\n';
+		for (let i = 0; i < keys.length; i++) {
+			const k = keys[i];
+			const kSplit = k.split(';');
+			
+			const varLabels = kSplit[0].split(',').join(`</span>,<span class="${varLblClass}">`).concat(`</span>`).addBefore(0,`<span class="${varLblClass}">`);
+			const varValues = kSplit[1].split('').join(`</span><span class="${varValClass}">`).concat(`</span>`).addBefore(0,`<span class="${varValClass}">`);
+			
+			table += `
+				<tr>
+					<td class="varLabels">${varLabels}</td>
+					<td class="varValues">${varValues}</td>
+					<td class="result">${vals[k]}</td>
+				</tr>`;
+			csv += k + ';' + vals[k] + (i < keys.length-1 ? '\n' : ''); // kSplit.join(';')
+		}
+		table += `
+			</tbody>
+		</table>`;
+
+		$('#output-vals-csv').show();
+		tempData.csv = csv;
+	}
+
+	$('#output-wrapper-json').hide();
 	$('#output-wrapper-vals').show();
 	$(`#${graphTreeID}, #${graphPackID}`).hide();
-    $('#output-vals').html( str );
+	$('#output-vals').html( table );
 }
 window.btnViewJSON = function() {
     const txtbox = document.getElementById(txtboxID);
@@ -152,6 +199,18 @@ window.exportRender = function(type) {
 	}
 
 	formform.saveGraph('svg', svg, name);
+}
+
+window.exportVals = function(filetype) {
+
+	if(type === 'csv' && tempData.csv) {
+		// tempData.csv;
+	}
+	else if(type === 'txt') {
+		
+	}
+
+	
 }
 
 

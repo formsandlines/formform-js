@@ -1,0 +1,60 @@
+@import "custom";
+@import "~bootstrap/scss/bootstrap";
+
+// body {
+//     font-family: Georgia, 'Times New Roman', Times, serif;
+// }
+
+#entry > input {
+    font-family: $font-family-monospace;
+    font-size: $small-font-size;
+}
+
+// #output-vals ul {
+//     list-style-type: none;
+//     font-size: $small-font-size;
+// }
+
+#output-vals {
+    & > p {
+        color: gray("600");
+        .result {
+            color: black; // theme-color('Red');
+            font-family: $font-family-monospace;
+        }
+    }
+
+    table { 
+        font-size: $small-font-size; 
+        table-layout: auto;
+        column-count: 2;
+        column-gap: 20px;
+    };
+    tbody {
+        font-family: $font-family-monospace;
+        tr:hover {
+            background-color: rgba($black, .025);
+        }
+    }
+
+    td.varLabels { color: gray("400"); }
+    td.varLabels > .varLabels-data:nth-child(odd),
+    td.varValues > .varValues-data:nth-child(odd) {
+        color: theme-color-level(primary, 6);
+    }
+    td.varLabels > .varLabels-data:nth-child(even),
+    td.varValues > .varValues-data:nth-child(even) {
+        color: theme-color-level(primary, 0);
+    }
+}
+#output-json {
+    font-size: $small-font-size; 
+}
+
+section {
+    margin-bottom: $spacer*2;
+}
+.graph > svg {
+    margin-bottom: $spacer*2;
+    height: none;
+}

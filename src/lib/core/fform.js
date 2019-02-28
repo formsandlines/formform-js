@@ -1,3 +1,5 @@
+import * as $ from 'jquery';
+
 import { flatten, include } from '../../common/helper';
 import FCalc from './fcalc';
 
@@ -63,7 +65,7 @@ export default class FForm extends FCalc {
         var vars = this.getVariables(form);
         var vals = {};
 
-        var interKey = '['+vars.join()+'] ';
+        var interKey = ''+vars.join()+';';
 
         switch (vars.length) {
             case 0:

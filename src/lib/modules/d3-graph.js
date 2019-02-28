@@ -119,9 +119,9 @@ export default class D3Graph {
         // setup svg container
         this.svg
             .attr('width', this.width)
-            .attr('height', this.height) // + root.dx*2)
-            .style('width', '100%')
-            .style('height', 'auto');
+            .attr('height', this.height); // + root.dx*2)
+            // .style('width', '100%')
+            // .style('height', 'auto');
         styles.clearDefaults(this.svg); // clear default styles for svg export
 
         // setup basic chart structure
@@ -150,7 +150,9 @@ export default class D3Graph {
             .tickSizeInner(-this.height)
             .tickSizeOuter(0)
             .tickPadding(8)
-            .tickValues( this.depthScale.domain().map(i => 'Depth '+i) );
+            .tickValues( this.depthScale.domain().map(i => 
+                (this.depthScale.domain().length < 15) ? 'Depth '+i : i
+            ) );
 
         const axis = chart.append('g')
             .classed('depthAxis', true)
