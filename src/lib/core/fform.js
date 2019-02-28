@@ -489,6 +489,17 @@ export default class FForm extends FCalc {
     }
 
     // ----------------------------------------------------
+    // Representation
+    // ----------------------------------------------------
+
+    static jsonString(form) {
+        /* return json-representation of the specified FORM */
+        if(typeof(form) === 'string') form = this.parseLinear(form);
+    
+        return JSON.stringify(form, undefined, 2);
+    }
+
+    // ----------------------------------------------------
     // Helper
     // ----------------------------------------------------
 

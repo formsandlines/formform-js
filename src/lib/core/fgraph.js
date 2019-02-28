@@ -17,6 +17,22 @@ export default class FGraph extends FForm {
   };
 
   // ----------------------------------------------------
+  // Extensions of FForm
+  // ----------------------------------------------------
+
+  static jsonString(form) {
+    const expandedForm = this.expand_reEntry(form);
+    return super.jsonString(expandedForm);
+  }
+
+  // static jsonString(form) {
+  //   // if(typeof(_form) === 'string') _form = this.parseLinear(_form);
+
+  //   const expandedForm = this.expand_reEntry(form);
+  //   return JSON.stringify(expandedForm, undefined, 2);
+  // }
+
+  // ----------------------------------------------------
   // Graph representation
   // ----------------------------------------------------
 
@@ -34,13 +50,6 @@ export default class FGraph extends FForm {
 
   static saveGraph(format, svg, name) {
     save(format, svg, name);
-  }
-
-  static jsonString(form) {
-    // if(typeof(_form) === 'string') _form = this.parseLinear(_form);
-
-    const expandedForm = this.expand_reEntry(form);
-    return JSON.stringify(expandedForm, undefined, 2);
   }
 
   static constructNested(reForm) {
