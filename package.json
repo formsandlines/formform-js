@@ -1,6 +1,6 @@
 {
     "name": "formform",
-    "version": "0.2.5",
+    "version": "0.2.7",
     "description": "Javacript-library to calculate and visualize LoF-FORMs (Laws of Form by George Spencer-Brown) as well as undetermined FORMs (uFORM iFORM by Ralf Peyn) using a JSON-datastructure and modules like D3.js for visualization and other shenanigans.",
     "keywords": [
         "laws of form",
@@ -24,8 +24,10 @@
     "private": true,
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "webpack",
-        "start": "webpack-dev-server --output-public-path=/build/"
+        "start": "webpack-dev-server --config webpack.app-dev.js",
+        "dev-app": "webpack --config webpack.app-dev.js",
+        "build-app": "webpack --config webpack.app-prod.js",
+        "build-lib": "webpack --config webpack.lib.js"
     },
     "dependencies": {
         "bootstrap": "^4.2.1",
@@ -45,6 +47,7 @@
         "style-loader": "^0.23.1",
         "webpack": "^4.27.1",
         "webpack-cli": "^3.1.2",
-        "webpack-dev-server": "^3.2.1"
+        "webpack-dev-server": "^3.2.1",
+        "webpack-merge": "^4.2.1"
     }
 }
