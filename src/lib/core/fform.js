@@ -1,5 +1,3 @@
-import * as $ from 'jquery';
-
 import { flatten, include } from '../../common/helper';
 import FCalc from './fcalc';
 
@@ -247,7 +245,7 @@ export default class FForm extends FCalc {
         // try parsing the string as a JSON object
         var json = null;
         try {
-            var json = $.parseJSON(jsonStr);
+            var json = JSON.parse(jsonStr); // $.parseJSON(jsonStr);
         } catch(e) {
             console.log(e);
         }

@@ -1,7 +1,6 @@
 import 'bootstrap';
 import './scss/index.scss';
-
-import * as $ from 'jquery';
+import {show, hide, hideAll, toggle, isVisible} from './common/helper';
 
 import * as d3 from 'd3';
 import formform from './lib/main';
@@ -16,24 +15,29 @@ const tempData = { csv: null };
 window.graphs = [];
 
 const styleSwitcher = {
-	tree: $('#graph-tree > #style-switch'),
-	pack: $('#graph-pack > #style-switch')
+	tree: document.querySelector('#graph-tree > #style-switch'),
+	pack: document.querySelector('#graph-pack > #style-switch')
 }
 
-$(document).ready(function(){
-	$('#output-wrapper-vals').hide();
-	$('#output-wrapper-json').hide();
-	$(`#${graphTreeID}, #${graphPackID}, #${graphGsbID}`).hide();
-	
-	$('#explanations').hide();
-	$('#toggle_explanations').html('Show explanations');
+document.addEventListener('DOMContentLoaded', function() {
 
-	$('#toggle_explanations').click(function() {
-	  $('#explanations').toggle( 'fast', function() {
-	    // Animation complete.
-	    if($('#explanations').is( ":visible" )) $('#toggle_explanations').html('Hide explanations');
-	    else if($('#explanations').is( ":hidden" )) $('#toggle_explanations').html('Show explanations');
-	  });
+	const explSwitch = document.getElementById('toggle_explanations');
+	const explanations = document.getElementById('explanations');
+
+	hide('#output-wrapper-vals');
+	hide('#output-wrapper-json');
+	hideAll(`#${graphTreeID}, #${graphPackID}, #${graphGsbID}`);
+	
+	hide(explanations);
+	explSwitch.innerHTML = 'Show explanations';
+
+	explSwitch.addEventListener('click', e => {
+		toggle(explanations);
+	  // $('#explanations').toggle( 'fast', function() {
+			// Animation complete.
+			if(isVisible(explanations)) explSwitch.innerHTML = 'Hide explanations';
+			else explSwitch.innerHTML = 'Show explanations';
+	  // });
 	});
 
 	// debugging:
@@ -43,8 +47,8 @@ $(document).ready(function(){
 	// const testFormula = '{}{open|}({}{open|}){c,b,a}{open|c,b,a}({c,b,a}{open|c,b,a})';
 	// const testFormula = '{open|{}{open|}({}{open|}){c,b,a}{open|2r|c,b,a}({c,b,a{open|a,b}}{open|c,b,{open|a}a}),a}';
 
-	// $(`#${graphTreeID}`).show();
-	// $(`#${graphPackID}`).show();
+	// show(`#${graphTreeID}`);
+	// show(`#${graphPackID}`);
 
 	// // const graphTree = {};
 	// const graphTree = formform.createGraph('tree', testFormula,
@@ -72,7 +76,7 @@ window.btnCalc = function() {
 
 		table = `<p>${keys[0]}: <span class="result">${vals['Result']}</span></p>`;
 
-		$('#output-vals-csv').hide();
+		hide('#output-vals-csv');
 	}
 	else {
 
@@ -111,45 +115,49 @@ window.btnCalc = function() {
 			</tbody>
 		</table>`;
 
-		$('#output-vals-csv').show();
+		show('#output-vals-csv');
 		tempData.csv = csv;
 	}
 
-	$('#output-wrapper-json').hide();
-	$('#output-wrapper-vals').show();
-	$(`#${graphTreeID}, #${graphPackID}`).hide();
-	$('#output-vals').html( table );
+	hide('#output-wrapper-json');
+	show('#output-wrapper-vals');
+	hideAll(`#${graphTreeID}, #${graphPackID}`);
+	document.getElementById('output-vals').innerHTML = table;
 }
 window.btnViewJSON = function() {
-    const txtbox = document.getElementById(txtboxID);
+  const txtbox = document.getElementById(txtboxID);
 
-    $('#output-wrapper-vals').hide();
-	$('#output-wrapper-json').show();
-	$(`#${graphTreeID}, #${graphPackID}`).hide();
-    $('#output-json').html( '<code>'+formform.jsonString(txtbox.value)+'</code>' );
+  hide('#output-wrapper-vals');
+	show('#output-wrapper-json');
+	hideAll(`#${graphTreeID}, #${graphPackID}`);
+	document.getElementById('output-json').innerHTML = '<code>'+formform.jsonString(txtbox.value)+'</code>';
 }
 
 window.btnRender = function(type) {
 	const txtbox = document.getElementById(txtboxID);
 
-	$('#output-wrapper-vals').hide();
-	$('#output-wrapper-json').hide();
+	hide('#output-wrapper-vals');
+	hide('#output-wrapper-json');
 	
 	switch(type) {
 		case 'tree':
-			$(`#${graphTreeID}`).show();
-			$(`#${graphPackID}`).hide();
-			$(`#${graphGsbID}`).hide();
+			show(`#${graphTreeID}`);
+			hide(`#${graphPackID}`);
+			hide(`#${graphGsbID}`);
 			break;
 		case 'pack':
-			$(`#${graphPackID}`).show();
-			$(`#${graphTreeID}`).hide();
-			$(`#${graphGsbID}`).hide();
+			show(`#${graphPackID}`);
+			hide(`#${graphTreeID}`);
+			hide(`#${graphGsbID}`);
 			break;
 	}
 
-	let style = styleSwitcher[type].children().filter((i,d) => d.checked).attr('value');
-	if (!style) style = 'basic';
+	let style = 'basic';
+	try {
+		style = [...styleSwitcher[type].getElementsByTagName('input')].filter(d => d.checked).pop().getAttribute('value');
+	}
+	catch (error) {
+	}
 
 	const graph = renderGraph(type, txtbox.value, {styleClass: style});
 
@@ -163,11 +171,11 @@ window.btnRender = function(type) {
 function renderGraph(type, formula, options={}) {
 	switch(type) {
 		case 'tree':
-			$(`#${graphTreeID} > svg`).remove();
+			document.querySelectorAll(`#${graphTreeID} > svg`).forEach(elem => elem.remove());
 			return formform.createGraph('tree', formula,
 				{parentId: graphTreeID, width: window.innerWidth, height: 800, ...options});
 		case 'pack':
-			$(`#${graphPackID} > svg`).remove();
+			document.querySelectorAll(`#${graphPackID} > svg`).forEach(elem => elem.remove());
 			return formform.createGraph('pack', formula, 
 				{parentId: graphPackID, ...options});
 	}
@@ -186,15 +194,15 @@ window.exportRender = function(type) {
 	let svg = '';
 	let name = '';
 	if(type === 'tree') {
-		svg = $(`#${graphTreeID} > svg`).get().pop();
+		svg = [...document.querySelectorAll(`#${graphTreeID} > svg`)].pop();
 		name = 'formform-export_tree';
 	}
 	else if(type === 'pack') {
-		svg = $(`#${graphPackID} > svg`).get().pop();
+		svg = [...document.querySelectorAll(`#${graphPackID} > svg`)].pop();
 		name = 'formform-export_graph';
 	}
 	else if(type === 'gsb') {
-		svg = $(`#${graphGsbID} > svg`).get().pop();
+		svg = [...document.querySelectorAll(`#${graphGsbID} > svg`)].pop();
 		name = 'formform-export_gsb';
 	}
 
@@ -203,10 +211,10 @@ window.exportRender = function(type) {
 
 window.exportVals = function(filetype) {
 
-	if(type === 'csv' && tempData.csv) {
+	if(filetype === 'csv' && tempData.csv) {
 		// tempData.csv;
 	}
-	else if(type === 'txt') {
+	else if(filetype === 'txt') {
 		
 	}
 
