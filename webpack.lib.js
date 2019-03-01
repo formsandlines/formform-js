@@ -8,12 +8,13 @@ module.exports = merge(common, {
         formform: './src/lib/main.js'
     },
     output: {
-        path: path.resolve(__dirname, 'build'),
-        filename: '[name].dist.js',
+        path: path.resolve(__dirname, 'dist'),
+        filename: '[name].js',
         library: 'formform',
-        libraryTarget: 'var'
+        libraryExport: 'default',
+        libraryTarget: 'umd'
     },
-    devtool: 'source-map',
+    // devtool: 'source-map',
     externals: {
         d3: 'd3'
     }

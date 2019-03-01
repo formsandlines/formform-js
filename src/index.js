@@ -3,8 +3,11 @@ import './scss/index.scss';
 import {show, hide, hideAll, toggle, isVisible} from './common/helper';
 
 import * as d3 from 'd3';
+
+// import {FGraph as formform} from './lib/main';
 import formform from './lib/main';
-// import {FCalc as formform} from './lib/main';
+// import {FGraph} from './lib/main';
+// let formform = {graph: FGraph};
 
 const txtboxID = 'form_entry';
 const graphTreeID = 'graph-tree';
@@ -52,10 +55,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	// show(`#${graphPackID}`);
 
 	// // const graphTree = {};
-	// const graphTree = formform.createGraph('tree', testFormula,
+	// const graphTree = formform.graph.createGraph('tree', testFormula,
 	// 	{parentId: graphTreeID, width: 800, height: 800, styleClass: 'basic'});
 	
-	// const graphPack = formform.createGraph('pack', testFormula,
+	// const graphPack = formform.graph.createGraph('pack', testFormula,
 	// 	{parentId: graphPackID, styleClass: 'basic'});
 
 	// [window.graphTree, window.graphPack] = [graphTree, graphPack];
@@ -64,8 +67,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.btnCalc = function() {
     const txtbox = document.getElementById(txtboxID);
-    const json = formform.parseLinear(txtbox.value)
-    const vals = formform.calcAll(json);
+    const json = formform.graph.parseLinear(txtbox.value)
+    const vals = formform.graph.calcAll(json);
 
 	let keys = Object.keys(vals);
 	let table = '';
@@ -131,7 +134,7 @@ window.btnViewJSON = function() {
   hide('#output-wrapper-vals');
 	show('#output-wrapper-json');
 	hideAll(`#${graphTreeID}, #${graphPackID}`);
-	document.getElementById('output-json').innerHTML = '<code>'+formform.jsonString(txtbox.value)+'</code>';
+	document.getElementById('output-json').innerHTML = '<code>'+formform.graph.jsonString(txtbox.value)+'</code>';
 }
 
 window.btnRender = function(type) {
@@ -173,11 +176,11 @@ function renderGraph(type, formula, options={}) {
 	switch(type) {
 		case 'tree':
 			document.querySelectorAll(`#${graphTreeID} > svg`).forEach(elem => elem.remove());
-			return formform.createGraph('tree', formula,
+			return formform.graph.createGraph('tree', formula,
 				{parentId: graphTreeID, width: window.innerWidth, height: 800, ...options});
 		case 'pack':
 			document.querySelectorAll(`#${graphPackID} > svg`).forEach(elem => elem.remove());
-			return formform.createGraph('pack', formula, 
+			return formform.graph.createGraph('pack', formula, 
 				{parentId: graphPackID, ...options});
 	}
 }
@@ -207,7 +210,7 @@ window.exportRender = function(type) {
 		name = 'formform-export_gsb';
 	}
 
-	formform.saveGraph('svg', svg, name);
+	formform.graph.saveGraph('svg', svg, name);
 }
 
 window.exportVals = function(filetype) {

@@ -8,7 +8,7 @@ module.exports = merge(common, {
         app: './src/index.js'
     },
     output: {
-        path: path.resolve(__dirname, 'app'),
+        path: path.resolve(__dirname, 'app/js'),
         filename: '[name].bundle.js'
     },
     devtool: 'inline-source-map',
