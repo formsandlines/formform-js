@@ -3,7 +3,7 @@ const merge = require('webpack-merge');
 const common = require('./webpack.common.js');
 
 module.exports = merge(common, {
-    mode: 'production',
+    mode: 'none',
     entry: {
         formform: './src/lib/main.js'
     },

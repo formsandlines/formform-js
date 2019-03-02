@@ -1,11 +1,217 @@
 # formform
 
-## About
+<br/>
 
-**formform** is a modular JavaScript library all about the 4-valued logic of cognition first introduced 2017 by Ralf Peyn in [uFORM iFORM](https://uformiform.info/). The library in its core has the purpose of calculating with all the FORMs introduced in the book and is meant to be extended with more specialized modules for different tasks like FORM representation, algebra, visualization or simulation and analysis using CAs.
+**formform** is a modular JavaScript library all about the 4-valued logic of cognition first introduced 2017 by Ralf Peyn in [uFORM iFORM](https://uformiform.info/). In its core, the purpose of the library is to calculate with all 5 FORMs (marked, unmarked, undetermined, imaginary and unclear) introduced in the book and is meant to be extended with more specialized modules for different tasks such as FORM representation, algebra, visualization or simulation and analysis using CAs.
 
-Please note that this is still very much work in progress. The library is currently in the process of restructuring and you may want to wait for a more stable release if you intent to use it. I am not a professional developer and this is just my part-time hobby. Since I still have much to learn and this is my first real library, I'll be very thankful for any advice.
+As a helpful tool for researchers and enthusiasts and as a demonstration of the library's capabilities I have also created the **formform app**. It can calculate, represent and visualize FORMs using my `formula` syntax (described below under *formform.form*). I'll upload the app on my website in the near future but you can find all the parts in this repository under /app/.
 
+Please note that my library as well as my app are still *work in progress*. The library is currently in the process of restructuring and you may want to wait for a more stable release if you intent to use it. I am not a professional developer and this is just my part-time hobby. Since I still have much to learn and this is my first real library, I'll be very thankful for any advice.
+
+<br/>
+
+## Usage
+
+You can embed the library via script-tag:
+
+```html
+<script type="text/javascript" src="formform.min.js"></script>
+```
+
+Or import it as a module:
+
+```js
+// ES6:
+import * as formform from 'formform';
+```
+
+In its current state, formform has 3 classes:
+
+
+<br/>
+
+## formform.calc
+
+`x`,`y`,`z`,… ∈ {`0`,`1`,`2`,`3`}
+
+|#    |Value             |
+|-----|------------------|
+| `0` | unmarked (n)     |
+| `1` | marked (m)       |
+| `2` | undetermined (u) |
+| `3` | imaginary (i)    |
+
+#### FORM arithmetic for commutative relation `x y`:
+```js
+rel(x,y)
+rel(...vars) // use any number of variables
+```
+
+#### FORM arithmetic for inversion/negation `(x)`:
+```js
+inv(x)
+inv(x,n) // n -> number of inversions
+```
+
+#### FORM arithmetic for different self-equivalent re-entry FORMs:
+```js
+reEntry(reEven, lastOpen, altInterpr, ...vars)
+```
+> - `reEven`: even *re-entry-number*?
+> - `lastOpen`: last variable not crossed?
+> - `altInterpr`: *alternative interpretation* (as described in [uFORM iFORM](https://uformiform.info/) on p.167)
+
+Shortcuts:
+```js
+uForm2(a,b, altInterpr=false)
+iForm2(a,b, altInterpr=false)
+
+uForm3(lastOpen, a,b,c, altInterpr=false)
+iForm3(lastOpen, a,b,c, altInterpr=false)
+
+uForm4(a,b,c,d, altInterpr=false)
+iForm4(a,b,c,d, altInterpr=false)
+
+uForm5(lastOpen, a,b,c,d,e altInterpr=false)
+iForm5(lastOpen, a,b,c,d,e altInterpr=false)
+```
+
+#### Complex FORM calculations
+
+FORM arithmetic for "implication":
+```js
+implL(x,y) // (x)y
+implR(x,y) // x(y)
+```
+
+FORM arithmetic for "presection" / "postsection":
+```js
+pre(x,y)  // ((x)y)
+post(x,y) // (x(y))
+```
+
+FORM arithmetic for "contravalence" / "equivalence":
+```js
+cont(x,y)  // ((x)y) (x(y))
+equiv(x,y) // ( ((x)y) (x(y)) )
+```
+
+<br/>
+
+## formform.form
+
+> `form` -> either a `formula` or a JSON-representation of the FORM
+
+> `formula` -> String in paranthesis-notation (see below for the syntax)
+
+#### Introduction to `formula` syntax
+
+Enclosing FORMs are typed as parenthesis `(…)`, constants as numbers (`0`,`1`,`2`,`3` see *formform.calc* above), variables as either single characters: `a`,`b`,`c`,… or labels, using quotes: `"Ball"`, `"door is open"`, `"3×2=12"`, …) and unclear forms are enclosed in slashes: `/God/`,`/World Peace/`,… .
+
+*Self-equivalent re-entry forms* are marked by curly brackets `{…}` and their variables/constants/FORMs are separated by commas `{a,b,…}`. Please note that the order of the variables is: {deepest nesting → shallowest nesting}.
+Using pipes before the arguments, you can also specify open forms (without the outer cross) `{open|a,…}` and either even `{2r|a,…}` or odd `{2r+1|a,…}` re-entry numbers as well as combinations `{2r|open|a,…}`. You can also switch to the alternative interpretation using the keyword "`alt`", like so: `{2r|alt|a,b}` (order of keywords is irrelevant).
+
+#### Recursive `form` calculation
+```js
+calc(form)
+```
+
+#### Interpretation of variables in a `form
+```js
+interpret(form, interpr)
+```
+> - `interpr`: Array of values corresponding to each variable in the `form`
+
+Interpretation followed by calculation:
+```js
+interCalc(form, interpr)
+```
+
+#### The 'Master-function'
+
+Interpretation and calculation of all possible values of the `form`:
+```js
+calcAll(form)
+```
+
+#### JSON-representation of a FORM from its `formula`
+
+Convert from `formula` into JSON string
+```js
+convFromLinear(formula)
+```
+
+Convert and parse `formula` as JSON object:
+```js
+parseLinear(formula)
+```
+
+#### Helper-functions
+
+Get all variables of a `form` as an Array:
+```js
+getVariables(form)
+```
+
+Get a JSON-String representation of a `form`:
+```js
+jsonString(form)
+```
+
+Traverse all FORM-types (without variables/values) in a `form` and apply a callback function:
+```js
+traverseForm(form, function(fBranch, depth, space) {
+  // ...
+})
+```
+> - `fBranch`: current FORM-branch of the FORM
+> - `depth`: current depth number starting from `0` as the shallowest depth (the *‘unmarked FORM’*)
+> - `space`: current space (Array of the content of fBranch)
+
+
+<br/>
+
+## formform.graph
+
+- `graphType` -> can be `'tree'` *([D3 tree](https://github.com/d3/d3-hierarchy/blob/master/README.md#tree))* or `'pack'` *([D3 circle packing](https://github.com/d3/d3-hierarchy/blob/master/README.md#pack))* or (…?)
+- `style` -> select from 2 available CSS classes: 'basic' (outlines) and 'gestalt' (what I call *GestaltFORM* (only for `'pack'`))
+
+#### Visualization (D3/SVG)
+```js
+createGraph(graphType, form, options)
+```
+`options` -> 
+```js
+{ 
+  parentId: id,      // id of parent DOM-element (if empty, parent is 'body')
+  width: <px>,       // width of the container (if empty, container auto-fits to chart)
+  height: <px>,      // height of the container (if empty, container auto-fits to chart)
+  margin: {left: <px>, right: <px>, top: <px>, bottom: <px>}
+                     // margin of the container (default: {50,50,50,50})
+  padding: {left: <px>, right: <px>, top: <px>, bottom: <px>}
+                     // padding of the container (default: {10,10,10,10})
+  styleClass: style  // style of the graph (see above for available values)
+}
+```
+
+#### Output
+
+Save rendered graph as SVG-file:
+```js
+saveGraph(format, svg, name)
+```
+> - `format`: 'svg' is the only choice for now
+> - `svg`: svg-element with the rendered graph
+> - `name`: name of the output file
+
+#### A note about representation
+
+The *graph module* expands on the JSON-representation of the *form module* by constructing nested reEntry FORMs from its more compact descriptive structure. This is necessary for the accurate visualization of those FORMs but the *form module* didn't need to be so explicit since I took advantage of their common patterns in the calculation algorithm.
+
+If you need to expand the JSON-structure of reEntry-FORMs yourself, use: `expand_reEntry(form)`
+
+
+<br/>
 
 ## History
 
@@ -14,6 +220,17 @@ This library has become my personal project since I first began studying [uFORM 
 Working with lookup tables for the calculations at first was okay, but I needed more flexibility, so I began working on some functions to calculate with all four values and in 2018 I was finally able to implement an algorithm to calculate all self-equivalent re-entry FORMs that were described in the book.
 
 I saw that there was more potential in this little collection of functions, so I began working on a JavaScript library to elaborate my ideas which gradually became *formform*. In the near future I will also rewrite my CA for SelFis as well as for the recently introduced [MindFORMs](https://carl-auer-akademie.com/blogs/systemzeit/2019/02/13/how-does-system-function-operate-5-mindforms/) in JavaScript and integrate them into my formform modules.
+
+<br/>
+
+## Thanks
+
+formform uses the following libraries / open-source projects:
+
+- (development) [Webpack](https://github.com/webpack/webpack)
+- (development) [Node.js](https://github.com/nodejs/node)
+- (lib/app) [d3.js](https://github.com/d3/d3)
+- (app) [Bootstrap](https://github.com/twbs/bootstrap) (which uses [jQuery](https://github.com/jquery/jquery))
 
 ---
 

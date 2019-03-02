@@ -12,10 +12,6 @@ export default class FCalc {
     constructor() {
     };
 
-    static test() {
-        console.log('worked');
-    }
-
     static rel_logic(fx, fy) { // verified
         /* FORM arithmetic for commutative relation: x y */
         if ( fx > 3 || fx < 0 || fy > 3 || fy < 0 ) return -98;
