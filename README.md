@@ -27,10 +27,11 @@ import * as formform from 'formform';
 
 In its current state, formform has 3 classes:
 
-
 <br/>
 
-## formform.calc
+## Documentation
+
+### formform.calc
 
 `x`,`y`,`z`,… ∈ {`0`,`1`,`2`,`3`}
 
@@ -61,7 +62,7 @@ reEntry(reEven, lastOpen, altInterpr, ...vars)
 > - `lastOpen`: last variable not crossed?
 > - `altInterpr`: *alternative interpretation* (as described in [uFORM iFORM](https://uformiform.info/) on p.167)
 
-Shortcuts:
+#### Shortcuts for more complex FORM arithmetics:
 ```js
 uForm2(a,b, altInterpr=false)
 iForm2(a,b, altInterpr=false)
@@ -75,8 +76,6 @@ iForm4(a,b,c,d, altInterpr=false)
 uForm5(lastOpen, a,b,c,d,e altInterpr=false)
 iForm5(lastOpen, a,b,c,d,e altInterpr=false)
 ```
-
-#### Complex FORM calculations
 
 FORM arithmetic for "implication":
 ```js
@@ -96,9 +95,9 @@ cont(x,y)  // ((x)y) (x(y))
 equiv(x,y) // ( ((x)y) (x(y)) )
 ```
 
-<br/>
+---
 
-## formform.form
+### formform.form
 
 > `form` -> either a `formula` or a JSON-representation of the FORM
 
@@ -116,7 +115,7 @@ Using pipes before the arguments, you can also specify open forms (without the o
 calc(form)
 ```
 
-#### Interpretation of variables in a `form
+#### Interpretation of variables in a `form`
 ```js
 interpret(form, interpr)
 ```
@@ -127,7 +126,7 @@ Interpretation followed by calculation:
 interCalc(form, interpr)
 ```
 
-#### The 'Master-function'
+#### The “Master-function”
 
 Interpretation and calculation of all possible values of the `form`:
 ```js
@@ -168,13 +167,12 @@ traverseForm(form, function(fBranch, depth, space) {
 > - `depth`: current depth number starting from `0` as the shallowest depth (the *‘unmarked FORM’*)
 > - `space`: current space (Array of the content of fBranch)
 
+---
 
-<br/>
-
-## formform.graph
+### formform.graph
 
 - `graphType` -> can be `'tree'` *([D3 tree](https://github.com/d3/d3-hierarchy/blob/master/README.md#tree))* or `'pack'` *([D3 circle packing](https://github.com/d3/d3-hierarchy/blob/master/README.md#pack))* or (…?)
-- `style` -> select from 2 available CSS classes: 'basic' (outlines) and 'gestalt' (what I call *GestaltFORM* (only for `'pack'`))
+- `style` -> select from 2 available CSS classes: 'basic' (outlines) and 'gestalt' (what I call *GestaltFORM* (only for 'pack'))
 
 #### Visualization (D3/SVG)
 ```js
@@ -223,7 +221,19 @@ I saw that there was more potential in this little collection of functions, so I
 
 <br/>
 
-## Thanks
+## Further information
+
+If you want to learn more about the ideas and theories formform is based on, here are some helpful resources:
+
+- [About uFORM iFORM](https://uformiform.info) (mostly German as is the language of the book by Ralf Peyn, but you can try [DeepL](https://www.deepl.com/translator) to translate the gist of it)
+- [Here is a list of links](https://uformiform.info/#section_recommendations) on the theoretical background behind uFORM iFORM (mostly German resources, but you can just translate the keywords and google them)
+- [3-dimensional FORM animations and FORM-builder](https://uformiform.info/animations) (a project I made back in 2017 that greatly influenced my approach to formform)
+- [Blog s y s t e m z e i t](https://carl-auer-akademie.com/blogs/systemzeit/) by Gitta Peyn – German and English articles about systemic research based on uFORM iFORM
+- [About FORMWELT](https://formwelt.info) – a coding language for language and meaning founded on the logic of cognition introduced in uFORM iFORM (we appreciate any support for the development of [FORMWELT Online](https://formwelt.info/formwelt-online)!)
+
+<br/>
+
+## Credits
 
 formform uses the following libraries / open-source projects:
 
