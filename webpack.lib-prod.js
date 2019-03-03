@@ -1,20 +1,28 @@
-const path = require('path');
+const PATHS = require('./webpack-paths.js');
 const merge = require('webpack-merge');
-const common = require('./webpack.common-prod.js');
+const common = require('./webpack.common-lib.js');
 
 module.exports = merge(common, {
-    entry: {
-        formform: './src/lib/main.js'
-    },
+    mode: 'production',
+    devtool: 'source-map',
     output: {
-        path: path.resolve(__dirname, 'dist'),
+        path: PATHS.libProd,
         filename: '[name].min.js',
         library: 'formform',
         libraryExport: 'default',
         libraryTarget: 'umd'
     },
-    // devtool: 'source-map',
-    externals: {
-        d3: 'd3'
+    module: {
+        rules: [{
+            test: /\.js?$/,
+            exclude: /node_modules/,
+            use: {
+                loader: 'babel-loader',
+                options: {
+                    presets: ['@babel/preset-env']
+                    // plugins: ["add-module-exports"]
+                }
+            }
+        }]
     }
 });

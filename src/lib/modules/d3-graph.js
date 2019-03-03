@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-import { saveSvg, pad } from '../../common/helper';
+import { saveSvg, pad, getTimestamp } from '../../common/helper';
 import chartFactory, { fitChart, textSize, textSubscript, circleLabel } from '../../common/d3-helper';
 
 import './d3-styles.scss';
@@ -382,14 +382,7 @@ export const save = function(format, svg, name) {
     // exports graphs into svg
     
     name = name || d3.select(svg.parentNode).attr('id');
-    const date = new Date();
-    let timestamp = (''
-    + date.getUTCFullYear()).substr(2) 
-    + (pad((date.getUTCMonth()+1),2)) 
-    + (pad(date.getUTCDate(),2)) + '-'
-    + (pad((date.getHours()),2))
-    + (pad((date.getMinutes()),2))
-    + (pad((date.getSeconds()),2));
+    const timestamp = getTimestamp();
 
 	try {
     switch(format) {

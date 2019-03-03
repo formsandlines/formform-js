@@ -1,13 +1,25 @@
-const path = require('path');
+const PATHS = require('./webpack-paths.js');
 const merge = require('webpack-merge');
-const common = require('./webpack.common-prod.js');
+const common = require('./webpack.common-app.js');
 
 module.exports = merge(common, {
-    entry: {
-        app: './src/index.js'
-    },
+    mode: 'production',
+    devtool: 'source-map',
     output: {
-        path: path.resolve(__dirname, 'app/js'),
-        filename: '[name].bundle.js'
+        path: PATHS.appProd,
+        filename: '[name].bundle.min.js'
+    },
+    module: {
+        rules: [{
+            test: /\.js?$/,
+            exclude: /node_modules/,
+            use: {
+                loader: 'babel-loader',
+                options: {
+                    presets: ['@babel/preset-env']
+                    // plugins: ["add-module-exports"]
+                }
+            }
+        }]
     }
 });

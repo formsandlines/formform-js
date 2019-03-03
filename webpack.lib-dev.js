@@ -1,21 +1,15 @@
-const path = require('path');
+const PATHS = require('./webpack-paths.js');
 const merge = require('webpack-merge');
-const common = require('./webpack.common.js');
+const common = require('./webpack.common-lib.js');
 
 module.exports = merge(common, {
-    mode: 'none',
-    entry: {
-        formform: './src/lib/main.js'
-    },
+    mode: 'development',
+    devtool: 'inline-source-map',
     output: {
-        path: path.resolve(__dirname, 'dist'),
+        path: PATHS.libDev,
         filename: '[name].js',
         library: 'formform',
         libraryExport: 'default',
         libraryTarget: 'umd'
-    },
-    // devtool: 'source-map',
-    externals: {
-        d3: 'd3'
     }
 });

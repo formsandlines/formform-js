@@ -4,13 +4,9 @@ import FCalc from './fcalc';
 export default class FForm extends FCalc {
     /*
     =======================================================
-          FORM FORM alpha 1.0 by Peter Hofmann, 2018
+       'form' module for formform (c) 2018 Peter Hofmann
     =======================================================
-     Extension of FORM Calculator to make use of my jsonFORM format
     */
-
-    // Ideas for implementation:
-    // - Schema-Notation: [name|a,b,…] ex.: [uFORM3open|b,c,[cont|{2r|a,c},(b)]]
 
     constructor() {
     };

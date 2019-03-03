@@ -1,14 +1,10 @@
 export default class FCalc {
     /*
     =======================================================
-          FORM CALCULATOR 1.6 by Peter Hofmann, 2018
+       'calc' module for formform (c) 2018 Peter Hofmann
     =======================================================
-     For information/reference about FORMs, see
-     - "uFORM iFORM" by Ralf Peyn, 2017 (https://uformiform.info)
-       on undetermined and imaginary FORMs and how to calculate with them
-     - "Laws of Form" by George Spencer-Brown, 1969–2015
-       for complete reference on 2-valued FORM algebra and arithmetic
     */
+   
     constructor() {
     };
 

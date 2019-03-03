@@ -1,13 +1,19 @@
 import 'bootstrap';
+// import * as clipboard from 'clipboard';
+let ClipboardJS = require('clipboard');
+let clipboard = new ClipboardJS('.clipboard-btn');
+
 import './scss/index.scss';
-import {show, hide, hideAll, toggle, isVisible} from './common/helper';
+import {show, hide, hideAll, toggle, isVisible, saveText, getTimestamp} from './common/helper';
 
 import * as d3 from 'd3';
+// import $ from 'jQuery';
 
 // import {FGraph as formform} from './lib/main';
 import formform from './lib/main';
 // import {FGraph} from './lib/main';
 // let formform = {graph: FGraph};
+// window.boot = bootstrap;
 
 const txtboxID = 'form_entry';
 const graphTreeID = 'graph-tree';
@@ -196,36 +202,79 @@ window.graphStyle = function(type, style) {
 
 window.exportRender = function(type) {
 	let svg = '';
-	let name = '';
+	let filename = '';
 	if(type === 'tree') {
 		svg = [...document.querySelectorAll(`#${graphTreeID} > svg`)].pop();
-		name = 'formform-export_tree';
+		filename = 'formform-export_tree';
 	}
 	else if(type === 'pack') {
 		svg = [...document.querySelectorAll(`#${graphPackID} > svg`)].pop();
-		name = 'formform-export_graph';
+		filename = 'formform-export_graph';
 	}
 	else if(type === 'gsb') {
 		svg = [...document.querySelectorAll(`#${graphGsbID} > svg`)].pop();
-		name = 'formform-export_gsb';
+		filename = 'formform-export_gsb';
 	}
 
-	formform.graph.saveGraph('svg', svg, name);
+	formform.graph.saveGraph('svg', svg, filename);
+}
+
+window.exportValsCopy = function() {
+	if(tempData.csv) {
+		const data = tempData.csv;
+		
+		console.log(data);
+		document.execCommand(data);
+	}
 }
 
 window.exportVals = function(filetype) {
+	let data = null;
+	// let name = '';
 
 	if(filetype === 'csv' && tempData.csv) {
-		// tempData.csv;
-	}
-	else if(filetype === 'txt') {
-		
-	}
+		data = tempData.csv;
 
+		const timestamp = getTimestamp();
+		// name = timestamp+'_'+name+'.tsv';
+	}
+	// else if(filetype === 'txt') {
+	// }
+
+	if (data !== null) {
+
+		// document.querySelector('.modal-title').innerHTML = 'Output in TSV format (tab-separated values)';
+		// document.querySelector('.modal-body').innerHTML = '<pre class="pre-scrollable"><code id="exportValsData">'+data+'</code></pre>';
+		document.getElementById('exportValsData').innerHTML = data;  // .setAttribute('value', data);
+
+		const exportValsModal = $('#exportValsModal');
+		// const exportValsModal = document.getElementById('exportValsModal');
+		exportValsModal.modal();
+
+		// try {
+		// 	saveText(filetype, filename);
+		// } catch(e) {
+		// 	console.log(e);
+		// }
+
+	}
 	
 }
 
+clipboard.on('success', function(e) {
+	// console.info('Action:', e.action);
+	// console.info('Text:', e.text);
+	// console.info('Trigger:', e.trigger);
 
+	let clipboardBtn = $('#exportValsModal .clipboard-btn');
+
+	clipboardBtn.tooltip('show');
+	setTimeout(function(){
+		clipboardBtn.tooltip('hide');
+}, 2000);
+
+	e.clearSelection();
+});
 
 // debugging:
 

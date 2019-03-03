@@ -4,13 +4,11 @@ import D3Graph, { save } from '../modules/d3-graph';
 let g1 = {}; let g2 = {};
 
 export default class FGraph extends FForm {
-  /*
-  =======================================================
-        FORM GRAPH alpha 0.1 by Peter Hofmann, 2018
-  =======================================================
-   Extension of FORM FORM for graph representation and
-   manipulation of json FORMs, using the D3.js library
-  */
+    /*
+    =======================================================
+      'graph' module for formform (c) 2018 Peter Hofmann
+    =======================================================
+    */
 
   constructor() {
     // this.graphs = [];

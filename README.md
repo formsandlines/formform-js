@@ -12,17 +12,19 @@ Please note that my library as well as my app are still *work in progress*. The 
 
 ## Usage
 
-You can embed the library via script-tag:
+You can embed the library via script-tag, but make sure you also include [d3.js](https://github.com/d3/d3) as a dependency:
 
 ```html
-<script type="text/javascript" src="formform.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.1/d3.min.js"></script>
+<script src="<yourpath>/formform.min.js"></script>
 ```
 
 Or import it as a module:
 
 ```js
 // ES6:
-import * as formform from 'formform';
+import d3 from 'd3';
+import formform from './<yourpath>/formform.min.js';
 ```
 
 In its current state, formform has 3 classes:
@@ -223,13 +225,13 @@ I saw that there was more potential in this little collection of functions, so I
 
 ## Further information
 
-If you want to learn more about the ideas and theories formform is based on, here are some helpful resources:
+If you want to learn more about the ideas and theories *formform* is based on, here are some helpful resources:
 
 - [About uFORM iFORM](https://uformiform.info) (mostly German as is the language of the book by Ralf Peyn, but you can try [DeepL](https://www.deepl.com/translator) to translate the gist of it)
 - [Here is a list of links](https://uformiform.info/#section_recommendations) on the theoretical background behind uFORM iFORM (mostly German resources, but you can just translate the keywords and google them)
 - [3-dimensional FORM animations and FORM-builder](https://uformiform.info/animations) (a project I made back in 2017 that greatly influenced my approach to formform)
 - [Blog s y s t e m z e i t](https://carl-auer-akademie.com/blogs/systemzeit/) by Gitta Peyn – German and English articles about systemic research based on uFORM iFORM
-- [About FORMWELT](https://formwelt.info) – a coding language for language and meaning founded on the logic of cognition introduced in uFORM iFORM (we appreciate any support for the development of [FORMWELT Online](https://formwelt.info/formwelt-online)!)
+- [About FORMWELT](https://formwelt.info) – a coding language for language and meaning founded on the logic of cognition introduced in uFORM iFORM (by the way, we appreciate any support for the development of [FORMWELT Online](https://formwelt.info/formwelt-online)!)
 
 <br/>
 
@@ -240,8 +242,10 @@ formform uses the following libraries / open-source projects:
 - (development) [Webpack](https://github.com/webpack/webpack)
 - (development) [Node.js](https://github.com/nodejs/node)
 - (lib/app) [d3.js](https://github.com/d3/d3)
-- (app) [Bootstrap](https://github.com/twbs/bootstrap) (which uses [jQuery](https://github.com/jquery/jquery))
+- (app) [Bootstrap](https://github.com/twbs/bootstrap) (which uses [jQuery](https://github.com/jquery/jquery) and [Popper.js](https://github.com/FezVrasta/popper.js))
 
 ---
 
 (c) 2019 by Peter Hofmann
+
+License: MIT
