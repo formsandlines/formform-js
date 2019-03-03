@@ -31,7 +31,7 @@ Or you can just embed the library via script-tag, but make sure you also include
 
 <script src="<yourpath>/formform.min.js"></script>
 // or just use the unpkg link:
-<script src="https://unpkg.com/formform@0.3.1/dist/formform.min.js"></script>
+<script src="https://unpkg.com/formform@latest/dist/formform.min.js"></script>
 ```
 
 <br/>
