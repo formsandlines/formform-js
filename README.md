@@ -12,26 +12,40 @@ Please note that my library as well as my app are still *work in progress*. The 
 
 ## Usage
 
-You can embed the library via script-tag, but make sure you also include [d3.js](https://github.com/d3/d3) as a dependency:
-
-```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.1/d3.min.js"></script>
-<script src="<yourpath>/formform.min.js"></script>
+```bash
+npm install formform --save
 ```
-
-Or import it as a module:
 
 ```js
 // ES6:
-import d3 from 'd3';
-import formform from './<yourpath>/formform.min.js';
+import formform from 'formform';
+
+// CommonJS:
+var formform = require('formform');
 ```
 
-In its current state, formform has 3 classes:
+Or you can just embed the library via script-tag, but make sure you also include [d3.js](https://github.com/d3/d3) as a dependency:
+
+```html
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.1/d3.min.js"></script>
+
+<script src="<yourpath>/formform.min.js"></script>
+// or just use the unpkg link:
+<script src="https://unpkg.com/formform@0.3.0/dist/formform.min.js"></script>
+```
 
 <br/>
 
 ## Documentation
+
+In its current state, *formform* has 3 classes that are build on top of each other and perform different tasks.
+
+- **formform.calc** lets you calculate with numeric values of the uFORM iFORM calculus
+- **formform.form** lets you calculate any FORM with constants and variables using a special JSON representation which can be easily generated from a formula String (paranthesis notation)
+- **formform.graph** lets you use this JSON representation to generate different visualization outputs or notations
+
+All classes and their API are described in detail below:
+
 
 ### formform.calc
 
