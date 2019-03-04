@@ -4,7 +4,7 @@
 
 **formform** is a modular JavaScript library all about the 4-valued logic of cognition first introduced 2017 by Ralf Peyn in [uFORM iFORM](https://uformiform.info/). In its core, the purpose of the library is to calculate with all 5 FORMs (marked, unmarked, undetermined, imaginary and unclear) introduced in the book and is meant to be extended with more specialized modules for different tasks such as FORM representation, algebra, visualization or simulation and analysis using CAs.
 
-As a helpful tool for researchers and enthusiasts and as a demonstration of the library's capabilities I have also created the **formform app**. It can calculate, represent and visualize FORMs using my `formula` syntax (described below under *formform.form*). I'll upload the app on my website in the near future but you can find all the parts in this repository under /app/.
+As a helpful tool for researchers and enthusiasts and as a demonstration of the library's capabilities I have also created the [**FORM tricorder**](https://formform.formsandlines.eu). It can calculate, represent and visualize FORMs using my `formula` syntax (described below under *formform.form*). You can find all its parts in this repository under /app/.
 
 Please note that my library as well as my app are still *work in progress*. The library is currently in the process of restructuring and you may want to wait for a more stable release if you intent to use it. I am not a professional developer and this is just my part-time hobby. Since I still have much to learn and this is my first real library, I'll be very thankful for any advice.
 
@@ -257,6 +257,7 @@ formform uses the following libraries / open-source projects:
 - (development) [Node.js](https://github.com/nodejs/node)
 - (lib/app) [d3.js](https://github.com/d3/d3)
 - (app) [Bootstrap](https://github.com/twbs/bootstrap) (which uses [jQuery](https://github.com/jquery/jquery) and [Popper.js](https://github.com/FezVrasta/popper.js))
+- (app) [clipboard.js](https://github.com/zenorocha/clipboard.js)
 
 ---
 

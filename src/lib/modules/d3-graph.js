@@ -60,7 +60,7 @@ export default class D3Graph {
         const proto = chartFactory( { 
             ...{ margin: { left: 50, right: 50, top: 50, bottom: 50 }, 
                 padding: { left: 10, right: 10, top: 10, bottom: 10 },
-                styleClass: 'gestalt' },
+                styleClass: 'basic' },
             ...opts
         } );
 

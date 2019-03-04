@@ -5,6 +5,10 @@
 //     font-family: Georgia, 'Times New Roman', Times, serif;
 // }
 
+#intro {
+    margin-top: $spacer*2;
+}
+
 #entry > input, #exportValsData {
     font-family: $font-family-monospace;
     font-size: $small-font-size;
