@@ -1,9 +1,36 @@
-$theme-colors: (
-  "primary": #3cbea7
-  // "secondary": #ff4136
+@import url('https://fonts.googleapis.com/css?family=IBM+Plex+Mono|IBM+Plex+Sans|IBM+Plex+Serif');
+
+// $grid-breakpoints: (
+//   xs: 0, // 0,
+//   sm: 576px, // 576px,
+//   md: 768px, // 768px,
+//   lg: 1200px, // 992px,
+//   xl: 2400px // 1200px
+// );
+
+$container-max-widths: (
+  sm: 540px, // 540px,
+  md: 720px, // 720px,
+  lg: 800px, // 960px,
+  xl: 920px // 1140px
 );
+
+$theme-colors: (
+  // "primary": #3cbea7
+  "primary": rgb(0, 60, 255),
+  // "primary": #001DFF,
+  // "secondary": #ff4136
+  "info": #ff0030
+);
+
+// $body-color: #362318;
+// $body-color: rgb(0, 4, 36);
+$body-color: #202020;
+$code-color: rgb(121, 121, 121);
+
 $yiq-contrasted-threshold: 155; // 150
 
-$font-family-base: Georgia, 'Times New Roman', Times, serif;
+// $font-family-base: 'IBM Plex Serif', Georgia, 'Times New Roman', Times, serif;
+$font-family-base: 'IBM Plex Sans', 'Helvetica', Arial, sans;
 
-// $font-family-monospace:
+$font-family-monospace: 'IBM Plex Mono', mono;

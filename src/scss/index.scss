@@ -1,9 +1,63 @@
 @import "custom";
 @import "~bootstrap/scss/bootstrap";
 
-// body {
-//     font-family: Georgia, 'Times New Roman', Times, serif;
+
+h1 {
+    font-family: 'IBM Plex Sans', 'Helvetica', Arial, sans;
+    // font-weight: 100;
+}
+
+// a {
+//     color: $body-color;
+//     // border-bottom: 1px solid $link-color;
+//     text-decoration: underline $link-color;
+//     &:hover {
+//         text-decoration: none;
+//     }
 // }
+
+// #interface {
+//     position: relative;
+//     &:before {
+//         content: "";
+//         display: block;
+//         position: absolute;
+//         width: 80%;
+//         height: 100%;
+//         background-color: $gray-200;
+//         border-radius: 0 500px 500px 0;
+//     }
+// }
+
+$calc-color-1: #CCD5FF;
+$calc-color-2: #A6B9FF;
+$graph-color-1: #FFE190;
+$graph-color-2: #FFC938;
+
+#action {
+    // background-color: $gray-200;
+    // border-radius: 0 500px 500px 0;
+
+    .btn-group {
+        vertical-align: bottom;
+        // background-color: $white;
+    }
+    button {
+        font-family: 'IBM Plex Sans Condensed', 'Helvetica', Arial, sans;
+        font-weight: 400;
+        font-size: $input-btn-font-size-sm;
+        color: $black;
+        border: none;
+        margin-right: 3px;
+        padding: 1.4em 0.6em 0.2em 2.8em;
+        // border-radius: 0;
+        &:last-child { margin-right: 0; }
+    }
+    #btn-calc { background-color: $calc-color-1; &:hover { background-color: darken($calc-color-1, 6%); } }
+    #btn-viewjson { background-color: $calc-color-2; &:hover { background-color: darken($calc-color-2, 4%); } }
+    #btn-tree { background-color: $graph-color-1; &:hover { background-color: darken($graph-color-1, 14%); } }
+    #btn-pack { background-color: $graph-color-2; &:hover { background-color: darken($graph-color-2, 8%); } }
+}
 
 #intro {
     margin-top: $spacer*2;
@@ -14,16 +68,11 @@
     font-size: $small-font-size;
 }
 
-// #output-vals ul {
-//     list-style-type: none;
-//     font-size: $small-font-size;
-// }
-
 #output-vals {
     & > p {
         color: gray("600");
         .result {
-            color: black; // theme-color('Red');
+            color: black;
             font-family: $font-family-monospace;
         }
     }
