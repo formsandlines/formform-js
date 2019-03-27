@@ -18,9 +18,7 @@ npm install formform --save
 
 ```js
 // ES6:
-// deprecated: import formform from 'formform';
-// now use:
-import * as formform from 'formform';
+import formform from 'formform';
 
 // CommonJS:
 var formform = require('formform');

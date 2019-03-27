@@ -181,7 +181,8 @@ export default class FForm extends FCalc {
 
         var interprForm = JSON.parse(JSON.stringify(form)); // clone form
 
-        this.traverseForm(interprForm, function(fBranch,depth,space) {
+        this.traverseForm(interprForm, function(fBranch) {
+            const space = fBranch.space;
 
             for (var i in space) {
                 if (space[i].type === 'var') {
@@ -503,7 +504,8 @@ export default class FForm extends FCalc {
         if(typeof(form) === 'string') form = this.parseLinear(form);
 
         var vars = [];
-        this.traverseForm(form, function(fBranch,depth,space) {
+        this.traverseForm(form, function(fBranch) {
+            const space = fBranch.space;
 
             for (var i in space) {
                 if (space[i].type === 'var') {
@@ -518,7 +520,7 @@ export default class FForm extends FCalc {
 
     static traverseForm(form,func) {
         /* traverses only form-types in a json tree */
-        let breakTrav = func.apply(this,[form,form.depth,form.space]);
+        let breakTrav = func.apply(this,[form]); // [form,form.depth,form.space]
 
         if (form.space) { // form.type === 'form'
             if (form.space.length > 0) {

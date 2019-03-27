@@ -7,7 +7,8 @@ import './scss/index.scss';
 import {show, hide, hideAll, toggle, isVisible, saveText, getTimestamp} from './common/helper';
 
 import * as d3 from 'd3';
-import * as formform from './lib/main';
+import formform from './lib/main';
+// import * as formform from './lib/main';
 
 const txtboxID = 'form_entry';
 const graphTreeID = 'graph-tree';
