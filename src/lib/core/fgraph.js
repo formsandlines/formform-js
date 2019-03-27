@@ -94,9 +94,8 @@ export default class FGraph extends FForm {
     }
     else lastNested.space.unshift( {type: 'reEntryPoint'} );
 
-    // last, delete the nested structure and also the running index, we don't need them anymore
+    // last, delete the nested structure, we don't need it anymore
     delete reForm.nested;
-    delete reForm.runningIndex;
     return reForm;
   }
 
@@ -106,6 +105,7 @@ export default class FGraph extends FForm {
     let targetForm = this.parseLinear(_form);
 
     // we must keep a running index to not confuse identical forms while reconstructing the reEntries
+    // Note: this should be done more efficiently in the future
     let runningIndex = 0;
     this.traverseForm(refForm, function(branch) { branch.runningIndex = runningIndex, runningIndex++; });
     runningIndex = 0;
@@ -125,6 +125,8 @@ export default class FGraph extends FForm {
 
       }
     });
+    // delete running index property
+    this.traverseForm(targetForm, function(branch) { delete branch.runningIndex; });
 
     return targetForm;
   }
