@@ -23,20 +23,15 @@ export default class FGraph extends FForm {
     return super.jsonString(expandedForm);
   }
 
-  // static jsonString(form) {
-  //   // if(typeof(_form) === 'string') _form = this.parseLinear(_form);
-
-  //   const expandedForm = this.expand_reEntry(form);
-  //   return JSON.stringify(expandedForm, undefined, 2);
-  // }
-
   // ----------------------------------------------------
   // Graph representation
   // ----------------------------------------------------
 
   static createGraph(graphType, _form, options) {
+    const addEmptyReChildSpace = (graphType === 'pack');
+
     // expand re-entry structure to be usable for graphs
-    const form = this.expand_reEntry(_form);
+    const form = this.expand_reEntry(_form, {addEmptyReChildSpace: addEmptyReChildSpace});
     // initialize the graph
 
     const graph = new D3Graph(graphType, form, options);
@@ -50,7 +45,7 @@ export default class FGraph extends FForm {
     save(format, svg, name);
   }
 
-  static constructNested(reForm) {
+  static constructNested(reForm, options={}) {
     /* Constructs a (real) nested form structure from the .nested array of the original re-entry json */
     let space = reForm.space = [];
     reForm.nested.reverse(); // MUST be reversed, because notation: {deepest, ..., shallowest}
@@ -62,8 +57,10 @@ export default class FGraph extends FForm {
         const nestedForm = space[0]; // space[space.length-1] <- order last
         
         if(!reForm.nested[i].unmarked) nestedForm.space.push(reForm.nested[i]);
-        // else nestedForm.space.push(reForm.nested[i]);
-        else nestedForm.space.push(...reForm.nested[i].space); // push(reForm.nested[i]) for grouping
+        else {
+          // nestedForm.space.push(reForm.nested[i]);
+          nestedForm.space.push(...reForm.nested[i].space); // push(reForm.nested[i]) for grouping
+        }
 
         space = nestedForm.space;
       }
@@ -71,6 +68,10 @@ export default class FGraph extends FForm {
         if(!reForm.nested[i].unmarked) space.push(reForm.nested[i]);
         // else space.push(reForm.nested[i]);
         else space.push(...reForm.nested[i].space); // push(reForm.nested[i]) for grouping
+      }
+
+      if (options.addEmptyReChildSpace && (space.length === 0)) {
+        space.push( {type: 'space'} );
       }
     }    
 
@@ -99,7 +100,7 @@ export default class FGraph extends FForm {
     return reForm;
   }
 
-  static expand_reEntry(_form) {
+  static expand_reEntry(_form, options={}) {
     if(typeof(_form) !== 'string') _form = JSON.stringify(_form);
     const refForm = this.parseLinear(_form);
     let targetForm = this.parseLinear(_form);
@@ -118,7 +119,7 @@ export default class FGraph extends FForm {
 
           if( (JSON.stringify(refBranch) === JSON.stringify(targetBranch)) && 
               (refBranch.runningIndex === (targetBranch.hasOwnProperty('runningIndex') ? targetBranch.runningIndex : null)) ) {
-            targetBranch = this.constructNested(targetBranch);
+            targetBranch = this.constructNested(targetBranch, options);
             return true;
           }
         });

@@ -25,6 +25,11 @@ export default function chartFactory(opts, proto = protoChart) {
 
   if (opts.styleClass) chart.svg.attr('class', opts.styleClass);
 
+  if (opts.drawBackground) chart.svg.append('rect')
+    .attr('id', 'background')
+    .attr('width','100%').attr('height','100%')
+    .attr('fill', '#ffffff'); // 'rgba(255,0,0,.2)');
+
   chart.container = chart.svg.append('g')
     .attr('id', 'container')
     .attr('transform', `translate(${chart.margin.left}, ${chart.margin.top})`);
@@ -52,9 +57,21 @@ export function textSubscript(text) {
   return (selection) => {
     selection.each(function(d) {
 
-        const split = text(d).split('_');
-        if (split.length === 2) {
+        const split = (typeof(text(d)) === 'string') ? text(d).split('_') : '';
 
+        // if (split.length > 1) {
+        //   split.forEach((part,i) => {
+
+        //     const elem = d3.select(this).append('tspan')
+        //       .text(d => part);
+
+        //     if (i%2===1) elem
+        //       .attr('dx', 1)
+        //       .attr('dy', 6)
+        //       .attr('font-size', '.8em');
+        //   });
+        // }
+        if (split.length === 2) {
           d3.select(this).append('tspan')
             .text(d => split[0]);
 
@@ -62,7 +79,7 @@ export function textSubscript(text) {
             .text(d => split[1])
             .attr('dx', 1)
             .attr('dy', 6)
-            .attr('font-size', '.8em');
+            .style('font-size', '.8em');
         }
         else {
           d3.select(this)
@@ -78,8 +95,12 @@ export function textSize(text, fontSize='inherit', fontFamily='inherit', fontSty
   Credits to: Huy Tr. */
   if (!d3) return;
   var container = d3.select('body').append('svg');
-  container.append('text').style('font',`${fontStyle} ${fontSize} ${fontFamily}`)
-      .attr('x','-9999').attr('y','-9999').text(text);
+  container.append('text')
+    .style('font-size', fontSize)
+    .style('font-style', fontStyle)
+    .style('font-family', fontFamily)
+    .attr('x','-9999').attr('y','-9999')
+    .call(textSubscript(() => text)); // .text(text);
   var size = container.node().getBBox();
   container.remove();
   return { width: size.width, height: size.height };
@@ -107,7 +128,6 @@ export function reduceRemainder(num, _den) {
       if(count >= 10000) break;
       count++;
   }
-  // console.log(num%den);
   return den;
 }
 export function calcCircleDash(r, unit, fraction) {
@@ -122,15 +142,7 @@ export function circleDashArray(r, unit, fractions) {
   return str;
 }
 
-// export function dashArray(r, unit, fractions) {
-//   let str = '';
-//   for (let i in fractions) {
-//       str = str.concat(`${ calcCircleDash(r, unit, fractions[i]) }px `);
-//   }
-//   return str;
-// }
-
-export function circleLabel(text, fontSize='inherit', fontFamily='inherit') {
+export function circleLabel(text, fontSize='inherit', fontFamily='inherit', fontStyle='normal') {
   // selection module to split text into parts for subscripts (e.g. "x_n")
   return (selection) => {
 
@@ -140,7 +152,9 @@ export function circleLabel(text, fontSize='inherit', fontFamily='inherit') {
           const margin = 50;
 
           d3.select(this).append('text')
-              .style('font', `normal ${fontSize} ${fontFamily}`)
+              .style('font-size', fontSize)
+              .style('font-style', fontStyle)
+              .style('font-family', fontFamily)
               .style('text-anchor', 'middle')
               .raise()
               .text(d => text(d));

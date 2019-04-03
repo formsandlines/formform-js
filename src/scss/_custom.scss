@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css?family=IBM+Plex+Mono|IBM+Plex+Sans|IBM+Plex+Serif');
+// @import url('https://fonts.googleapis.com/css?family=IBM+Plex+Mono|IBM+Plex+Sans|IBM+Plex+Serif');
+// @import url('https://fonts.googleapis.com/css?family=IBM+Plex+Mono:300,300i,400,400i|IBM+Plex+Sans+Condensed:400,500,600|IBM+Plex+Sans:300,300i,400,400i,500,500i,600,600i,700,700i');
+@import url('https://fonts.googleapis.com/css?family=IBM+Plex+Mono:400,400i|IBM+Plex+Sans+Condensed:400,400i|IBM+Plex+Sans:400,400i,500,600,600i');
 
 // $grid-breakpoints: (
 //   xs: 0, // 0,
@@ -15,22 +17,28 @@ $container-max-widths: (
   xl: 920px // 1140px
 );
 
+$red: #EF1E31;
+$red-dark: #8A184A;
+$blue-dark: #13093E;
+$blue: #524DB4;
+
 $theme-colors: (
   // "primary": #3cbea7
-  "primary": rgb(0, 60, 255),
+  "primary": $red,
   // "primary": #001DFF,
   // "secondary": #ff4136
-  "info": #ff0030
+  "info": $blue
 );
 
 // $body-color: #362318;
 // $body-color: rgb(0, 4, 36);
-$body-color: #202020;
-$code-color: rgb(121, 121, 121);
+$body-color: #13093E;// #202020;
+$code-color: $body-color;  // rgb(121, 121, 121);
 
 $yiq-contrasted-threshold: 155; // 150
 
 // $font-family-base: 'IBM Plex Serif', Georgia, 'Times New Roman', Times, serif;
 $font-family-base: 'IBM Plex Sans', 'Helvetica', Arial, sans;
+// $font-weight-base: 400;
 
 $font-family-monospace: 'IBM Plex Mono', mono;

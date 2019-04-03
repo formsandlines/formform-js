@@ -1,69 +1,88 @@
 @import "custom";
 @import "~bootstrap/scss/bootstrap";
 
+$prop: 1.667;
+
+$scale1: $prop;
+$scale2: $prop * $prop;
+$scale3: $prop * $prop * $prop;
+$scale4: $prop * $prop * $prop * $prop;
+$scale-1: 1 / $scale1;
+$scale-2: 1 / $scale2;
+$scale-3: 1 / $scale3;
+$scale-4: 1 / $scale4;
 
 h1 {
     font-family: 'IBM Plex Sans', 'Helvetica', Arial, sans;
-    // font-weight: 100;
+    font-weight: 500;
+    font-size: $scale2 * 1rem;
+}
+h4 {
+    margin-top: $scale1 * 1em;
+    margin-bottom: $scale-1 * 1em;
+}
+h6 {
+    font-weight: normal;
+    text-decoration: underline;
+    margin-bottom: $scale-2 * 1em;
+    sup { text-decoration: none; }
 }
 
-// a {
-//     color: $body-color;
-//     // border-bottom: 1px solid $link-color;
-//     text-decoration: underline $link-color;
-//     &:hover {
-//         text-decoration: none;
-//     }
-// }
-
-// #interface {
-//     position: relative;
-//     &:before {
-//         content: "";
-//         display: block;
-//         position: absolute;
-//         width: 80%;
-//         height: 100%;
-//         background-color: $gray-200;
-//         border-radius: 0 500px 500px 0;
-//     }
-// }
-
-$calc-color-1: #CCD5FF;
-$calc-color-2: #A6B9FF;
-$graph-color-1: #FFE190;
-$graph-color-2: #FFC938;
-
 #action {
-    // background-color: $gray-200;
-    // border-radius: 0 500px 500px 0;
 
     .btn-group {
         vertical-align: bottom;
-        // background-color: $white;
     }
     button {
         font-family: 'IBM Plex Sans Condensed', 'Helvetica', Arial, sans;
         font-weight: 400;
         font-size: $input-btn-font-size-sm;
-        color: $black;
+        line-height: 1.3em;
+        color: $white;
         border: none;
         margin-right: 3px;
-        padding: 1.4em 0.6em 0.2em 2.8em;
-        // border-radius: 0;
+        text-align: right;
+        padding: ($spacer) ($spacer*.5) ($spacer*.25) ($spacer*1.5);
         &:last-child { margin-right: 0; }
     }
-    #btn-calc { background-color: $calc-color-1; &:hover { background-color: darken($calc-color-1, 6%); } }
-    #btn-viewjson { background-color: $calc-color-2; &:hover { background-color: darken($calc-color-2, 4%); } }
-    #btn-tree { background-color: $graph-color-1; &:hover { background-color: darken($graph-color-1, 14%); } }
-    #btn-pack { background-color: $graph-color-2; &:hover { background-color: darken($graph-color-2, 8%); } }
+    @include media-breakpoint-up(sm) {
+        button {
+            padding-top: $spacer*1.5;
+            padding-left: $spacer*$scale2;
+        }
+    }
+
+    #btn-calc { background-color: $red; &:hover { background-color: darken($red, 12%); } }
+    #btn-tree { background-color: $red-dark; &:hover { background-color: darken($red-dark, 10%); } }
+    #btn-pack { background-color: $blue-dark; &:hover { background-color: darken($blue-dark, 20%); } }
+    #btn-gsbhooks { background-color: $blue; &:hover { background-color: darken($blue, 10%); } }
 }
 
 #intro {
     margin-top: $spacer*2;
 }
 
-#entry > input, #exportValsData {
+#entry {
+    position: relative;
+    .entry-wrapper { position: relative; }
+    #btn-viewjson {
+        position: absolute;
+        font-size: 0.75em;
+        background-color: $input-border-color;
+        color: $body-color;
+        border: none;
+        right: 0;
+        border-radius: 0 0 0.2rem 1.6rem;
+        padding: 0.2em 0.6em 0.2em 2.6em;
+        &:hover {
+            background-color: darken($input-border-color, 10%);
+        }
+    }
+    input {
+        border-bottom-right-radius: 0;
+    }
+}
+#entry input, #exportValsData {
     font-family: $font-family-monospace;
     font-size: $small-font-size;
 }
@@ -72,7 +91,7 @@ $graph-color-2: #FFC938;
     & > p {
         color: gray("600");
         .result {
-            color: black;
+            color: $body-color;
             font-family: $font-family-monospace;
         }
     }
@@ -107,7 +126,44 @@ $graph-color-2: #FFC938;
 section {
     margin-bottom: $spacer*2;
 }
+main {
+    margin-top: $spacer*2;
+}
+
 .graph > svg {
     margin-bottom: $spacer*2;
     height: none;
+}
+
+code {
+    padding: $mark-padding;
+    background-color: $mark-bg;
+}
+
+#output code {
+    padding: 0;
+    background: none;
+}
+
+.sidenote {
+    margin-top: $spacer*2;
+    padding: $spacer*2 0 0 $spacer*2;
+    border-top: 5px solid gray("300");
+    border-left: 1px solid gray("300");
+    border-radius: 0.4rem 0 0 0;
+}
+
+.footnotes {
+    position: relative;
+    // padding-top: $spacer;
+    // border-top: 1px solid gray("300");
+    &:before {
+        content: "";
+        display: block;
+        top: 0; 
+        left: 0;
+        padding-top: $spacer*.6;
+        margin-left: -1.2em;
+        border-top: 1px solid gray("300");
+    }
 }

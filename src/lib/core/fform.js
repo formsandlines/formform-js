@@ -41,9 +41,12 @@ export default class FForm extends FCalc {
                 for (var j in fReEntry.nested) {
                     nestedVals.push( this.calc(fReEntry.nested[j]) );
                 }
+                // for even resolutions (total nested arguments), reEntry number will be undefined
+                // since it doesn't matter if its even or odd
+                const reEntryNumber = (fReEntry.nested.length % 2 === 0) ? undefined : fReEntry.reEven;
                 
                 // notation reading: {deepest, ..., shallowest}  use nestedVals.reverse() to reverse variables
-                fx = this.rel( fx,this.reEntry(fReEntry.reEven, fReEntry.lastOpen, fReEntry.altInterpretation, ...nestedVals) );
+                fx = this.rel( fx,this.reEntry(reEntryNumber, fReEntry.lastOpen, fReEntry.altInterpretation, ...nestedVals) );
             }
         }
         if(form.unmarked) return fx;
@@ -51,7 +54,8 @@ export default class FForm extends FCalc {
     };
 
     static calcAll(form) {
-        /* Interpret and calculate all possible values for the form */
+        /* Interpret and calculate all possible values for the form 
+           -> needs refactoring to avoid redundancy; suggestions welcome. */
 
         // make sure to have a json form, if not: try to convert
         if(typeof(form) === 'string') form = this.parseLinear(form);
@@ -167,6 +171,72 @@ export default class FForm extends FCalc {
                     }
                 }
                 break;
+            case 7:
+                var interpr = [ {var: vars[0], value: null}, 
+                                {var: vars[1], value: null},
+                                {var: vars[2], value: null},
+                                {var: vars[3], value: null},
+                                {var: vars[4], value: null},
+                                {var: vars[5], value: null},
+                                {var: vars[6], value: null} ];
+                for (var a=0; a<4; a++) {
+                    interpr[0].value = a;
+                    for (var b=0; b<4; b++) {
+                        interpr[1].value = b;
+                        for (var c=0; c<4; c++) {
+                            interpr[2].value = c;
+                            for (var d=0; d<4; d++) {
+                                interpr[3].value = d;
+                                for (var e=0; e<4; e++) {
+                                    interpr[4].value = e;
+                                    for (var f=0; f<4; f++) {
+                                        interpr[5].value = f;
+                                        for (var g=0; g<4; g++) {
+                                            interpr[6].value = g;
+                                            vals[interKey+a+''+b+''+c+''+d+''+e+''+f+''+g] = this.interCalc(form, interpr);//[a,b,c,d,e,f,g]);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+            case 8:
+                var interpr = [ {var: vars[0], value: null}, 
+                                {var: vars[1], value: null},
+                                {var: vars[2], value: null},
+                                {var: vars[3], value: null},
+                                {var: vars[4], value: null},
+                                {var: vars[5], value: null},
+                                {var: vars[6], value: null},
+                                {var: vars[7], value: null} ];
+                for (var a=0; a<4; a++) {
+                    interpr[0].value = a;
+                    for (var b=0; b<4; b++) {
+                        interpr[1].value = b;
+                        for (var c=0; c<4; c++) {
+                            interpr[2].value = c;
+                            for (var d=0; d<4; d++) {
+                                interpr[3].value = d;
+                                for (var e=0; e<4; e++) {
+                                    interpr[4].value = e;
+                                    for (var f=0; f<4; f++) {
+                                        interpr[5].value = f;
+                                        for (var g=0; g<4; g++) {
+                                            interpr[6].value = g;
+                                            for (var h=0; h<4; h++) {
+                                                interpr[7].value = h;
+                                                vals[interKey+a+''+b+''+c+''+d+''+e+''+f+''+g+''+h] = this.interCalc(form, interpr);//[a,b,c,d,e,f,g,h]);
+                                                }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
         }
         return vals;
     };
@@ -193,9 +263,6 @@ export default class FForm extends FCalc {
                             break;
                         }
                     }
-                    // if(!isNaN(space[i].value)) {
-                    //     space[i].type = 'const';
-                    // }
                 }
             }
         });
@@ -237,12 +304,10 @@ export default class FForm extends FCalc {
         // convert the formula into a JSON string
         var jsonStr = this.convFromLinear(formula);
 
-        // console.log(jsonStr);
-
         // try parsing the string as a JSON object
         var json = null;
         try {
-            var json = JSON.parse(jsonStr); // $.parseJSON(jsonStr);
+            var json = JSON.parse(jsonStr);
         } catch(e) {
             console.log(e);
         }
@@ -292,7 +357,7 @@ export default class FForm extends FCalc {
         for (var i in formula) {
             var char = formula[i];
             if(typeof(char) !== "string") break; // prototype hacks
-            // console.log(char);
+
             if (!inQuote && !inSlash) {
                 if (char === '(') {
                     if ((countDepth == 0) && (i != 0)) break;
@@ -336,11 +401,11 @@ export default class FForm extends FCalc {
             var char = formula[i];
             var prevChar = formula[i-1];
             if(typeof(char) !== "string") break; // prototype hacks
-            // console.log(char);
+            
             if (!inQuote && !inSlash) {
                 if (char === ')' || char === '}') countDepth--;
                 if (char === '(' || char === '{') {
-                    // console.log(countDepth);
+                    
                     if (countDepth === 0) {
                         // first (x) doesn't need to be separated
                         if (i > 0) parts.push('');
@@ -348,18 +413,15 @@ export default class FForm extends FCalc {
                     countDepth++;
                 }
                 else if ( (prevChar === ')' || prevChar === '}') && !(char === ')' || char === '}') ) {
-                    // console.log(countDepth);
                     // if char follows (x), separate; but not if it is another ')'
                     if (countDepth === 0) parts.push('');
                 }
                 // unique separation chars for re-entry forms for easy splitting
                 if (countDepth === 1 && char === ',') char = nestChar;
                 else if (countDepth === 1 && char === '|') char = optChar;
-                // console.log(countDepth + ': ' + char);
             }
             if (char === '"' && !inSlash) inQuote = !inQuote;
             if (char === '/' && !inQuote) inSlash = !inSlash;
-            // console.log(countDepth);
             // add char to the latest pushed part
             parts[parts.length-1] += char;
         }
@@ -388,20 +450,21 @@ export default class FForm extends FCalc {
                 var content = parts[i].slice(1,parts[i].length-1);
 
                 var reParts = content.split(optChar);
+                var reNested = reParts[reParts.length-1].split(nestChar);
 
-                if (reParts[0] === '2r' || reParts[1] === '2r' || reParts[2] === '2r') comp.push('"reEven":true,');
-                else comp.push('"reEven":false,');
+                if (reNested.length % 2 === 0) {
+                    comp.push('"reEven":"undefined",');
+                } 
+                else {
+                    if (reParts[0] === '2r' || reParts[1] === '2r' || reParts[2] === '2r') comp.push('"reEven":true,');
+                    else comp.push('"reEven":false,');
+                }
 
                 if (reParts[0] === 'open' || reParts[1] === 'open' || reParts[2] === 'open') comp.push('"lastOpen":true,');
                 else comp.push('"lastOpen":false,');
 
                 if (reParts[0] === 'alt' || reParts[1] === 'alt' || reParts[2] === 'alt') comp.push('"altInterpretation":true,');
                 else comp.push('"altInterpretation":false,');
-
-                var reNested = reParts[reParts.length-1].split(nestChar);
-
-                // console.log(reParts[reParts.length-1]);
-                // console.log(reNested);
 
                 comp.push('"nested":[');
 
@@ -520,9 +583,9 @@ export default class FForm extends FCalc {
 
     static traverseForm(form,func) {
         /* traverses only form-types in a json tree */
-        let breakTrav = func.apply(this,[form]); // [form,form.depth,form.space]
+        let breakTrav = func.apply(this,[form]);
 
-        if (form.space) { // form.type === 'form'
+        if (form.space) { // form.type: 'form'
             if (form.space.length > 0) {
                 for (var i in form.space) {
                     if (form.space[i].type === 'form' || form.space[i].type === 'reEntry') {
@@ -532,7 +595,7 @@ export default class FForm extends FCalc {
                 }
             }
         }
-        else if (form.nested) { // form.type === 'reEntry'
+        else if (form.nested) { // form.type: 'reEntry'
             if (form.nested.length > 0) {
                 for (var i in form.nested) {
                     let breakLoop = this.traverseForm(form.nested[i],func);

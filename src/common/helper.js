@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import * as canvg from 'canvg';
 
 // ------------------------
 // jQuery replacements:
@@ -67,6 +68,32 @@ export function saveSvg(svgEl, name) {
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
+}
+export function saveImg(svg, name) {    
+    /* Using canvg lib. https://github.com/canvg/canvg and parts of the approach for saveSvg.
+    Thanks to jbeard4 in: https://stackoverflow.com/a/3976034/1204047 for the suggestion */
+    const w = svg.getBBox().width;
+    const h = svg.getBBox().height;
+
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute('id','drawingArea');
+    document.body.appendChild(canvas);
+    canvas.width = w;
+    canvas.height = h;
+
+    // console.log(svg.outerHTML);
+
+    canvg(document.getElementById('drawingArea'), svg.outerHTML, { ignoreMouse: true, ignoreAnimation: true });
+
+    const imgUrl = canvas.toDataURL("image/png");
+
+    var downloadLink = document.createElement("a");
+    downloadLink.href = imgUrl;
+    downloadLink.download = name;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    document.body.removeChild(canvas);
 }
 
 export function flatten(arr) {

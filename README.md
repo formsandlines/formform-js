@@ -4,7 +4,7 @@
 
 **formform** is a modular JavaScript library all about the 4-valued logic of cognition first introduced 2017 by Ralf Peyn in [uFORM iFORM](https://uformiform.info/). In its core, the purpose of the library is to calculate with all 5 FORMs (marked, unmarked, undetermined, imaginary and unclear) introduced in the book and is meant to be extended with more specialized modules for different tasks such as FORM representation, algebra, visualization or simulation and analysis using CAs.
 
-As a helpful tool for researchers and enthusiasts and as a demonstration of the library's capabilities I have also created the [**FORM tricorder**](https://formform.formsandlines.eu). It can calculate, represent and visualize FORMs using my `formula` syntax (described below under *formform.form*). You can find all its parts in this repository under /app/.
+As a helpful tool for researchers and enthusiasts and as a demonstration of the library's capabilities I have also created the [**FORM tricorder**](https://formform.formsandlines.eu/tricorder). It can calculate, represent and visualize FORMs using my `formula` syntax (described below under *formform.form*). You can find all its parts in this repository under /app/.
 
 Please note that my library as well as my app are still *work in progress*. The library is currently in the process of restructuring and you may want to wait for a more stable release if you intent to use it. I am not a professional developer and this is just my part-time hobby. Since I still have much to learn and this is my first real library, I'll be very thankful for any advice.
 
@@ -49,7 +49,7 @@ All classes and their API are described in detail below:
 
 ### formform.calc
 
-`x`,`y`,`z`,… ∈ {`0`,`1`,`2`,`3`}
+`x`,`y`,`z`,… → {`0`,`1`,`2`,`3`}
 
 |#    |Value             |
 |-----|------------------|
@@ -175,20 +175,20 @@ jsonString(form)
 
 Traverse all FORM-types (without variables/values) in a `form` and apply a callback function:
 ```js
-traverseForm(form, function(fBranch, depth, space) {
+traverseForm(form, function(fBranch) {
   // ...
 })
 ```
 > - `fBranch`: current FORM-branch of the FORM
-> - `depth`: current depth number starting from `0` as the shallowest depth (the *‘unmarked FORM’*)
-> - `space`: current space (Array of the content of fBranch)
 
 ---
 
 ### formform.graph
 
-- `graphType` -> can be `'tree'` *([D3 tree](https://github.com/d3/d3-hierarchy/blob/master/README.md#tree))* or `'pack'` *([D3 circle packing](https://github.com/d3/d3-hierarchy/blob/master/README.md#pack))* or (…?)
-- `style` -> select from 2 available CSS classes: 'basic' (outlines) and 'gestalt' (what I call *GestaltFORM* (only for 'pack'))
+- `graphType` -> can be `'tree'` *([D3 tree layout](https://github.com/d3/d3-hierarchy/blob/master/README.md#tree))*, `'pack'` *([D3 circle packing layout](https://github.com/d3/d3-hierarchy/blob/master/README.md#pack))* or `'gsbhooks'` *([my own boxmodel layout for D3](https://github.com/formsandlines/boxmodel-layout-for-d3))*
+- `style` -> for graphType 'pack', you can select from 2 available CSS classes: 'basic' (outlines) and 'gestalt' (what I call *GestaltFORM*)
+
+You can learn more about the visualization types if you take a look at my [FORM tricorder](https://formform.formsandlines.eu/tricorder) and click on "show explanations", I will not go into more detail in this documentation.
 
 #### Visualization (D3/SVG)
 ```js
@@ -197,24 +197,26 @@ createGraph(graphType, form, options)
 `options` -> 
 ```js
 { 
-  parentId: id,      // id of parent DOM-element (if empty, parent is 'body')
-  width: <px>,       // width of the container (if empty, container auto-fits to chart)
-  height: <px>,      // height of the container (if empty, container auto-fits to chart)
+  parentId: <id>            // id of parent DOM-element (if empty, parent is 'body')
+  width: <px>               // width of the container (if empty, container auto-fits to chart)
+  height: <px>              // height of the container (if empty, container auto-fits to chart)
   margin: {left: <px>, right: <px>, top: <px>, bottom: <px>}
-                     // margin of the container (default: {50,50,50,50})
+                            // margin of the container (default: {50,50,50,50})
   padding: {left: <px>, right: <px>, top: <px>, bottom: <px>}
-                     // padding of the container (default: {10,10,10,10})
-  styleClass: style  // style of the graph (see above for available values)
+                            // padding of the container (default: {10,10,10,10})
+  styleClass: style         // ('pack' only) style of the graph (see above for available values)
+  drawBackground: <boolean> // attaches a white background element to the svg
+  compactChecked: <boolean> // ('gsbhooks' only) switches to a more compact style for reEntry FORMs
 }
 ```
 
 #### Output
 
-Save rendered graph as SVG-file:
+Save rendered graph as SVG or image (PNG) file:
 ```js
 saveGraph(format, svg, name)
 ```
-> - `format`: 'svg' is the only choice for now
+> - `format`: 'svg' or 'img'
 > - `svg`: svg-element with the rendered graph
 > - `name`: name of the output file
 

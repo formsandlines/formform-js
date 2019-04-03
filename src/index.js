@@ -1,5 +1,5 @@
 import 'bootstrap';
-// import * as clipboard from 'clipboard';
+
 let ClipboardJS = require('clipboard');
 let clipboard = new ClipboardJS('.clipboard-btn');
 
@@ -13,7 +13,7 @@ import formform from './lib/main';
 const txtboxID = 'form_entry';
 const graphTreeID = 'graph-tree';
 const graphPackID = 'graph-pack';
-const graphGsbID = 'graph-gsb';
+const graphGsbID = 'graph-gsbhooks';
 
 const tempData = { csv: null };
 
@@ -25,7 +25,6 @@ const styleSwitcher = {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-
 	const explSwitch = document.getElementById('toggle_explanations');
 	const explanations = document.getElementById('explanations');
 
@@ -38,33 +37,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	explSwitch.addEventListener('click', e => {
 		toggle(explanations);
-	  // $('#explanations').toggle( 'fast', function() {
-			// Animation complete.
-			if(isVisible(explanations)) explSwitch.innerHTML = 'Hide explanations';
-			else explSwitch.innerHTML = 'Show explanations';
-	  // });
+		if(isVisible(explanations)) explSwitch.innerHTML = 'Hide explanations';
+		else explSwitch.innerHTML = 'Show explanations';
 	});
 
-	// debugging:
+	const bgCheckboxes = document.querySelectorAll('.bgCheckbox');
+	bgCheckboxes.forEach(checkbox => checkbox.addEventListener('click', e => {
+		bgCheckboxes.forEach(otherCheckbox => otherCheckbox.checked = checkbox.checked);
+	}) );
 
-	// const testFormula = '(("vaa20"("vaaa30"{}{1,2})"va21")"va10"("vab20"())) (((()())()())())';
-	//{open|{/meinen/,/mitteilen/,/verstehen/},/meinen/,/mitteilen/,/verstehen/}
-	// const testFormula = '{}{open|}({}{open|}){c,b,a}{open|c,b,a}({c,b,a}{open|c,b,a})';
-	// const testFormula = '{open|{}{open|}({}{open|}){c,b,a}{open|2r|c,b,a}({c,b,a{open|a,b}}{open|c,b,{open|a}a}),a}';
 
-	// show(`#${graphTreeID}`);
-	// show(`#${graphPackID}`);
-
-	// // const graphTree = {};
-	// const graphTree = formform.graph.createGraph('tree', testFormula,
-	// 	{parentId: graphTreeID, width: 800, height: 800, styleClass: 'basic'});
-	
-	// const graphPack = formform.graph.createGraph('pack', testFormula,
-	// 	{parentId: graphPackID, styleClass: 'basic'});
-
-	// [window.graphTree, window.graphPack] = [graphTree, graphPack];
-
+	interpretURIHashParams( decodeURI(window.location.hash) );
 });
+
+function interpretURIHashParams(hash) {
+	
+	if (hash.length > 1) {
+		hash = hash.substr(1,hash.length);
+
+		const hashParts = hash.split('#');
+		document.getElementById(txtboxID).value = hashParts[0];
+
+		if (hashParts.length > 1) {
+			const method = hashParts[1];
+
+			const methodParts = method.split('-');
+			if (methodParts.length > 1) {
+				const methodOption = methodParts[1];
+				btnRender(methodOption);
+			}
+			else {
+				if (method === 'calc') btnCalc();
+				else if (method === 'json') btnViewJSON();
+			}
+		}
+	}
+}
 
 window.btnCalc = function() {
     const txtbox = document.getElementById(txtboxID);
@@ -73,9 +81,6 @@ window.btnCalc = function() {
 
 	let keys = Object.keys(vals);
 	let table = '';
-
-	// console.log(vals);
-	// console.log(keys);
 
 	if (keys.length === 1 && keys[0] === 'Result') {
 
@@ -114,7 +119,7 @@ window.btnCalc = function() {
 					<td class="varValues">${varValues}</td>
 					<td class="result">${vals[k]}</td>
 				</tr>`;
-			csv += k + ';' + vals[k] + (i < keys.length-1 ? '\n' : ''); // kSplit.join(';')
+			csv += k + ';' + vals[k] + (i < keys.length-1 ? '\n' : '');
 		}
 		table += `
 			</tbody>
@@ -126,16 +131,20 @@ window.btnCalc = function() {
 
 	hide('#output-wrapper-json');
 	show('#output-wrapper-vals');
-	hideAll(`#${graphTreeID}, #${graphPackID}`);
+	hideAll(`#${graphTreeID}, #${graphPackID}, #${graphGsbID}`);
 	document.getElementById('output-vals').innerHTML = table;
+
+	window.location.href = encodeURI('#'+txtbox.value+'#calc');
 }
 window.btnViewJSON = function() {
-  const txtbox = document.getElementById(txtboxID);
+	const txtbox = document.getElementById(txtboxID);
 
-  hide('#output-wrapper-vals');
-	show('#output-wrapper-json');
-	hideAll(`#${graphTreeID}, #${graphPackID}`);
-	document.getElementById('output-json').innerHTML = '<code>'+formform.graph.jsonString(txtbox.value)+'</code>';
+	hide('#output-wrapper-vals');
+		show('#output-wrapper-json');
+		hideAll(`#${graphTreeID}, #${graphPackID}, #${graphGsbID}`);
+		document.getElementById('output-json').innerHTML = '<code>'+formform.graph.jsonString(txtbox.value)+'</code>';
+
+	window.location.href = encodeURI('#'+txtbox.value+'#json');
 }
 
 window.btnRender = function(type) {
@@ -155,6 +164,11 @@ window.btnRender = function(type) {
 			hide(`#${graphTreeID}`);
 			hide(`#${graphGsbID}`);
 			break;
+		case 'gsbhooks':
+			show(`#${graphGsbID}`);
+			hide(`#${graphPackID}`);
+			hide(`#${graphTreeID}`);
+			break;
 	}
 
 	let style = 'basic';
@@ -168,21 +182,31 @@ window.btnRender = function(type) {
 
 	if (graph && window.graphs.length > 0) window.graphs.shift();
 
-	// debugging:
-	// console.log(graph);
+
+	window.location.href = encodeURI('#'+txtbox.value+'#graph-'+type);
+
 	window.graphs.push(graph);
 }
 
 function renderGraph(type, formula, options={}) {
+	let drawBg = '';
 	switch(type) {
 		case 'tree':
 			document.querySelectorAll(`#${graphTreeID} > svg`).forEach(elem => elem.remove());
+			drawBg = document.querySelector(`#${graphTreeID} .bgCheckbox`).checked;
 			return formform.graph.createGraph('tree', formula,
-				{parentId: graphTreeID, width: window.innerWidth, height: 800, ...options});
+				{parentId: graphTreeID, width: window.innerWidth, height: 800, ...{...options, drawBackground: drawBg} });
 		case 'pack':
 			document.querySelectorAll(`#${graphPackID} > svg`).forEach(elem => elem.remove());
+			drawBg = document.querySelector(`#${graphPackID} .bgCheckbox`).checked;
 			return formform.graph.createGraph('pack', formula, 
-				{parentId: graphPackID, ...options});
+				{parentId: graphPackID, ...{...options, drawBackground: drawBg} });
+		case 'gsbhooks':
+			document.querySelectorAll(`#${graphGsbID} > svg`).forEach(elem => elem.remove());
+			drawBg = document.querySelector(`#${graphGsbID} .bgCheckbox`).checked;
+			const compactReEntries = document.querySelector(`#${graphGsbID} #compactCheckbox`).checked;
+			return formform.graph.createGraph('gsbhooks', formula, 
+				{parentId: graphGsbID, ...{...options, drawBackground: drawBg, compactChecked: compactReEntries} });
 	}
 }
 
@@ -195,7 +219,7 @@ window.graphStyle = function(type, style) {
 	window.graphs = graphsNext;
 }
 
-window.exportRender = function(type) {
+window.exportRender = function(type, format='svg') {
 	let svg = '';
 	let filename = '';
 	if(type === 'tree') {
@@ -206,60 +230,43 @@ window.exportRender = function(type) {
 		svg = [...document.querySelectorAll(`#${graphPackID} > svg`)].pop();
 		filename = 'formform-export_graph';
 	}
-	else if(type === 'gsb') {
+	else if(type === 'gsbhooks') {
 		svg = [...document.querySelectorAll(`#${graphGsbID} > svg`)].pop();
-		filename = 'formform-export_gsb';
+		filename = 'formform-export_gsbhooks';
 	}
 
-	formform.graph.saveGraph('svg', svg, filename);
+	formform.graph.saveGraph(format, svg, filename);
 }
 
 window.exportValsCopy = function() {
 	if(tempData.csv) {
 		const data = tempData.csv;
 		
-		console.log(data);
 		document.execCommand(data);
 	}
 }
 
 window.exportVals = function(filetype) {
 	let data = null;
-	// let name = '';
 
 	if(filetype === 'csv' && tempData.csv) {
 		data = tempData.csv;
 
 		const timestamp = getTimestamp();
-		// name = timestamp+'_'+name+'.tsv';
 	}
-	// else if(filetype === 'txt') {
-	// }
 
 	if (data !== null) {
 
-		// document.querySelector('.modal-title').innerHTML = 'Output in TSV format (tab-separated values)';
-		// document.querySelector('.modal-body').innerHTML = '<pre class="pre-scrollable"><code id="exportValsData">'+data+'</code></pre>';
-		document.getElementById('exportValsData').innerHTML = data;  // .setAttribute('value', data);
+		document.getElementById('exportValsData').innerHTML = data;
 
 		const exportValsModal = $('#exportValsModal');
-		// const exportValsModal = document.getElementById('exportValsModal');
 		exportValsModal.modal();
-
-		// try {
-		// 	saveText(filetype, filename);
-		// } catch(e) {
-		// 	console.log(e);
-		// }
 
 	}
 	
 }
 
 clipboard.on('success', function(e) {
-	// console.info('Action:', e.action);
-	// console.info('Text:', e.text);
-	// console.info('Trigger:', e.trigger);
 
 	let clipboardBtn = $('#exportValsModal .clipboard-btn');
 
@@ -271,7 +278,33 @@ clipboard.on('success', function(e) {
 	e.clearSelection();
 });
 
+
+function insertParam(key, value)
+{
+    key = encodeURI(key); value = encodeURI(value);
+
+    var kvp = document.location.search.substr(1).split('&');
+
+    var i=kvp.length; var x; while(i--) 
+    {
+        x = kvp[i].split('=');
+
+        if (x[0]==key)
+        {
+            x[1] = value;
+            kvp[i] = x.join('=');
+            break;
+        }
+    }
+
+    if(i<0) {kvp[kvp.length] = [key,value].join('=');}
+
+    //this will reload the page, it's likely better to store this until finished
+    document.location.search = kvp.join('&'); 
+}
+
+
 // debugging:
 
-window.d3 = d3;
-window.formform = formform;
+// window.d3 = d3;
+// window.formform = formform;

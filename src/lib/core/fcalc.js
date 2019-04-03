@@ -27,7 +27,6 @@ export default class FCalc {
     };
     static rel(...fVals) { // verified
         /* Shortcut for relation with n variables: x_1 ... x_n */
-        // var fVals = Array.prototype.slice.call(arguments);
         if (fVals.length > 1) {
             var val = 0;
             for (var i in fVals) {
@@ -71,10 +70,10 @@ export default class FCalc {
     // ---------------------------
 
     static uForm2(fA, fB, altInterpr=false) { // calculation verified (both interpr.)
-        return this.reEntry(false, false, altInterpr, fA, fB);
+        return this.reEntry(undefined, false, altInterpr, fA, fB);
     };
     static iForm2(fA, fB, altInterpr=false) { // calculation verified (both interpr.)
-        return this.reEntry(false, true, altInterpr, fA, fB);
+        return this.reEntry(undefined, true, altInterpr, fA, fB);
     };
     static uForm3(lastOpen, fA, fB, fC, altInterpr=false) { // calculation verified closed & open (both interpr.)
         return this.reEntry(true, lastOpen, altInterpr, fA, fB, fC);
@@ -83,10 +82,10 @@ export default class FCalc {
         return this.reEntry(false, lastOpen, altInterpr, fA, fB, fC);
     };
     static uForm4(fA, fB, fC, fD, altInterpr=false) {
-        return this.reEntry(false, false, altInterpr, fA, fB, fC, fD);
+        return this.reEntry(undefined, false, altInterpr, fA, fB, fC, fD);
     };
     static iForm4(fA, fB, fC, fD, altInterpr=false) {
-        return this.reEntry(false, true, altInterpr, fA, fB, fC, fD);
+        return this.reEntry(undefined, true, altInterpr, fA, fB, fC, fD);
     };
     static uForm5(lastOpen, fA, fB, fC, fD, fE, altInterpr=false) {
         return this.reEntry(true, lastOpen, altInterpr, fA, fB, fC, fD, fE);
