@@ -239,21 +239,21 @@ pack.gestalt.applyNodeStyles = function(nodes, nodePartitions, chart) {
     const grad_1 = defs.append('radialGradient').attr('id', 'grad-indef-outin')
         .attr('fx','20%')
         grad_1.append('stop')
-            .attr('offset','40%').attr('stop-color', opacity(this.color.indef, 0.3).toString() );
+            .attr('offset','40%').attr('stop-color', this.color.indef.toString() ).attr('stop-opacity', 0.3);
             grad_1.append('stop')
-            .attr('offset','90%').attr('stop-color', opacity(this.color.indef, 0.8).toString() );
+            .attr('offset','90%').attr('stop-color', this.color.indef.toString() ).attr('stop-opacity', 0.8);
         grad_1.append('stop')
-            .attr('offset','100%').attr('stop-color', opacity(this.color.indef, 1.0).toString() );
+            .attr('offset','100%').attr('stop-color', this.color.indef.toString() ).attr('stop-opacity', 1.0);
     const grad_2 = defs.append('radialGradient').attr('id', 'grad-indef-inout')
         .attr('fx','20%')
         grad_2.append('stop')
-            .attr('offset','10%').attr('stop-color', opacity(this.color.indef, 1.0).toString() );
+            .attr('offset','10%').attr('stop-color', this.color.indef.toString() ).attr('stop-opacity', 1.0);
         grad_2.append('stop')
-            .attr('offset','50%').attr('stop-color', opacity(this.color.indef, 0.6).toString() );
+            .attr('offset','50%').attr('stop-color', this.color.indef.toString() ).attr('stop-opacity', 0.6);
         grad_2.append('stop')
-            .attr('offset','60%').attr('stop-color', opacity(this.color.indef, 0.4).toString() );
+            .attr('offset','60%').attr('stop-color', this.color.indef.toString() ).attr('stop-opacity', 0.4);
         grad_2.append('stop')
-            .attr('offset','100%').attr('stop-color', opacity(this.color.indef, 0.0).toString() );
+            .attr('offset','100%').attr('stop-color', this.color.indef.toString() ).attr('stop-opacity', 0.0);
 
     forms.select('circle').filter(d => !d.data.unmarked)
         .style('stroke', 'none')
@@ -350,7 +350,7 @@ boxmodel.basic.applyNodeStyles = function(nodes, nodePartitions) {
         .style('font-size', this.font.size)
         .style('font-style', this.font.style)
         .style('font-family', this.font.family)
-        .style('alignment-baseline','baseline')
+        // .style('alignment-baseline','baseline') <-- "bug" in Safari
         .style('fill', this.color.base.toString());
     vars.select('text')
         .style('font-size', this.fontVar.size)

@@ -28,7 +28,8 @@ export default function chartFactory(opts, proto = protoChart) {
   if (opts.drawBackground) chart.svg.append('rect')
     .attr('id', 'background')
     .attr('width','100%').attr('height','100%')
-    .attr('fill', '#ffffff'); // 'rgba(255,0,0,.2)');
+    .attr('fill', '#ffffff'); 
+    // .attr('fill', 'rgba(255,0,0,.2)');
 
   chart.container = chart.svg.append('g')
     .attr('id', 'container')
