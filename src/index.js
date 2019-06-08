@@ -46,6 +46,11 @@ document.addEventListener('DOMContentLoaded', function() {
 		bgCheckboxes.forEach(otherCheckbox => otherCheckbox.checked = checkbox.checked);
 	}) );
 
+	const scaleSelects = document.querySelectorAll('.scaleSelect');
+	scaleSelects.forEach(select => select.addEventListener('change', e => {
+		scaleSelects.forEach(otherSelect => otherSelect.value = select.value);
+	}) );
+
 
 	interpretURIHashParams( decodeURI(window.location.hash) );
 });
@@ -194,16 +199,19 @@ function renderGraph(type, formula, options={}) {
 		case 'tree':
 			document.querySelectorAll(`#${graphTreeID} > svg`).forEach(elem => elem.remove());
 			drawBg = document.querySelector(`#${graphTreeID} .bgCheckbox`).checked;
+			// scaleSel = document.querySelector(`#${graphTreeID} .scaleSelect`).value;
 			return formform.graph.createGraph('tree', formula,
 				{parentId: graphTreeID, width: window.innerWidth, height: 800, ...{...options, drawBackground: drawBg} });
 		case 'pack':
 			document.querySelectorAll(`#${graphPackID} > svg`).forEach(elem => elem.remove());
 			drawBg = document.querySelector(`#${graphPackID} .bgCheckbox`).checked;
+			// scaleSel = document.querySelector(`#${graphPackID} .scaleSelect`).value;
 			return formform.graph.createGraph('pack', formula, 
 				{parentId: graphPackID, ...{...options, drawBackground: drawBg} });
 		case 'gsbhooks':
 			document.querySelectorAll(`#${graphGsbID} > svg`).forEach(elem => elem.remove());
 			drawBg = document.querySelector(`#${graphGsbID} .bgCheckbox`).checked;
+			// scaleSel = document.querySelector(`#${graphPackID} .scaleSelect`).value;
 			const compactReEntries = document.querySelector(`#${graphGsbID} #compactCheckbox`).checked;
 			return formform.graph.createGraph('gsbhooks', formula, 
 				{parentId: graphGsbID, ...{...options, drawBackground: drawBg, compactChecked: compactReEntries} });
@@ -222,20 +230,24 @@ window.graphStyle = function(type, style) {
 window.exportRender = function(type, format='svg') {
 	let svg = '';
 	let filename = '';
+	let scale = 1;
 	if(type === 'tree') {
 		svg = [...document.querySelectorAll(`#${graphTreeID} > svg`)].pop();
 		filename = 'formform-export_tree';
+		scale = document.querySelector(`#${graphTreeID} .scaleSelect`).value;
 	}
 	else if(type === 'pack') {
 		svg = [...document.querySelectorAll(`#${graphPackID} > svg`)].pop();
 		filename = 'formform-export_graph';
+		scale = document.querySelector(`#${graphPackID} .scaleSelect`).value;
 	}
 	else if(type === 'gsbhooks') {
 		svg = [...document.querySelectorAll(`#${graphGsbID} > svg`)].pop();
 		filename = 'formform-export_gsbhooks';
+		scale = document.querySelector(`#${graphGsbID} .scaleSelect`).value;
 	}
 
-	formform.graph.saveGraph(format, svg, filename);
+	formform.graph.saveGraph(format, svg, filename, scale);
 }
 
 window.exportValsCopy = function() {

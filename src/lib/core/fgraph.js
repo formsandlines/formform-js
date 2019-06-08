@@ -41,8 +41,8 @@ export default class FGraph extends FForm {
     return graph;
   }
 
-  static saveGraph(format, svg, name) {
-    save(format, svg, name);
+  static saveGraph(format, svg, name, scale) {
+    save(format, svg, name, scale);
   }
 
   static constructNested(reForm, options={}) {

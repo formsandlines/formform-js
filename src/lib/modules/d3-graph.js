@@ -551,7 +551,7 @@ let reParent = node.ancestors().filter(d => d.data.type === 'reEntry').shift();
 return reParent.data.lastOpen;
 }
 
-export const save = function(format, svg, name) {
+export const save = function(format, svg, name, scale) {
     // exports graphs into svg
     
     name = name || d3.select(svg.parentNode).attr('id');
@@ -560,10 +560,10 @@ export const save = function(format, svg, name) {
 	try {
     switch(format) {
         case 'svg':
-            saveSvg(svg, timestamp+'_'+name+'.svg');
+            saveSvg(svg, timestamp+'_'+name+'.svg', scale);
             break;
         case 'img':
-            saveImg(svg, timestamp+'_'+name+'.png');
+            saveImg(svg, timestamp+'_'+name+'.png', scale);
             break;
     }
 	} catch(e) {

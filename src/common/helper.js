@@ -69,21 +69,24 @@ export function saveSvg(svgEl, name) {
     downloadLink.click();
     document.body.removeChild(downloadLink);
 }
-export function saveImg(svg, name) {    
+export function saveImg(svg, name, scale=1) {    
     /* Using canvg lib. https://github.com/canvg/canvg and parts of the approach for saveSvg.
     Thanks to jbeard4 in: https://stackoverflow.com/a/3976034/1204047 for the suggestion */
+
     const w = svg.getBBox().width;
     const h = svg.getBBox().height;
 
     const canvas = document.createElement("canvas");
     canvas.setAttribute('id','drawingArea');
     document.body.appendChild(canvas);
-    canvas.width = w;
-    canvas.height = h;
+    canvas.width = w * scale;
+    canvas.height = h * scale;
 
-    // console.log(svg.outerHTML);
+    canvg(document.getElementById('drawingArea'), svg.outerHTML, { ignoreDimensions:true, ignoreMouse: true, ignoreAnimation: true,
+    scaleWidth: w * scale,
+    scaleHeight: h * scale });
 
-    canvg(document.getElementById('drawingArea'), svg.outerHTML, { ignoreMouse: true, ignoreAnimation: true });
+    // console.log( document.getElementById('drawingArea') );
 
     const imgUrl = canvas.toDataURL("image/png");
 
