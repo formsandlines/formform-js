@@ -1,6 +1,6 @@
 {
     "name": "formform",
-    "version": "0.6.1",
+    "version": "0.6.2",
     "description": "JS-library to calculate, visualize and simulate LoF-FORMs (Laws of Form by George Spencer-Brown) as well as undetermined and imaginary FORMs (uFORM iFORM by Ralf Peyn)",
     "keywords": [
         "laws of form",

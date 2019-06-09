@@ -310,6 +310,7 @@ export default class D3Graph {
         const design = styles.boxmodel[this.styleClass];
         const {elemMargin, formMargin, formPadding, minFormSize, maxLineWidth, fontVar, fontConst, fontContext, labels} = {...design};
         const unclearPad = {hz: elemMargin.hz/2, vt: elemMargin.vt};
+        const dataLabelPad = 4;
 
         // define boxmodel layout
         const layout = boxmodelD3()
@@ -372,8 +373,14 @@ export default class D3Graph {
                 let h = minFormSize.height;
                 if (d.data.reChild) {
                     if (d.children.length === 1 && d.children[0].data.type === 'reEntryPoint') {
-                    if (reParentLastOpen(d)) w = minFormSize.width/2;
+                        if (reParentLastOpen(d)) w = minFormSize.width/2;
                     }
+                }
+                if (d.data.type === 'reEntry' && d.children.length <= 2 && d.children[0].data.type === 'reEntryPoint') {
+                    const text = d.data.reEven ? labels.reEven : labels.reOdd;
+                    let txtSz = textSize(text, fontContext.size, fontContext.family, fontContext.style);
+                    w = txtSz.width + dataLabelPad*2;
+                    w = w < minFormSize.width ? minFormSize.width : w;
                 }
                 return {width: w, height: h};
                 })
@@ -450,7 +457,7 @@ export default class D3Graph {
         reEntries.filter(d => d.data.reEven !== 'undefined').append('text')
             .classed('label', true)
             .attr('transform', d => `translate(0,${d.y1-d.y0})`)
-            .attr('x',d => 4 )
+            .attr('x',d => dataLabelPad )
             .attr('y',d => -5 )
             .text(d => d.data.reEven ? labels.reEven : labels.reOdd);
 

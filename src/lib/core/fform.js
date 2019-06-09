@@ -43,8 +43,7 @@ export default class FForm extends FCalc {
                 }
                 // for even resolutions (total nested arguments), reEntry number will be undefined
                 // since it doesn't matter if its even or odd
-                // const reEntryNumber = (fReEntry.nested.length % 2 === 0) ? undefined : fReEntry.reEven;
-                const reEntryNumber = (fReEntry.nested.length % 2 === 0 || fReEntry.nested.length < 2) ? undefined : fReEntry.reEven;
+                const reEntryNumber = (fReEntry.nested.length % 2 === 0) ? undefined : fReEntry.reEven;
                 
                 // notation reading: {deepest, ..., shallowest}  use nestedVals.reverse() to reverse variables
                 fx = this.rel( fx,this.reEntry(reEntryNumber, fReEntry.lastOpen, fReEntry.altInterpretation, ...nestedVals) );
@@ -453,7 +452,7 @@ export default class FForm extends FCalc {
                 var reParts = content.split(optChar);
                 var reNested = reParts[reParts.length-1].split(nestChar);
 
-                if (reNested.length % 2 === 0 || reNested.length < 2) {
+                if (reNested.length % 2 === 0) {
                     comp.push('"reEven":"undefined",');
                 } 
                 else {
