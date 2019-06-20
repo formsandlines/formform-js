@@ -110,12 +110,12 @@ h6 {
     }
 
     td.varLabels { color: gray("400"); }
-    td.varLabels > .varLabels-data:nth-child(odd),
-    td.varValues > .varValues-data:nth-child(odd) {
+    td.varLabels > code > span:nth-child(odd),
+    td.varValues > code > span:nth-child(odd) {
         color: theme-color-level(primary, 6);
     }
-    td.varLabels > .varLabels-data:nth-child(even),
-    td.varValues > .varValues-data:nth-child(even) {
+    td.varLabels > code > span:nth-child(even),
+    td.varValues > code > span:nth-child(even) {
         color: theme-color-level(primary, 0);
     }
 }

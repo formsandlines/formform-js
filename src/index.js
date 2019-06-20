@@ -8,6 +8,7 @@ import {show, hide, hideAll, toggle, isVisible, saveText, getTimestamp} from './
 
 import * as d3 from 'd3';
 import formform from './lib/main';
+import {valueTableWizard, classnames_DEF as tableClasses} from './common/ff-tables';
 // import * as formform from './lib/main';
 
 const txtboxID = 'form_entry';
@@ -84,62 +85,22 @@ window.btnCalc = function() {
     const json = formform.graph.parseLinear(txtbox.value)
     const vals = formform.graph.calcAll(json);
 
-	let keys = Object.keys(vals);
-	let table = '';
 
-	if (keys.length === 1 && keys[0] === 'Result') {
+    tableClasses.table = 'table table-sm table-hover w-auto';
+    const table = valueTableWizard(vals, {outputCSV: true});
 
-		table = `<p>${keys[0]}: <span class="result">${vals['Result']}</span></p>`;
 
-		hide('#output-vals-csv');
-	}
-	else {
-
-		keys.sort();
-
-		const header = ['Variables','Interpretation','Result'];
-		const varLblClass = 'varLabels-data';
-		const varValClass = 'varValues-data';
-		table = `
-		<table class="table table-sm table-hover w-auto">
-			<thead>
-				<tr>
-					<th scope="col">${header[0]}</th>
-					<th scope="col">${header[1]}</th>
-					<th scope="col">${header[2]}</th>
-				</tr>
-			</thead>
-			<tbody>`;
-		let csv = header.join(';') + '\n';
-		for (let i = 0; i < keys.length; i++) {
-			const k = keys[i];
-			const kSplit = k.split(';');
-			
-			const varLabels = kSplit[0].split(',').join(`</span>,<span class="${varLblClass}">`).concat(`</span>`).addBefore(0,`<span class="${varLblClass}">`);
-			const varValues = kSplit[1].split('').join(`</span><span class="${varValClass}">`).concat(`</span>`).addBefore(0,`<span class="${varValClass}">`);
-			
-			table += `
-				<tr>
-					<td class="varLabels">${varLabels}</td>
-					<td class="varValues">${varValues}</td>
-					<td class="result">${vals[k]}</td>
-				</tr>`;
-			csv += k + ';' + vals[k] + (i < keys.length-1 ? '\n' : '');
-		}
-		table += `
-			</tbody>
-		</table>`;
-
-		show('#output-vals-csv');
-		tempData.csv = csv;
-	}
+    show('#output-vals-csv');
+	tempData.csv = table.csv;
 
 	hide('#output-wrapper-json');
 	show('#output-wrapper-vals');
 	hideAll(`#${graphTreeID}, #${graphPackID}, #${graphGsbID}`);
-	document.getElementById('output-vals').innerHTML = table;
+	document.getElementById('output-vals').innerHTML = table.html;
 
 	window.location.href = encodeURI('#'+txtbox.value+'#calc');
+
+
 }
 window.btnViewJSON = function() {
 	const txtbox = document.getElementById(txtboxID);
