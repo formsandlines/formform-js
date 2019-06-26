@@ -10,7 +10,7 @@ const LANG_DEFAULT = loc_EN;
 const CLASSNAMES_DEFAULT = classnames_DEF;
 
 
-export function valueTableWizard(obj, ..._optsArr) {
+export function valueTableWizard(obj, outputCSV, ..._optsArr) {
   const optsArr = _optsArr.map( opts => Object.assign({search:[], filterByVals:false}, opts) );
   
   let interpr = obj;
@@ -29,7 +29,7 @@ export function valueTableWizard(obj, ..._optsArr) {
   const html = genValueTable(interpr, lang, classnames);
 
 
-  if (optsArr[0].outputCSV) return {html: html, csv: genCSV(interpr, lang)};
+  if (outputCSV) return {html: html, csv: genCSV(interpr, lang)};
   else return html;
 }
 

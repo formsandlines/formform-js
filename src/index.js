@@ -23,11 +23,34 @@ window.graphs = [];
 const styleSwitcher = {
 	tree: document.querySelector('#graph-tree > #style-switch'),
 	pack: document.querySelector('#graph-pack > #style-switch')
+};
+const resultFilter = {
+	ID: 'filterResultsOptions',
+	neg: document.getElementById('negResultCheckbox'),
+	search0: document.getElementById('resultSearchCheckbox0'),
+	search1: document.getElementById('resultSearchCheckbox1'),
+	search2: document.getElementById('resultSearchCheckbox2'),
+	search3: document.getElementById('resultSearchCheckbox3')
 }
+const valFilter = {
+	ID: 'filterValsOptions',
+	neg: document.getElementById('negValCheckbox'),
+	search0: document.getElementById('valSearchCheckbox0'),
+	search1: document.getElementById('valSearchCheckbox1'),
+	search2: document.getElementById('valSearchCheckbox2'),
+	search3: document.getElementById('valSearchCheckbox3'),
+	logOR: document.getElementById('logORRadio'),
+	logAND: document.getElementById('logANDRadio'),
+	logDISJUNCT: document.getElementById('logDISJUNCTRadio'),
+	reflexAND: document.getElementById('reflexANDRadio')
+};
 
 document.addEventListener('DOMContentLoaded', function() {
 	const explSwitch = document.getElementById('toggle_explanations');
 	const explanations = document.getElementById('explanations');
+
+	hideAll(`#${valFilter.ID}, #${resultFilter.ID}`);
+	resultFilter.neg.disabled = true;
 
 	hide('#output-wrapper-vals');
 	hide('#output-wrapper-json');
@@ -52,6 +75,26 @@ document.addEventListener('DOMContentLoaded', function() {
 		scaleSelects.forEach(otherSelect => otherSelect.value = select.value);
 	}) );
 
+
+	document.querySelectorAll(`#${resultFilter.ID} input`).forEach(input => input.addEventListener('click', e => { 
+		if (resultFilter.search0.checked && resultFilter.search1.checked && resultFilter.search2.checked && resultFilter.search3.checked) {
+			resultFilter.neg.disabled = true;
+
+		} else {
+			resultFilter.neg.disabled = false;
+		}
+
+		btnCalc(); 
+	}) );
+	document.querySelectorAll(`#${valFilter.ID} input`).forEach(input => input.addEventListener('click', e => { 
+		if (!valFilter.search0.checked && !valFilter.search1.checked && !valFilter.search2.checked && !valFilter.search3.checked) {
+
+			valFilter.neg.disabled = valFilter.logOR.disabled = valFilter.logAND.disabled = valFilter.logDISJUNCT.disabled = valFilter.reflexAND.disabled = true;
+		} else {
+			valFilter.neg.disabled = valFilter.logOR.disabled = valFilter.logAND.disabled = valFilter.logDISJUNCT.disabled = valFilter.reflexAND.disabled = false;
+		}
+		btnCalc(); 
+	}) );
 
 	interpretURIHashParams( decodeURI(window.location.hash) );
 });
@@ -85,9 +128,35 @@ window.btnCalc = function() {
     const json = formform.graph.parseLinear(txtbox.value)
     const vals = formform.graph.calcAll(json);
 
+	const tableOpt = {filterRes: {}, filterVal: {}}
+
+	if (!document.getElementById(resultFilter.ID).disabled) {
+		tableOpt.filterRes.filterByVals = true;
+		tableOpt.filterRes.search = [];
+		if (resultFilter.search0.checked) tableOpt.filterRes.search = tableOpt.filterRes.search.concat(0);
+		if (resultFilter.search1.checked) tableOpt.filterRes.search = tableOpt.filterRes.search.concat(1);
+		if (resultFilter.search2.checked) tableOpt.filterRes.search = tableOpt.filterRes.search.concat(2);
+		if (resultFilter.search3.checked) tableOpt.filterRes.search = tableOpt.filterRes.search.concat(3);
+
+		if (resultFilter.neg.checked) tableOpt.filterRes.exclude = true;
+	}
+	if (!document.getElementById(valFilter.ID).disabled) {
+		tableOpt.filterVal.search = [];
+		if (valFilter.search0.checked) tableOpt.filterVal.search = tableOpt.filterVal.search.concat(0);
+		if (valFilter.search1.checked) tableOpt.filterVal.search = tableOpt.filterVal.search.concat(1);
+		if (valFilter.search2.checked) tableOpt.filterVal.search = tableOpt.filterVal.search.concat(2);
+		if (valFilter.search3.checked) tableOpt.filterVal.search = tableOpt.filterVal.search.concat(3);
+
+		if (valFilter.neg.checked) tableOpt.filterVal.exclude = true;
+
+		if (valFilter.logOR.checked) tableOpt.filterVal.combine = false;
+		else if (valFilter.logAND.checked) tableOpt.filterVal.combine = true;
+		else if (valFilter.logDISJUNCT.checked) tableOpt.filterVal.unique = true;
+		else if (valFilter.reflexAND.checked) tableOpt.filterVal.only = true;
+	}
 
     tableClasses.table = 'table table-sm table-hover w-auto';
-    const table = valueTableWizard(vals, {outputCSV: true});
+    const table = valueTableWizard(vals, true, tableOpt.filterRes, tableOpt.filterVal);
 
 
     show('#output-vals-csv');
@@ -100,8 +169,24 @@ window.btnCalc = function() {
 
 	window.location.href = encodeURI('#'+txtbox.value+'#calc');
 
-
 }
+
+window.filter = function(filterResults=false) {
+
+	if (filterResults) {
+		toggle(`#${resultFilter.ID}`);
+		const options = document.getElementById(resultFilter.ID);
+		options.disabled = !options.disabled;
+	}
+	else {
+		toggle(`#${valFilter.ID}`);
+		const options = document.getElementById(valFilter.ID);
+		options.disabled = !options.disabled;
+	}
+
+	btnCalc();
+}
+
 window.btnViewJSON = function() {
 	const txtbox = document.getElementById(txtboxID);
 

@@ -228,7 +228,88 @@
   <section id="output" class="container">
 
     <div class="output-wrapper" id="output-wrapper-vals">
+
+    <div class="form-group custom-control custom-switch">
+      <input type="checkbox" class="custom-control-input" id="filterResultsCheckbox" onclick="filter(true);">
+      <label class="custom-control-label" for="filterResultsCheckbox">Filter results</label>
+    </div>
+    <fieldset id="filterResultsOptions" disabled>
+
+      <div class="form-group">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="negResultCheckbox" value="negResult">
+            <label class="form-check-label" for="negResultCheckbox">NOT</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="resultSearchCheckbox0" value="search0" checked>
+            <label class="form-check-label" for="resultSearchCheckbox0"><code>0/n</code></label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="resultSearchCheckbox1" value="search1" checked>
+            <label class="form-check-label" for="resultSearchCheckbox1"><code>1/m</code></label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="resultSearchCheckbox2" value="search2" checked>
+            <label class="form-check-label" for="resultSearchCheckbox2"><code>2/u</code></label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="resultSearchCheckbox3" value="search3" checked>
+            <label class="form-check-label" for="resultSearchCheckbox3"><code>3/i</code></label>
+          </div>
+      </div>
       
+    </fieldset>
+
+    <div class="form-group custom-control custom-switch">
+      <input type="checkbox" class="custom-control-input" id="filterValsCheckbox" onclick="filter(false);">
+      <label class="custom-control-label" for="filterValsCheckbox">Filter interpretation</label>
+    </div>
+    <fieldset id="filterValsOptions" disabled>
+
+      <div class="form-group">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="negValCheckbox" value="negVal">
+            <label class="form-check-label" for="negValCheckbox">NOT</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="valSearchCheckbox0" value="search0" checked>
+            <label class="form-check-label" for="valSearchCheckbox0"><code>0/n</code></label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="valSearchCheckbox1" value="search1" checked>
+            <label class="form-check-label" for="valSearchCheckbox1"><code>1/m</code></label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="valSearchCheckbox2" value="search2" checked>
+            <label class="form-check-label" for="valSearchCheckbox2"><code>2/u</code></label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="valSearchCheckbox3" value="search3" checked>
+            <label class="form-check-label" for="valSearchCheckbox3"><code>3/i</code></label>
+          </div>
+      </div>
+
+      <div class="form-group">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="filterValsOptions" id="logORRadio" value="OR" checked>
+            <label class="form-check-label" for="logORRadio">OR</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="filterValsOptions" id="logANDRadio" value="AND">
+            <label class="form-check-label" for="logANDRadio">AND</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="filterValsOptions" id="logDISJUNCTRadio" value="DISJUNCT">
+            <label class="form-check-label" for="logDISJUNCTRadio">either OR</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="filterValsOptions" id="reflexANDRadio" value="REFLEXIVE_AND">
+            <label class="form-check-label" for="reflexANDRadio">reflexive AND</label>
+          </div>
+      </div>
+      
+    </fieldset>
+
       <div class="table-responsive output" id="output-vals"></div>
 
       <div class="form-group" id="output-vals-csv">
