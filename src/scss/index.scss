@@ -130,7 +130,7 @@ main {
     margin-top: $spacer*2;
 }
 
-.graph > svg {
+.graph > .render-container {
     margin-bottom: $spacer*2;
     height: none;
 }
@@ -166,4 +166,19 @@ code {
         margin-left: -1.2em;
         border-top: 1px solid gray("300");
     }
+}
+
+.render {
+    overflow: hidden;
+    svg {
+        -moz-transform-origin: 0px 0px;
+        -ms-transform-origin:  0px 0px;
+        -o-transform-origin: 0px 0px;
+        -webkit-transform-origin:  0px 0px;
+        transform-origin: 0px 0px;
+    }
+}
+
+.zoomSlider-group {
+    width: 300px;
 }

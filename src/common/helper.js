@@ -161,3 +161,10 @@ export function getTimestamp() {
     + (pad((date.getMinutes()),2))
     + (pad((date.getSeconds()),2));
 }
+
+export function scaleSVG(svg, container, ratio) {
+    svg.setAttribute('transform', `scale(${ratio}) translate(0,0)`);
+    container.style.width = parseInt(svg.clientWidth*ratio) + 'px';
+    container.style.height = parseInt(svg.clientHeight*ratio) + 'px';
+
+}

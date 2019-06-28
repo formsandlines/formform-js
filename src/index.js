@@ -4,7 +4,7 @@ let ClipboardJS = require('clipboard');
 let clipboard = new ClipboardJS('.clipboard-btn');
 
 import './scss/index.scss';
-import {show, hide, hideAll, toggle, isVisible, saveText, getTimestamp} from './common/helper';
+import {show, hide, hideAll, toggle, isVisible, saveText, getTimestamp, scaleSVG} from './common/helper';
 
 import * as d3 from 'd3';
 import formform from './lib/main';
@@ -12,14 +12,18 @@ import {valueTableWizard, classnames_DEF as tableClasses} from './common/ff-tabl
 // import * as formform from './lib/main';
 
 const txtboxID = 'form_entry';
-const graphTreeID = 'graph-tree';
-const graphPackID = 'graph-pack';
-const graphGsbID = 'graph-gsbhooks';
+const graphTreeID = {cont: 'graph-tree', render: 'graph-tree-render'};
+const graphPackID = {cont: 'graph-pack', render: 'graph-pack-render'};
+const graphGsbID = {cont: 'graph-gsbhooks', render: 'graph-gsbhooks-render'};
 
 const tempData = { csv: null };
 
 window.graphs = [];
 
+const transformCtrl = {
+	zoomSlider: { pack: document.getElementById('pack-zoomSlider') },
+	fitSwitch: { pack: document.getElementById('pack-fitSwitch') }
+}
 const styleSwitcher = {
 	tree: document.querySelector('#graph-tree > #style-switch'),
 	pack: document.querySelector('#graph-pack > #style-switch')
@@ -54,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	hide('#output-wrapper-vals');
 	hide('#output-wrapper-json');
-	hideAll(`#${graphTreeID}, #${graphPackID}, #${graphGsbID}`);
+	hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
 	
 	hide(explanations);
 	explSwitch.innerHTML = 'Show explanations';
@@ -75,6 +79,12 @@ document.addEventListener('DOMContentLoaded', function() {
 		scaleSelects.forEach(otherSelect => otherSelect.value = select.value);
 	}) );
 
+	const zoomSlider = document.querySelectorAll('.zoomSlider');
+	zoomSlider.forEach(slider => slider.addEventListener('input', e => {
+		const container = slider.parentNode.parentNode.parentNode;
+		scaleViz(container, slider.value);
+
+	}) );
 
 	document.querySelectorAll(`#${resultFilter.ID} input`).forEach(input => input.addEventListener('click', e => { 
 		if (resultFilter.search0.checked && resultFilter.search1.checked && resultFilter.search2.checked && resultFilter.search3.checked) {
@@ -123,6 +133,56 @@ function interpretURIHashParams(hash) {
 	}
 }
 
+window.resetScale = function(elem) {
+	const container = elem.parentNode.parentNode.parentNode;
+
+	scaleViz(container, 1.0);
+}
+
+window.fitToWindow = function(elem) {
+	const container = elem.parentNode.parentNode.parentNode;
+	const renderNode = container.querySelector('.render');
+	const svg = renderNode.querySelector('svg');
+
+	const svgScale = svg.getAttribute('transform').match(/scale\((.+?)\)/)[1];
+	let scaleRatio = (window.innerWidth / svg.clientWidth) * 0.98;
+	scaleRatio = Math.round(scaleRatio*100)/100;
+
+	scaleViz(container, scaleRatio);
+	
+}
+
+function scaleViz(container, ratio) {
+	const renderNode = container.querySelector('.render');
+	const svg = renderNode.querySelector('svg');
+
+	scaleSVG(svg, renderNode, ratio);
+	refitContainer(renderNode, renderNode.parentNode);
+
+	const zoomSlider = container.querySelector('.zoomSlider');
+	container.querySelector('.zoomLevel').innerHTML = ratio;
+	if (zoomSlider.value != ratio) zoomSlider.value = ratio;
+}
+
+function refitContainer(renderNode, renderContainer) {
+	let renderW = parseInt(renderNode.style.width);
+	let compareW = 0;
+
+	if (renderContainer.classList.contains('container')) {
+		const offX = renderNode.offsetLeft;
+		renderW += offX;
+		compareW = window.innerWidth * 0.98;
+	} else {
+		compareW = renderContainer.clientWidth * 0.86;
+	}
+
+	if (renderW > compareW) {
+		if (renderContainer.classList.contains('container')) renderContainer.classList.remove('container');
+	}
+	else renderContainer.classList.add('container');
+}
+
+
 window.btnCalc = function() {
     const txtbox = document.getElementById(txtboxID);
     const json = formform.graph.parseLinear(txtbox.value)
@@ -164,7 +224,7 @@ window.btnCalc = function() {
 
 	hide('#output-wrapper-json');
 	show('#output-wrapper-vals');
-	hideAll(`#${graphTreeID}, #${graphPackID}, #${graphGsbID}`);
+	hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
 	document.getElementById('output-vals').innerHTML = table.html;
 
 	window.location.href = encodeURI('#'+txtbox.value+'#calc');
@@ -192,7 +252,7 @@ window.btnViewJSON = function() {
 
 	hide('#output-wrapper-vals');
 		show('#output-wrapper-json');
-		hideAll(`#${graphTreeID}, #${graphPackID}, #${graphGsbID}`);
+		hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
 		document.getElementById('output-json').innerHTML = '<code>'+formform.graph.jsonString(txtbox.value)+'</code>';
 
 	window.location.href = encodeURI('#'+txtbox.value+'#json');
@@ -206,19 +266,19 @@ window.btnRender = function(type) {
 	
 	switch(type) {
 		case 'tree':
-			show(`#${graphTreeID}`);
-			hide(`#${graphPackID}`);
-			hide(`#${graphGsbID}`);
+			show(`#${graphTreeID.cont}`);
+			hide(`#${graphPackID.cont}`);
+			hide(`#${graphGsbID.cont}`);
 			break;
 		case 'pack':
-			show(`#${graphPackID}`);
-			hide(`#${graphTreeID}`);
-			hide(`#${graphGsbID}`);
+			show(`#${graphPackID.cont}`);
+			hide(`#${graphTreeID.cont}`);
+			hide(`#${graphGsbID.cont}`);
 			break;
 		case 'gsbhooks':
-			show(`#${graphGsbID}`);
-			hide(`#${graphPackID}`);
-			hide(`#${graphTreeID}`);
+			show(`#${graphGsbID.cont}`);
+			hide(`#${graphPackID.cont}`);
+			hide(`#${graphTreeID.cont}`);
 			break;
 	}
 
@@ -240,28 +300,39 @@ window.btnRender = function(type) {
 }
 
 function renderGraph(type, formula, options={}) {
+	let graph;
 	let drawBg = '';
+
 	switch(type) {
 		case 'tree':
-			document.querySelectorAll(`#${graphTreeID} > svg`).forEach(elem => elem.remove());
-			drawBg = document.querySelector(`#${graphTreeID} .bgCheckbox`).checked;
-			// scaleSel = document.querySelector(`#${graphTreeID} .scaleSelect`).value;
-			return formform.graph.createGraph('tree', formula,
-				{parentId: graphTreeID, width: window.innerWidth, height: 800, ...{...options, drawBackground: drawBg} });
+			document.querySelectorAll(`#${graphTreeID.render} > svg`).forEach(elem => elem.remove());
+			drawBg = document.querySelector(`#${graphTreeID.cont} .bgCheckbox`).checked;
+			graph = formform.graph.createGraph('tree', formula,
+				{parentId: graphTreeID.render, width: window.innerWidth, height: 800, ...{...options, drawBackground: drawBg} });
+			break;
 		case 'pack':
-			document.querySelectorAll(`#${graphPackID} > svg`).forEach(elem => elem.remove());
-			drawBg = document.querySelector(`#${graphPackID} .bgCheckbox`).checked;
-			// scaleSel = document.querySelector(`#${graphPackID} .scaleSelect`).value;
-			return formform.graph.createGraph('pack', formula, 
-				{parentId: graphPackID, ...{...options, drawBackground: drawBg} });
+			document.querySelectorAll(`#${graphPackID.render} > svg`).forEach(elem => elem.remove());
+			drawBg = document.querySelector(`#${graphPackID.cont} .bgCheckbox`).checked;
+			graph = formform.graph.createGraph('pack', formula, 
+				{parentId: graphPackID.render, ...{...options, drawBackground: drawBg} });
+			break;
 		case 'gsbhooks':
-			document.querySelectorAll(`#${graphGsbID} > svg`).forEach(elem => elem.remove());
-			drawBg = document.querySelector(`#${graphGsbID} .bgCheckbox`).checked;
-			// scaleSel = document.querySelector(`#${graphPackID} .scaleSelect`).value;
-			const compactReEntries = document.querySelector(`#${graphGsbID} #compactCheckbox`).checked;
-			return formform.graph.createGraph('gsbhooks', formula, 
-				{parentId: graphGsbID, ...{...options, drawBackground: drawBg, compactChecked: compactReEntries} });
+			document.querySelectorAll(`#${graphGsbID.render} > svg`).forEach(elem => elem.remove());
+			drawBg = document.querySelector(`#${graphGsbID.cont} .bgCheckbox`).checked;
+			const compactReEntries = document.querySelector(`#${graphGsbID.cont} #compactCheckbox`).checked;
+			graph = formform.graph.createGraph('gsbhooks', formula, 
+				{parentId: graphGsbID.render, ...{...options, drawBackground: drawBg, compactChecked: compactReEntries} });
+			break;
 	}
+
+	const svg = graph.svg.node();
+	const renderNode = graph.parent.node();
+	const container = renderNode.parentNode.parentNode;
+	const zoomSlider = container.querySelector('.zoomSlider');
+
+	scaleViz(container, zoomSlider.value);
+
+	return graph;
 }
 
 window.graphStyle = function(type, style) {
@@ -278,22 +349,28 @@ window.exportRender = function(type, format='svg') {
 	let filename = '';
 	let scale = 1;
 	if(type === 'tree') {
-		svg = [...document.querySelectorAll(`#${graphTreeID} > svg`)].pop();
+		svg = [...document.querySelectorAll(`#${graphTreeID.render} > svg`)].pop();
 		filename = 'formform-export_tree';
-		scale = document.querySelector(`#${graphTreeID} .scaleSelect`).value;
+		scale = document.querySelector(`#${graphTreeID.cont} .scaleSelect`).value;
 	}
 	else if(type === 'pack') {
-		svg = [...document.querySelectorAll(`#${graphPackID} > svg`)].pop();
+		svg = [...document.querySelectorAll(`#${graphPackID.render} > svg`)].pop();
 		filename = 'formform-export_graph';
-		scale = document.querySelector(`#${graphPackID} .scaleSelect`).value;
+		scale = document.querySelector(`#${graphPackID.cont} .scaleSelect`).value;
 	}
 	else if(type === 'gsbhooks') {
-		svg = [...document.querySelectorAll(`#${graphGsbID} > svg`)].pop();
+		svg = [...document.querySelectorAll(`#${graphGsbID.render} > svg`)].pop();
 		filename = 'formform-export_gsbhooks';
-		scale = document.querySelector(`#${graphGsbID} .scaleSelect`).value;
+		scale = document.querySelector(`#${graphGsbID.cont} .scaleSelect`).value;
 	}
 
+	const container = svg.parentNode.parentNode.parentNode;
+	const svgScale = svg.getAttribute('transform').match(/scale\((.+?)\)/)[1];
+	scaleViz(container, 1.0); // normalize zoom ratio
+
 	formform.graph.saveGraph(format, svg, filename, scale);
+
+	scaleViz(container, svgScale); // restore zoom ratio
 }
 
 window.exportValsCopy = function() {

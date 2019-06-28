@@ -323,15 +323,30 @@
     
   </section>
 
-  <section id="graph-output" class="container">
+  <section id="graph-output">
 
     <div id="graph-tree" class="graph">
-      <div class="form-group form-inline">
-        <div class="btn-group mb-2 mr-sm-2" role="group" aria-label="Export controls">
+      <div class="container form-group form-inline">
+        <div class="form-group mb-2 mr-2 zoomSlider-group">
+          <label class="col-form-label-sm" for="pack-zoomSlider">Zoom level: ×<span class="zoomLevel">1.0</span></label>
+          <input type="range" class="form-control-range zoomSlider" value="1.0" min="0.1" max="2.0" step="0.01" id="pack-zoomSlider">
+        </div>
+        <div class="btn-group mb-2 mr-2" role="group">
+          <button type="button" class="btn btn-outline-secondary btn-sm fitSwitch" onclick="fitToWindow(this);" id="pack-fitSwitch">fit</button>
+        </div>
+        <div class="btn-group mb-2" role="group">
+          <button type="button" class="btn btn-outline-secondary btn-sm resetScaleSwitch" onclick="resetScale(this);" id="pack-fitSwitch">100%</button>
+        </div>
+      </div>
+
+      <div class="container render-container"><div id="graph-tree-render" class="render"></div></div>
+
+      <div class="container form-group form-inline">
+        <div class="btn-group mb-2 mr-2" role="group" aria-label="Export controls">
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportRender('tree','svg');">save SVG</button>
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportRender('tree','img');">save Image</button>
         </div>
-        <div class="form-group mb-2 mr-sm-2">
+        <div class="form-group mb-2 mr-2">
           <select class="form-control form-control-sm scaleSelect" id="scaleSelect-tree">
             <option value="1">Size &times;1 (small)</option>
             <option value="2" selected>Size &times;2 (standard)</option>
@@ -343,13 +358,29 @@
         </div>
         <div class="form-group mb-2 form-check">
             <input type="checkbox" class="form-check-input bgCheckbox" id="bgCheckbox-tree" onclick="btnRender('tree');" checked>
-            <label class="form-check-label" for="bgCheckbox-tree">Background</label>
+            <label class="form-check-label col-form-label-sm" for="bgCheckbox-tree">Background</label>
         </div>
       </div>
     </div>
 
     <div id="graph-pack" class="graph">
-      <div id="style-switch" class="form-group">
+
+      <div class="container form-group form-inline">
+        <div class="form-group mb-2 mr-2 zoomSlider-group">
+          <label class="col-form-label-sm" for="pack-zoomSlider">Zoom level: ×<span class="zoomLevel">1.0</span></label>
+          <input type="range" class="form-control-range zoomSlider" value="1.0" min="0.1" max="2.0" step="0.01" id="pack-zoomSlider">
+        </div>
+        <div class="btn-group mb-2 mr-2" role="group">
+          <button type="button" class="btn btn-outline-secondary btn-sm fitSwitch" onclick="fitToWindow(this);" id="pack-fitSwitch">fit</button>
+        </div>
+        <div class="btn-group mb-2" role="group">
+          <button type="button" class="btn btn-outline-secondary btn-sm resetScaleSwitch" onclick="resetScale(this);" id="pack-fitSwitch">100%</button>
+        </div>
+      </div>
+
+      <div class="container render-container"><div id="graph-pack-render" class="render"></div></div>
+
+      <div id="style-switch" class="container form-group">
         <div class="form-check form-check-inline">
             <input class="form-check-input" type="radio" id="pack-style-basic" name="pack" value="basic" onclick="graphStyle(this.name, this.value);" checked>
             <label class="form-check-label" for="pack-style-basic">Basic</label>
@@ -360,12 +391,12 @@
         </div>
       </div>
 
-      <div class="form-group form-inline">
-        <div class="btn-group mb-2 mr-sm-2" role="group" aria-label="Export controls">
+      <div class="container form-group form-inline">
+        <div class="btn-group mb-2 mr-2" role="group" aria-label="Export controls">
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportRender('pack','svg');">save SVG</button>
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportRender('pack','img');">save Image</button>
         </div>
-        <div class="form-group mb-2 mr-sm-2">
+        <div class="form-group mb-2 mr-2">
           <select class="form-control form-control-sm scaleSelect" id="scaleSelect-graph">
             <option value="1">Size &times;1 (small)</option>
             <option value="2" selected>Size &times;2 (standard)</option>
@@ -377,23 +408,41 @@
         </div>
         <div class="form-group mb-2 form-check">
             <input type="checkbox" class="form-check-input bgCheckbox" id="bgCheckbox-graph" onclick="btnRender('pack');" checked>
-            <label class="form-check-label" for="bgCheckbox-graph">Background</label>
+            <label class="form-check-label col-form-label-sm" for="bgCheckbox-graph">Background</label>
         </div>
       </div>
     </div>
 
     <div id="graph-gsbhooks" class="graph">
-        <div class="form-group custom-control custom-switch">
-          <input type="checkbox" class="custom-control-input" id="compactCheckbox" onclick="btnRender('gsbhooks');">
-          <label class="custom-control-label" for="compactCheckbox">Compact Re-Entries</label>
+
+      <div class="container form-group form-inline">
+        <div class="form-group mb-2 mr-2 zoomSlider-group">
+          <label class="col-form-label-sm" for="pack-zoomSlider">Zoom level: ×<span class="zoomLevel">1.0</span></label>
+          <input type="range" class="form-control-range zoomSlider" value="1.0" min="0.1" max="2.0" step="0.01" id="pack-zoomSlider">
+        </div>
+        <div class="btn-group mb-2 mr-2" role="group">
+          <button type="button" class="btn btn-outline-secondary btn-sm fitSwitch" onclick="fitToWindow(this);" id="pack-fitSwitch">fit</button>
+        </div>
+        <div class="btn-group mb-2" role="group">
+          <button type="button" class="btn btn-outline-secondary btn-sm resetScaleSwitch" onclick="resetScale(this);" id="pack-fitSwitch">100%</button>
+        </div>
+      </div>
+
+        <div class="container render-container"><div id="graph-gsbhooks-render" class="render"></div></div>
+
+        <div class="container">
+          <div class="form-group custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="compactCheckbox" onclick="btnRender('gsbhooks');">
+            <label class="custom-control-label" for="compactCheckbox">Compact Re-Entries</label>
+          </div>
         </div>
 
-        <div class="form-group form-inline">
-          <div class="btn-group mb-2 mr-sm-2" role="group" aria-label="Export controls">
+        <div class="container form-group form-inline">
+          <div class="btn-group mb-2 mr-2" role="group" aria-label="Export controls">
             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportRender('gsbhooks','svg');">save SVG</button>
             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportRender('gsbhooks','img');">save Image</button>
           </div>
-          <div class="form-group mb-2 mr-sm-2">
+          <div class="form-group mb-2 mr-2">
             <select class="form-control form-control-sm scaleSelect" id="scaleSelect-gsbhooks">
               <option value="1">Size &times;1 (small)</option>
               <option value="2" selected>Size &times;2 (standard)</option>
@@ -405,7 +454,7 @@
           </div>
           <div class="form-group mb-2 form-check">
               <input type="checkbox" class="form-check-input bgCheckbox" id="bgCheckbox-gsbhooks" onclick="btnRender('gsbhooks');" checked>
-              <label class="form-check-label" for="bgCheckbox-gsbhooks">Background</label>
+              <label class="form-check-label col-form-label-sm" for="bgCheckbox-gsbhooks">Background</label>
           </div>
         </div>
     </div>
