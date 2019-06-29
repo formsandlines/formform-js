@@ -144,8 +144,10 @@ window.fitToWindow = function(elem) {
 	const renderNode = container.querySelector('.render');
 	const svg = renderNode.querySelector('svg');
 
-	const svgScale = svg.getAttribute('transform').match(/scale\((.+?)\)/)[1];
-	let scaleRatio = (window.innerWidth / svg.clientWidth) * 0.98;
+	// const svgScale = svg.getAttribute('transform').match(/scale\((.+?)\)/)[1];
+	const svgScale = svg.style['transform'].match(/scale\((.+?)\)/)[1];
+	let scaleRatio = (window.innerWidth / svg.getBBox().width) * 0.98;
+	// let scaleRatio = (window.innerWidth / svg.clientWidth) * 0.98;
 	scaleRatio = Math.round(scaleRatio*100)/100;
 
 	scaleViz(container, scaleRatio);
@@ -365,7 +367,8 @@ window.exportRender = function(type, format='svg') {
 	}
 
 	const container = svg.parentNode.parentNode.parentNode;
-	const svgScale = svg.getAttribute('transform').match(/scale\((.+?)\)/)[1];
+	// const svgScale = svg.getAttribute('transform').match(/scale\((.+?)\)/)[1];
+	const svgScale = svg.style['transform'].match(/scale\((.+?)\)/)[1];
 	scaleViz(container, 1.0); // normalize zoom ratio
 
 	formform.graph.saveGraph(format, svg, filename, scale);
