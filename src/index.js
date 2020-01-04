@@ -19,6 +19,17 @@ const graphGsbID = {cont: 'graph-gsbhooks', render: 'graph-gsbhooks-render'};
 const tempData = { csv: null };
 
 window.graphs = [];
+window.formform = formform;
+
+window.btnDNA = function() {
+	const txtbox = document.getElementById(txtboxID);
+	const fdna = formform.dna.formToDNA(txtbox.value);
+	const vmap = formform.dna.vmap(txtbox.value);
+
+	document.querySelector('#dna-test').innerHTML = `<div>${fdna}</div><div>${vmap}</div>`;
+
+
+}
 
 const transformCtrl = {
 	zoomSlider: { pack: document.getElementById('pack-zoomSlider') },
