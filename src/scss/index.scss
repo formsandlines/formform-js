@@ -33,29 +33,75 @@ h6 {
     .btn-group {
         vertical-align: bottom;
     }
-    button {
+    button, .btn-comb-graph {
         font-family: 'IBM Plex Sans Condensed', 'Helvetica', Arial, sans;
         font-weight: 400;
         font-size: $input-btn-font-size-sm;
         line-height: 1.3em;
         color: $white;
         border: none;
-        margin-right: 3px;
         text-align: right;
+        margin-right: 3px;
         padding: ($spacer) ($spacer*.5) ($spacer*.25) ($spacer*1.5);
-        &:last-child { margin-right: 0; }
+    }
+
+    .btn-comb-graph { 
+        position: relative;
+        margin-right: 0;
+        width: 8rem;
+        border-top-right-radius: 0.25rem;
+        border-bottom-right-radius: 0.25rem;
     }
     @include media-breakpoint-up(sm) {
-        button {
+        button, .btn-comb-graph {
             padding-top: $spacer*1.5;
             padding-left: $spacer*$scale2;
         }
     }
 
+    .btn-comb-inner {
+        position: absolute;
+        display: flex;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.0;
+        background-color: $blue;
+        border-top-right-radius: 0.25rem;
+        border-bottom-right-radius: 0.25rem;
+        &:hover {
+            opacity: 1.0;
+        }
+    }
+
+    .btn-comb-graph button {
+        width: 50%;
+        padding: 0;
+        margin: 0;
+        text-align: center;
+        background: none;
+        &:hover {
+            background-color: darken($blue, 10%);
+        }
+    }
+
     #btn-calc { background-color: $red; &:hover { background-color: darken($red, 12%); } }
-    #btn-tree { background-color: $red-dark; &:hover { background-color: darken($red-dark, 10%); } }
-    #btn-pack { background-color: $blue-dark; &:hover { background-color: darken($blue-dark, 20%); } }
-    #btn-gsbhooks { background-color: $blue; &:hover { background-color: darken($blue, 10%); } }
+    #btn-vmap { background-color: $red-dark; &:hover { background-color: darken($red-dark, 10%); } }
+    #btn-tree { background-color: $blue-dark; &:hover { background-color: darken($blue-dark, 20%); } }
+    .btn-comb-graph { 
+        background-color: $blue; 
+    }
+
+    .btn-icon {
+      // display: block;
+      // vertical-align: middle;
+      width: 2em;
+      height: 2em; 
+      fill: currentColor; 
+      color: white; 
+      transition: all 0.2s;
+    }
 }
 
 #intro {
@@ -65,15 +111,28 @@ h6 {
 #entry {
     position: relative;
     .entry-wrapper { position: relative; }
-    #btn-viewjson {
+    .input-viewbtn-wrap {
         position: absolute;
+        display: flex;
+        right: 0;
+    }
+    .input-viewbtn-wrap > * {
         font-size: 0.75em;
         background-color: $input-border-color;
         color: $body-color;
         border: none;
-        right: 0;
-        border-radius: 0 0 0.2rem 1.6rem;
-        padding: 0.2em 0.6em 0.2em 2.6em;
+    }
+    #btn-viewdna {
+        border-radius: 0 0 0 1.6rem;
+        padding: 0.2em 0.6em 0.2em 2.0em;
+        border-right: 1px solid white;
+        &:hover {
+            background-color: darken($input-border-color, 10%);
+        }
+    }
+    #btn-viewjson {
+        border-radius: 0 0 0.2rem 0;
+        padding: 0.2em 0.6em 0.2em 0.6em;
         &:hover {
             background-color: darken($input-border-color, 10%);
         }
@@ -119,7 +178,7 @@ h6 {
         color: theme-color-level(primary, 0);
     }
 }
-#output-json {
+#output-data {
     font-size: $small-font-size; 
 }
 

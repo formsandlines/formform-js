@@ -12,6 +12,7 @@ import {valueTableWizard, classnames_DEF as tableClasses} from './common/ff-tabl
 // import * as formform from './lib/main';
 
 const txtboxID = 'form_entry';
+const vmapID = {cont: 'vmap-output', render: 'vmap-render'};
 const graphTreeID = {cont: 'graph-tree', render: 'graph-tree-render'};
 const graphPackID = {cont: 'graph-pack', render: 'graph-pack-render'};
 const graphGsbID = {cont: 'graph-gsbhooks', render: 'graph-gsbhooks-render'};
@@ -20,16 +21,6 @@ const tempData = { csv: null };
 
 window.graphs = [];
 window.formform = formform;
-
-window.btnDNA = function() {
-	const txtbox = document.getElementById(txtboxID);
-	const fdna = formform.dna.formToDNA(txtbox.value);
-	const vmap = formform.dna.vmap(txtbox.value);
-
-	document.querySelector('#dna-test').innerHTML = `<div>${fdna}</div><div>${vmap}</div>`;
-
-
-}
 
 const transformCtrl = {
 	zoomSlider: { pack: document.getElementById('pack-zoomSlider') },
@@ -68,7 +59,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	resultFilter.neg.disabled = true;
 
 	hide('#output-wrapper-vals');
-	hide('#output-wrapper-json');
+	hide('#output-wrapper-data');
+	hide(`#${vmapID.cont}`);
 	hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
 	
 	hide(explanations);
@@ -139,6 +131,7 @@ function interpretURIHashParams(hash) {
 			else {
 				if (method === 'calc') btnCalc();
 				else if (method === 'json') btnViewJSON();
+				else if (method === 'dna')  btnViewDNA();
 			}
 		}
 	}
@@ -235,8 +228,9 @@ window.btnCalc = function() {
     show('#output-vals-csv');
 	tempData.csv = table.csv;
 
-	hide('#output-wrapper-json');
+	hide('#output-wrapper-data');
 	show('#output-wrapper-vals');
+	hide(`#${vmapID.cont}`);
 	hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
 	document.getElementById('output-vals').innerHTML = table.html;
 
@@ -264,34 +258,73 @@ window.btnViewJSON = function() {
 	const txtbox = document.getElementById(txtboxID);
 
 	hide('#output-wrapper-vals');
-		show('#output-wrapper-json');
+		show('#output-wrapper-data');
+		hide(`#${vmapID.cont}`);
 		hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
-		document.getElementById('output-json').innerHTML = '<code>'+formform.graph.jsonString(txtbox.value)+'</code>';
+		document.getElementById('output-data').innerHTML = `<code>${formform.graph.jsonString(txtbox.value)}</code>`;
 
 	window.location.href = encodeURI('#'+txtbox.value+'#json');
+}
+
+window.btnViewDNA = function() {
+	const txtbox = document.getElementById(txtboxID);
+
+	hide('#output-wrapper-vals');
+		show('#output-wrapper-data');
+		hide(`#${vmapID.cont}`);
+		hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
+		document.getElementById('output-data').innerHTML = `<code>${txtbox.value}::${formform.dna.formToDNA(txtbox.value)}</code>`;
+
+	window.location.href = encodeURI('#'+txtbox.value+'#dna');
+}
+
+window.btnVmap = function() {
+	const txtbox = document.getElementById(txtboxID);
+
+	hide('#output-wrapper-vals');
+	hide('#output-wrapper-data');
+	hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
+
+	show(`#${vmapID.cont}`);
+
+	document.querySelector(`#${vmapID.cont} > .error-msg`).innerHTML = '';
+
+	if (formform.form.getTotalVars(txtbox.value) > 0) {
+		const vmap = formform.dna.vmap(txtbox.value);
+
+		document.querySelector(`#${vmapID.render}`).innerHTML = vmap;
+	}
+	else {
+		document.querySelector(`#${vmapID.cont} > .error-msg`).innerHTML = 'You need to have at least one variable in your FORM to generate a vmap.';
+	}
+
+	window.location.href = encodeURI('#'+txtbox.value+'#vmap');
 }
 
 window.btnRender = function(type) {
 	const txtbox = document.getElementById(txtboxID);
 
 	hide('#output-wrapper-vals');
-	hide('#output-wrapper-json');
+	hide('#output-wrapper-data');
 	
 	switch(type) {
 		case 'tree':
 			show(`#${graphTreeID.cont}`);
 			hide(`#${graphPackID.cont}`);
 			hide(`#${graphGsbID.cont}`);
+			hide(`#${vmapID.cont}`);
 			break;
 		case 'pack':
 			show(`#${graphPackID.cont}`);
 			hide(`#${graphTreeID.cont}`);
 			hide(`#${graphGsbID.cont}`);
+			hide(`#${vmapID.cont}`);
 			break;
 		case 'gsbhooks':
 			show(`#${graphGsbID.cont}`);
 			hide(`#${graphPackID.cont}`);
 			hide(`#${graphTreeID.cont}`);
+			hide(`#${vmapID.cont}`);
 			break;
 	}
 
@@ -306,9 +339,7 @@ window.btnRender = function(type) {
 
 	if (graph && window.graphs.length > 0) window.graphs.shift();
 
-
 	window.location.href = encodeURI('#'+txtbox.value+'#graph-'+type);
-
 	window.graphs.push(graph);
 }
 

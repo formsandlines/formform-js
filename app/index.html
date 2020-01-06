@@ -210,17 +210,35 @@
       <div class="entry-wrapper">
         <label for="form_entry">FORM entry</label>
         <input type="text" class="form-control" id="form_entry" aria-describedby="formHelp" placeholder="(a)b">
-        <button type="button" id="btn-viewjson" class="btn btn-secondary btn-sm" onclick="btnViewJSON();">view JSON</button>
+        <div class="input-viewbtn-wrap">
+          <button type="button" id="btn-viewdna" class="btn btn-secondary btn-sm" onclick="btnViewDNA();">formDNA</button>
+          <button type="button" id="btn-viewjson" class="btn btn-secondary btn-sm" onclick="btnViewJSON();">formJSON</button>
+        </div>
         <small id="formHelp" class="form-text text-muted">Enter your formula here.</small>
       </div>
   </section>
   <section id="interface">
     <div id="action" class="container form-group">
       <div class="btn-group" role="group" aria-label="Control panel">
-        <button type="button" id="btn-calc" class="btn btn-primary" onclick="btnCalc();">Calculate</button>
-        <button type="button" id="btn-tree" class="btn btn-primary" onclick="btnRender('tree');">Depth Tree</button>
-        <button type="button" id="btn-pack" class="btn btn-primary" onclick="btnRender('pack');">Circle Notation</button>
-        <button type="button" id="btn-gsbhooks" class="btn btn-primary" onclick="btnRender('gsbhooks');">Hook Notation</button>
+        <button type="button" id="btn-calc" class="btn btn-primary" onclick="btnCalc();">calculate</button>
+        <button type="button" id="btn-vmap" class="btn btn-primary" onclick="btnVmap();">vmap</button>
+        <button type="button" id="btn-tree" class="btn btn-primary" onclick="btnRender('tree');">depth tree</button>
+        <div class="btn-comb-graph">
+          render FORM
+          <div class="btn-comb-inner">
+            <button type="button" id="btn-pack" class="btn btn-primary" onclick="btnRender('pack');">
+              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-0.7 -0.7 21.4 21.4">
+                <circle fill="none" stroke="white" stroke-width="1.4" cx="10" cy="10" r="10" />
+                <circle fill="rgba(255,255,255,0.4)" stroke="none" cx="10" cy="10" r="5" /></svg></button>
+            <button type="button" id="btn-gsbhooks" class="btn btn-primary" onclick="btnRender('gsbhooks');">
+              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-0.7 -0.7 21.4 21.4">
+                <path fill="none" stroke="white" stroke-width="1.4" 
+                d="M0 0  L 20 0  L 20 20"/>
+                <path fill="rgba(255,255,255,0.4)" stroke="none" 
+                d="M3 5  L 15 5  L 15 17  L 3 17  Z"/></svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -317,13 +335,15 @@
       </div>
     </div>
 
-    <div class="output-wrapper" id="output-wrapper-json">
-      <pre class="output" id="output-json"></pre>
+    <div class="output-wrapper" id="output-wrapper-data">
+      <pre class="output" id="output-data"></pre>
     </div>
     
   </section>
 
-  <section id="dna-test">
+  <section id="vmap-output">
+    <div id="vmap-render" class="container"></div>
+    <div class="error-msg container"></div>
   </section>
 
   <section id="graph-output">
