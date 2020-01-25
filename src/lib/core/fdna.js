@@ -1,6 +1,5 @@
 import FForm from './fform';
 import { permuteArray, truncateStr } from '../../common/helper';
-// import { vmap, vmapPerspectives, vmapList } from '../modules/vmap';
 
 export default class FDna extends FForm {
     /*
@@ -24,10 +23,10 @@ export default class FDna extends FForm {
 
 
 	static vmap (input, varorder=undefined, options=undefined) {
-	  /* New version that generates diamonds from left:0, right:1, top:3, bottom:2 (order like in MindFORMs) */
-	  let formDNA = !!+input ? input 
-	                         : (varorder === undefined) ? this.formToDNA(input) 
-	                                                    : this.formToDNA(this.reOrderVars(input,varorder));
+	  /* Value ordering: left:0, right:1, up:3, down:2 */
+	  if (!+input && varorder === undefined) varorder = this.matchDefaultVarOrder( this.getVariables(input) );
+
+	  let formDNA = !!+input ? input : this.formToDNA(this.reOrderVars(input,varorder));
 	  formDNA = formDNA.split('').reverse().join('');
 	  const vnum = this.totalVarsFromDNA(formDNA);
 	  
@@ -69,12 +68,20 @@ export default class FDna extends FForm {
 	    mapSVG += `</g>`;
 	    return mapSVG;
 	  }
+
+	  const processLabel = label => {
+	  	if (label.length > 1) {
+	  		const labelParts = label.split('_');
+	  		return (labelParts.length > 1) ? `${labelParts[0]}<sub>${labelParts[1]}</sub>` : `"${label}"`;
+	  	}
+	  	else return label;
+	  }
 	  
 	  const caption = () => {
 	    if (customLabel !== undefined) return `<figcaption style="word-wrap: break-word;">${customLabel}</figcaption>`;
 	    if (!(hideInputLabel && hideOrderLabel)) {
 	      let label = '';
-	      label += hideOrderLabel || !!+input ? '' : `${varorder.reduce((acc,curr) => acc + ' > ' + curr)}${hideInputLabel ? '' : '<br/>'}`;
+	      label += hideOrderLabel || !!+input ? '' : `${varorder.reduce((acc,curr,i) => acc + (i > 0 ? ' > ' : '') + processLabel(curr),'' )}${hideInputLabel ? '' : '<br/>'}`;
 	      label += hideInputLabel ? '' : !!+input ? `<code style="font-size:0.8em;">::${fullInputLabel ? input : truncateStr(input,4**4,`…(${4**vnum})`)}</code>` : 'ƒ = '+(fullInputLabel ? input : truncateStr(input,inputLabelMax,`… <i>+more</i>`));
 	      return `<figcaption style="word-wrap: break-word;">${label}</figcaption>`;
 	    }
@@ -99,17 +106,15 @@ export default class FDna extends FForm {
 
 	static vmapPerspectives (form, varList=undefined, options=undefined, margin=20) {
 	  /* formDNA not yet supported (permutation algorithm required) */
-	  if (varList === undefined) {
-	    const vnum = this.getTotalVars(form);
-	    const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
-	    varList = Array.from({length:vnum}, (_,i) => alphabet[i]);
-	  }
-	  return `<figure class="vmap-perspectives" style="max-width: none;">
-	  <div class="vmap-list" style="display: flex; flex-wrap: wrap; margin: 0 -${Math.floor(margin/2)}px">
-	  ${ permuteArray(varList).map(varorder => {
+	  if (varList === undefined) varList = this.matchDefaultVarOrder( this.getVariables(form) );
+
+	  const vmapItems = permuteArray(varList).map(varorder => {
 	    return `<div class="vmap-item" style="padding: ${Math.floor(margin/4)}px ${Math.floor(margin/2)}px"> 
 	      ${this.vmap(form,varorder,{hideInputLabel: true, ...options})}
-	      </div> `}) }
+	      </div>`}).reduce((str,item) => str+item,'');
+	  return `<figure class="vmap-perspectives" style="max-width: none;">
+	  <div class="vmap-list" style="display: flex; flex-wrap: wrap; margin: 0 -${Math.floor(margin/2)}px">
+	  ${ vmapItems }
 	  </div>
 	  <figcaption style="border-top: 1px solid; padding-top: ${Math.floor(margin/4)}px; margin-top: ${Math.floor(margin/2)}px">ƒ = ${form}</figcaption>
 	  </figure>`
@@ -127,6 +132,7 @@ export default class FDna extends FForm {
 	};
 
 	static vColor (val) {
+		/* Value to color map for vmap */
 	  return val == 0 ? '#000000'
 	       : val == 1 ? '#4757ff'
 	       : val == 2 ? '#ff0044'

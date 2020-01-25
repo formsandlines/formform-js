@@ -10,11 +10,14 @@ const LANG_DEFAULT = loc_EN;
 const CLASSNAMES_DEFAULT = classnames_DEF;
 
 
-export function valueTableWizard(obj, outputCSV, ..._optsArr) {
-  const optsArr = _optsArr.map( opts => Object.assign({search:[], filterByVals:false}, opts) );
+export function valueTableWizard(formula_pre, outputCSV, ..._optsArr) {
+  const optsArr = _optsArr.map( opts => Object.assign({search:[], filterByVals:false, varOrder:undefined}, opts) );
   
-  let interpr = obj;
-  if(typeof(obj) === 'string') interpr = formform.form.calcAll(obj);
+  const varList = optsArr[0].varOrder ? optsArr[0].varOrder 
+                   : formform.form.matchDefaultVarOrder( formform.form.getVariables(formula_pre) );
+  const formula = formform.form.reOrderVars( formula_pre, varList );
+
+  let interpr = formform.form.calcAll(formula);
   
   for (let i in optsArr) {
   
@@ -23,17 +26,18 @@ export function valueTableWizard(obj, outputCSV, ..._optsArr) {
     
   }
 
-  const lang = optsArr[0].lang ? optsArr[0].lang : LANG_DEFAULT;
-  const classnames = optsArr[0].classnames ? optsArr[0].classnames : CLASSNAMES_DEFAULT;
+  const _lang = optsArr[0].lang ? optsArr[0].lang : LANG_DEFAULT;
+  const _classnames = optsArr[0].classnames ? optsArr[0].classnames : CLASSNAMES_DEFAULT;
   
-  const html = genValueTable(interpr, lang, classnames);
+  const html = genValueTable(interpr, {varOrder: varList, lang: _lang, classnames: _classnames});
 
 
-  if (outputCSV) return {html: html, csv: genCSV(interpr, lang)};
+  if (outputCSV) return {html: html, csv: genCSV(interpr, _lang)};
   else return html;
 }
 
-export function genValueTable(interpr, lang=LANG_DEFAULT, classnames=CLASSNAMES_DEFAULT) {
+export function genValueTable(interpr, opts) { // !old args: (interpr, lang, classnames)
+  const {varOrder=undefined, lang=LANG_DEFAULT, classnames=CLASSNAMES_DEFAULT} = {...opts};
 
   let thead = '';
   let tbody = '';
@@ -46,8 +50,20 @@ export function genValueTable(interpr, lang=LANG_DEFAULT, classnames=CLASSNAMES_
     
   }
   else {
-    const keys = Object.keys(interpr);
-    keys.sort(); // ALERT
+    function restoreVarsInKey(str) {
+      if (varOrder === undefined) return str;
+
+      const parts = str.split(';');
+      // const restoredVarKeys = parts[0].split(',').map((v,i) => varOrder[i]).join(',');
+      const restoredVarKeys = varOrder.join(',');
+      return restoredVarKeys + ';' + parts[1];
+    };
+
+    const _keys = Object.keys(interpr);
+    const corr_interpr = Object.fromEntries( _keys.map(k => [ restoreVarsInKey(k), interpr[k] ]) )
+    const keys = Object.keys(corr_interpr);
+
+    keys.sort(); // ALERT -> obsolete?
 
     const labels = keys.map(e => {
       let parts = e.split(';');
@@ -66,7 +82,7 @@ export function genValueTable(interpr, lang=LANG_DEFAULT, classnames=CLASSNAMES_
     keys.forEach( (e,i) => {
       str += `<tr><td class="${classnames.td.varLabels}"><code>${labels[i][0]}</code></td>
                   <td class="${classnames.td.varVals}"><code>${labels[i][1]}</code></td>
-                  <td class="${classnames.td.result}"><code>${interpr[e]}</code></td></tr>`;
+                  <td class="${classnames.td.result}"><code>${corr_interpr[e]}</code></td></tr>`;
     } );
     tbody = str;
   }

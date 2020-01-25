@@ -26,7 +26,7 @@
   <h1>FORM tricorder 🖖</h1>
   <!-- <i style="font-size: 60%;">(beta)</i> -->
   <p>Calculate, analyze and visualize 4-valued FORMs</p>
-  <p class="metainfo small">Concept and Development by <a href="https://formsandlines.eu" target="_blank">Peter Hofmann</a>, 2018–2019. Made as an application of my trusty <a href="https://github.com/formsandlines/formform" target="_blank">formform library</a>.<br/>Calculation algorithms based on demonstrations in the book <a href="https://uformiform.info" target="_blank">uFORM iFORM</a> by Ralf Peyn, 2017 and the Laws of Form by George Spencer-Brown, 1969–2015.</p>
+  <p class="metainfo small">Concept and Development by <a href="https://formsandlines.eu" target="_blank">Peter Hofmann</a>, 2018–2020. Made as an application of my trusty <a href="https://github.com/formsandlines/formform" target="_blank">formform library</a>.<br/>Calculation algorithms based on demonstrations in the book <a href="https://uformiform.info" target="_blank">uFORM iFORM</a> by Ralf Peyn, 2017 and the Laws of Form by George Spencer-Brown, 1969–2015.</p>
 </header>
 
 <aside class="container">
@@ -154,13 +154,50 @@
         <li>Please be aware that with each variable you add to your form, there will be exponentially more values to compute and render inside the table (which will become an enormous list and may take forever to display if you add more than six variables). If you are, however, successful in rendering the table, you may want to use the search function of your browser to look for specific interpretations or values. In the future I may also add filtering functionality, so stay tuned.</li>
     </ol>
 
-    <h4>Visualize</h4>
+    <blockquote class="sidenote">
+      <h5><i>Side note</i></h5>
 
-    <p>You can visualize your forms using one of three different representation types:</p>
+      <p>Pressing <strong>“formDNA”</strong> to the right of the input field will output a string of numbers that I call (obviously) “formDNA”. It is a code format that stores all possible interpretation results of a FORM in a single <a href="https://en.wikipedia.org/wiki/Quaternary_numeral_system" target="_blank">quaternary number</a>. It is essentially a compact representation of the value table that you can see by clicking on “calculate”. For more information about formDNA and its applications, please read my <a href="https://observablehq.com/@formsandlines/the-dna-of-4-valued-forms" target="_blank">introductory notebook</a>.</p>
+    </blockquote>
+
+    <h4>Analyze</h4>
+
+    <p>I have designed two visualzation types that can be used to analyze value patterns and FORM structure:</p>
+
+    <h5>vmap</h5>
+    
+    <p>vmaps are <i>variable/value-maps</i> and can be seen as an alternative representation of value tables that is especially useful for pattern recognition. Each variable of a FORM is represented as a diamond shaped group that consists of four smaller groups representing its interpretation states in four directions:</p>
+    <ul style="list-style-type: none;">
+      <li>← : <code>0</code> <i>(unmarked)</i></li>
+      <li>→ : <code>1</code> <i>(marked)</i></li>
+      <li>↓ : <code>2</code> <i>(undetermined)</i></li>
+      <li>↑ : <code>3</code> <i>(imaginary)</i></li>
+    </ul>
+    <p>
+      Following each direction, this process is repeated recursively down to the smallest diamonds (the ones that are actually drawn), which represent the interpretation results. Each result is color-coded according to the color convention used in uFORM iFORM:</p>
+    <p id="vmap-color-lookup"></p>
+
+    <p>Below the diagram you can see the order in which variables are interpreted in the vmap. A different ordering can be selected using the drop-down menu above the diagram. A vmap of a FORM with more than one variable is called a <em>vmap perspective,</em> since it can only display one unique ordering path. It is often useful to examine multiple different perspectives side by side to spot different sub-patterns or symmetries. By clicking on the <b>“+”</b> next to the diagram, you can render all vmap perspectives at once.</p>
+
+<script>
+const square = 10;
+const rhomb = Math.round(Math.sqrt(2 * square**2));
+document.getElementById('vmap-color-lookup').innerHTML = '<ul style="list-style-type: none;">'+ Array.from([
+  {vnum:'0',vstr:'n',c:'#000000'},{vnum:'1',vstr:'m',c:'#4757ff'},
+  {vnum:'2',vstr:'u',c:'#ff0044'},{vnum:'3',vstr:'i',c:'#00ff5f'}
+],(d,i) => 
+`<li>
+  <svg width=${rhomb} height=${rhomb}><g transform="translate(0,${rhomb/2}) rotate(-45,0,0)"><rect x=0 y=0 width=${square} height=${square} fill=${d.c}></rect></svg> : <code>${d.vnum}</code><i>/${d.vstr}</i>
+</li>`).join('') +'</ul>';
+</script>
 
     <h5>Depth Tree</h5>
     
     <p>Depth trees help to analyze the structure of forms in detail and especially clarify what is going on in spaces of a certain depth if one works with more complex forms or for students to help to understand these concepts. Re-entry forms are indicated with a red circle that is not filled when the form is <abbr title="not marked by an outer cross">open</abbr>. Their nested structure, that leads to the (tiny red) <em>point of re-entry</em>, is indicated by red dashed lines and circles.</p>
+
+    <h4>Visualize</h4>
+
+    <p>You can visualize your forms using one of two different representation types:</p>
 
     <h5>Circle Notation</h5>
 
@@ -194,8 +231,8 @@
     <h5><i>Technical sidenotes</i></h5>
 
     <ul>
-      <li>Pressing <strong>“view JSON”</strong> to the right of the input field will display a <em>JSON-representation</em> of the form that is used internally to handle visualization and some of the calculation. Forms with the property <samp><code>"unmarked": true</code></samp> behave like groups and will not be displayed or computed.</li>
-      <li>All visualization types are developed with the help of the <a href="https://d3js.org/" target="_blank">D3.js</a> library and SVG, using my JSON representation as input data. If you are interested in creating a different representation style, take a look at my <a href="https://github.com/formsandlines/formform" target="_blank">formform library</a> – the engine behind this application.</li>
+      <li>Pressing <strong>“formJSON”</strong> to the right of the input field will display a <em>JSON-representation</em> of the form that is used internally to handle visualization and some of the calculation. Forms with the property <samp><code>"unmarked": true</code></samp> behave like groups and will not be displayed or computed.</li>
+      <li>All visualization types (except vmaps) are developed with the help of the <a href="https://d3js.org/" target="_blank">D3.js</a> library and SVG, using my JSON representation as input data. If you are interested in creating a different representation style, take a look at my <a href="https://github.com/formsandlines/formform" target="_blank">formform library</a> – the engine behind this application.</li>
     </ul>
   </blockquote>
 
@@ -241,6 +278,9 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <section id="input-varorder" class="container">
   </section>
 
   <section id="output" class="container">
@@ -328,15 +368,22 @@
       
     </fieldset>
 
-      <div class="table-responsive output" id="output-vals"></div>
-
       <div class="form-group" id="output-vals-csv">
         <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportVals('csv');">save Data</button>
       </div>
+
+      <div class="table-responsive output" id="output-vals"></div>
+
     </div>
 
     <div class="output-wrapper" id="output-wrapper-data">
-      <pre class="output" id="output-data"></pre>
+
+      <div class="mb-3">
+        <button type="button" id="clipboard-page" class="btn btn-outline-secondary btn-sm clipboard-btn" data-clipboard-target="#output-wrapper-data" data-toggle="tooltip" data-placement="bottom" data-trigger='manual' title="Copied!">Copy to clipboard</button>
+      </div>
+
+      <div class="output" id="output-data"></div>
+
     </div>
     
   </section>
@@ -496,7 +543,7 @@
               <textarea id="exportValsData" class="form-control" rows="16" readonly></textarea>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-primary clipboard-btn" data-clipboard-target="#exportValsData" data-toggle="tooltip" data-placement="bottom" data-trigger='manual' title="Copied!">Copy to clipboard</button> 
+            <button type="button" id="clipboard-modal" class="btn btn-primary clipboard-btn" data-clipboard-target="#exportValsData" data-toggle="tooltip" data-placement="bottom" data-trigger='manual' title="Copied!">Copy to clipboard</button> 
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           </div>
         </div>

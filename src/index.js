@@ -4,7 +4,7 @@ let ClipboardJS = require('clipboard');
 let clipboard = new ClipboardJS('.clipboard-btn');
 
 import './scss/index.scss';
-import {show, hide, hideAll, toggle, isVisible, saveText, getTimestamp, scaleSVG} from './common/helper';
+import {show, hide, hideAll, toggle, isVisible, saveText, getTimestamp, scaleSVG, permuteArray} from './common/helper';
 
 import * as d3 from 'd3';
 import formform from './lib/main';
@@ -16,6 +16,8 @@ const vmapID = {cont: 'vmap-output', render: 'vmap-render'};
 const graphTreeID = {cont: 'graph-tree', render: 'graph-tree-render'};
 const graphPackID = {cont: 'graph-pack', render: 'graph-pack-render'};
 const graphGsbID = {cont: 'graph-gsbhooks', render: 'graph-gsbhooks-render'};
+
+const varOrderSel = {cont: 'input-varorder', input: undefined, ctrId: 'varOrderSelect', delim: '¶'};
 
 const tempData = { csv: null };
 
@@ -54,6 +56,8 @@ const valFilter = {
 document.addEventListener('DOMContentLoaded', function() {
 	const explSwitch = document.getElementById('toggle_explanations');
 	const explanations = document.getElementById('explanations');
+
+	updateVarOrderSel(false);
 
 	hideAll(`#${valFilter.ID}, #${resultFilter.ID}`);
 	resultFilter.neg.disabled = true;
@@ -118,7 +122,11 @@ function interpretURIHashParams(hash) {
 		hash = hash.substr(1,hash.length);
 
 		const hashParts = hash.split('#');
-		document.getElementById(txtboxID).value = hashParts[0];
+
+		const inputParts = hashParts[0].split(';');
+		document.getElementById(txtboxID).value = inputParts[0];
+
+		if (inputParts.length > 1) varOrderSel.input = inputParts[1];
 
 		if (hashParts.length > 1) {
 			const method = hashParts[1];
@@ -132,6 +140,7 @@ function interpretURIHashParams(hash) {
 				if (method === 'calc') btnCalc();
 				else if (method === 'json') btnViewJSON();
 				else if (method === 'dna')  btnViewDNA();
+				else if (method === 'vmap') btnVmap();
 			}
 		}
 	}
@@ -189,11 +198,88 @@ function refitContainer(renderNode, renderContainer) {
 }
 
 
+
+
+function updateVarOrderSel(display, formulaInput=undefined) {
+	const container = document.getElementById(varOrderSel.cont);
+
+	if (formulaInput) {
+		const vars = formform.form.getVariables(formulaInput);
+		const orderInput = varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined;
+	
+		const ctrExists = document.getElementById(varOrderSel.ctrId) !== null;
+
+		if (!ctrExists || !equalVars(vars, orderInput) ) {
+			createVarOrderSel(container, vars, (!ctrExists && equalVars(vars, orderInput) ? orderInput.join(varOrderSel.delim) : undefined));
+	    }
+	}
+
+	if (display) container.classList.remove('hidden');
+	else container.classList.add('hidden');
+}
+
+
+function equalVars(varsA, varsB) {
+	if (varsA === undefined || varsB === undefined) return false;
+	return varsA.length === varsB.length && varsA.every(a => varsB.some(b => a === b));
+}
+
+
+function createVarOrderSel(container, vars, selected) {
+	const varPermutations = permuteArray(vars).map( (perm,i) => ({
+	              label: perm.reduce( (acc,curr) => acc.concat(` ${curr.length > 1 ? '"'+curr+'"' : curr}`),'' ),
+	              value: perm.join(varOrderSel.delim),
+	            }));
+	const permDef = selected ? selected
+				: vars.join('') === 'ELR' ? varPermutations[2].value
+	            : vars.join('') === '+-LR' ? varPermutations[9].value
+	            : vars.join('') === '+-ELR' ? varPermutations[39].value
+	            : varPermutations[0].value;
+
+	container.innerHTML = `<label for="${varOrderSel.ctrId}">Variable interpretation order:</label><select class="form-control form-control-sm" id="${varOrderSel.ctrId}">
+        ${ varPermutations.map(perm => `<option value="${perm.value}" ${perm.value === permDef ? 'selected' : ''}>${perm.label}</option>`) }
+
+      </select>`;
+
+    const ctrSelect = container.lastElementChild;
+    varOrderSel.input = ctrSelect.value;
+
+    ctrSelect.addEventListener('change', e => {
+    	varOrderSel.input = ctrSelect.value;
+
+    	const mode = getAppMode();
+    	switch (mode) {
+    		case 'dna':
+    			btnViewDNA();
+    			break;
+    		case 'calc':
+    			btnCalc();
+    			break;
+    		case 'vmap':
+    			btnVmap();
+    			break;
+    	}
+    });
+}
+
+function getVarOrderSel() {
+	return document.getElementById(varOrderSel.ctrId).value;
+}
+
+function getAppMode() {
+	const hash = decodeURI(window.location.hash);
+	const hashParts = hash.split('#');
+	return hashParts[hashParts.length-1];
+}
+
+
+
 window.btnCalc = function() {
     const txtbox = document.getElementById(txtboxID);
-    const json = formform.graph.parseLinear(txtbox.value)
-    const vals = formform.graph.calcAll(json);
 
+	updateVarOrderSel(true, txtbox.value);
+
+	const form = txtbox.value;
 	const tableOpt = {filterRes: {}, filterVal: {}}
 
 	if (!document.getElementById(resultFilter.ID).disabled) {
@@ -222,7 +308,7 @@ window.btnCalc = function() {
 	}
 
     tableClasses.table = 'table table-sm table-hover w-auto';
-    const table = valueTableWizard(vals, true, tableOpt.filterRes, tableOpt.filterVal);
+    const table = valueTableWizard(form, true, (varOrderSel.input ? Object.assign(tableOpt.filterRes,{varOrder: varOrderSel.input.split(varOrderSel.delim)}) : tableOpt.filterRes), tableOpt.filterVal);
 
 
     show('#output-vals-csv');
@@ -234,7 +320,7 @@ window.btnCalc = function() {
 	hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
 	document.getElementById('output-vals').innerHTML = table.html;
 
-	window.location.href = encodeURI('#'+txtbox.value+'#calc');
+	window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#calc');
 
 }
 
@@ -255,31 +341,39 @@ window.filter = function(filterResults=false) {
 }
 
 window.btnViewJSON = function() {
+	updateVarOrderSel(false);
+
 	const txtbox = document.getElementById(txtboxID);
 
 	hide('#output-wrapper-vals');
 		show('#output-wrapper-data');
 		hide(`#${vmapID.cont}`);
 		hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
-		document.getElementById('output-data').innerHTML = `<code>${formform.graph.jsonString(txtbox.value)}</code>`;
+		document.getElementById('output-data').innerHTML = `<pre><code>${formform.graph.jsonString(txtbox.value)}</code></pre>`;
 
-	window.location.href = encodeURI('#'+txtbox.value+'#json');
+	window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#json');
 }
 
 window.btnViewDNA = function() {
 	const txtbox = document.getElementById(txtboxID);
 
+	updateVarOrderSel(true, txtbox.value);
+
+	const form = varOrderSel.input ? formform.form.reOrderVars(txtbox.value, varOrderSel.input.split(varOrderSel.delim)) : txtbox.value;
+
 	hide('#output-wrapper-vals');
 		show('#output-wrapper-data');
 		hide(`#${vmapID.cont}`);
 		hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
-		document.getElementById('output-data').innerHTML = `<code>${txtbox.value}::${formform.dna.formToDNA(txtbox.value)}</code>`;
+		document.getElementById('output-data').innerHTML = `<div id="dna"><code><span class="dna-form" title="FORM">${txtbox.value}</span>${varOrderSel.input ? '.<span class="dna-varorder" title="Variable interpretation order">['+varOrderSel.input.split(varOrderSel.delim).join(',')+']</span>' : ''}::<span class="dna-code">${formform.dna.formToDNA(form)}</span></code></div>`;
 
-	window.location.href = encodeURI('#'+txtbox.value+'#dna');
+	window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#dna');
 }
 
 window.btnVmap = function() {
 	const txtbox = document.getElementById(txtboxID);
+
+	updateVarOrderSel(true, txtbox.value);
 
 	hide('#output-wrapper-vals');
 	hide('#output-wrapper-data');
@@ -288,20 +382,53 @@ window.btnVmap = function() {
 	show(`#${vmapID.cont}`);
 
 	document.querySelector(`#${vmapID.cont} > .error-msg`).innerHTML = '';
+	const totalVars = formform.form.getTotalVars(txtbox.value);
 
-	if (formform.form.getTotalVars(txtbox.value) > 0) {
-		const vmap = formform.dna.vmap(txtbox.value);
+	if (totalVars > 8) document.querySelector(`#${vmapID.cont} > .error-msg`).innerHTML = 'Sorry, vmaps with more than 8 variables are too large to be effectively rendered on the web. I am working on a practical solution to this issue, but you can always implement vmaps yourself using the library <a href="https://github.com/formsandlines/formform" target="_blank">formform</a>.';
+	else if (totalVars > 0) {
+		const vmap = formform.dna.vmap(txtbox.value, varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined);
 
 		document.querySelector(`#${vmapID.render}`).innerHTML = vmap;
+
+		
+		if (totalVars > 1) {
+
+			const vmapDiam = parseInt(document.querySelector(`#${vmapID.render} svg`).getAttribute('width'));
+			const btnDiam = 30;
+			const btnId = 'perspBtn';
+
+			const perspBtn = document.createElement('div');
+			perspBtn.setAttribute('id', btnId);
+			perspBtn.style['margin-left'] = (vmapDiam+10)+'px';
+			perspBtn.style['margin-top'] = (vmapDiam*0.5 - btnDiam*0.5)+'px';
+			perspBtn.innerHTML = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 40 40" width="${btnDiam}" height="${btnDiam}">
+				<path class="st0" d="M20,0L0,20l20,20l20-20L20,0z M30,21h-9v9c0,0.6-0.4,1-1,1s-1-0.4-1-1v-9h-9c-0.6,0-1-0.4-1-1s0.4-1,1-1h9v-9
+	c0-0.6,0.4-1,1-1s1,0.4,1,1v9h9c0.6,0,1,0.4,1,1S30.6,21,30,21z"/>
+			</svg>`;
+
+			document.querySelector(`#${vmapID.render}`).append(perspBtn);
+
+			perspBtn.addEventListener('click', e => {
+				if (totalVars < 6) {
+					const vmapPersp = formform.dna.vmapPerspectives(txtbox.value, varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined);
+					document.querySelector(`#${vmapID.render} > figure.vmap`).remove();
+					document.querySelector(`#${vmapID.render}`).innerHTML = vmapPersp;
+				} else {
+					alert('Sorry, there are too many perspectives for vmaps with more than six variables to render effectively on the web. You can, however, still compute single permutations by changing the variable order of your FORM.');
+				}
+			});
+		}
 	}
 	else {
 		document.querySelector(`#${vmapID.cont} > .error-msg`).innerHTML = 'You need to have at least one variable in your FORM to generate a vmap.';
 	}
 
-	window.location.href = encodeURI('#'+txtbox.value+'#vmap');
+	window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#vmap');
 }
 
 window.btnRender = function(type) {
+	updateVarOrderSel(false);
+
 	const txtbox = document.getElementById(txtboxID);
 
 	hide('#output-wrapper-vals');
@@ -339,7 +466,7 @@ window.btnRender = function(type) {
 
 	if (graph && window.graphs.length > 0) window.graphs.shift();
 
-	window.location.href = encodeURI('#'+txtbox.value+'#graph-'+type);
+	window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#graph-'+type);
 	window.graphs.push(graph);
 }
 
@@ -447,8 +574,7 @@ window.exportVals = function(filetype) {
 }
 
 clipboard.on('success', function(e) {
-
-	let clipboardBtn = $('#exportValsModal .clipboard-btn');
+	let clipboardBtn = $(`#${e.trigger.id}`);
 
 	clipboardBtn.tooltip('show');
 	setTimeout(function(){

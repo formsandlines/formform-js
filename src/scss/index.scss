@@ -28,6 +28,10 @@ h6 {
     sup { text-decoration: none; }
 }
 
+.hidden {
+    display: none !important;
+}
+
 #action {
 
     .btn-group {
@@ -178,7 +182,7 @@ h6 {
         color: theme-color-level(primary, 0);
     }
 }
-#output-data {
+#output-data pre {
     font-size: $small-font-size; 
 }
 
@@ -245,3 +249,49 @@ code {
 .zoomSlider-group {
     width: 300px;
 }
+
+#vmap-render {
+    position: relative;
+}
+
+#perspBtn {
+    position: absolute;
+    top: 0;
+    cursor: pointer;
+    // left: 0;
+    svg {
+        fill: $input-border-color;
+        transition: all 0.2s;
+        &:hover {
+            fill: darken($input-border-color, 10%);
+        }
+    }
+}
+
+#vmap-render .vmap figcaption {
+    margin-top: 0.4rem;
+}
+#vmap-render figcaption {
+    font-family: $font-family-monospace;
+    font-size: $small-font-size;
+    // letter-spacing: -0.08em;
+}
+
+#dna > code {
+    color: rgba($body-color, .5);
+
+    .dna-varorder, .dna-form {
+        color: rgba($body-color, .5);
+        white-space: nowrap;
+        transition: all 0.2s;
+        &:hover {
+            color: rgba($body-color, 1.0);
+        }
+    }
+    .dna-code {
+        color: $body-color;
+    }
+}
+
+
+

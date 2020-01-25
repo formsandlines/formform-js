@@ -553,7 +553,7 @@ export default class FForm extends FCalc {
     // ----------------------------------------------------
 
     static jsonString(form) {
-        /* return json-representation of the specified FORM */
+        /* returns json-representation of the specified FORM */
         if(typeof(form) === 'string') form = this.parseLinear(form);
     
         return JSON.stringify(form, undefined, 2);
@@ -564,6 +564,9 @@ export default class FForm extends FCalc {
     // ----------------------------------------------------
 
     static getVariables(form) {
+        /* parses a FORM to get all of its variables and sorts them using the JS Array.sort() method
+        which sorts by comparing UTF-16 code unit values.
+        Note: By convention, the process of deriving formDNA from a given FORM involves ordering of the extracted variables by this same sorting method, if no special ordering is specified. */
         if(typeof(form) === 'string') form = this.parseLinear(form);
 
         var vars = [];
@@ -661,5 +664,18 @@ export default class FForm extends FCalc {
                 .replace(new RegExp(ptn(v), 'g'),(Object.keys(VARCODE_REV)[i]) )
                          , formula );
     };
+
+
+    /*  --------------------------------------------------------
+        New Additions 01/2020:
+    */
+
+    static matchDefaultVarOrder (varList) {
+        /* Helper to match default orderings for calculation and vmaps */
+        if (varList.join('') === 'ELR') return ['L','E','R'];
+        if (varList.join('') === '+-LR') return ['-','L','R','+'];
+        if (varList.join('') === '+-ELR') return ['-','L','E','R','+'];
+        return varList;
+    }
 
 }
