@@ -1,4 +1,4 @@
-import { flatten, include } from '../../common/helper';
+import { flatten, include, VARCODE, VARCODE_REV } from '../../common/helper';
 import FCalc from './fcalc';
 
 export default class FForm extends FCalc {
@@ -553,7 +553,7 @@ export default class FForm extends FCalc {
     // ----------------------------------------------------
 
     static jsonString(form) {
-        /* return json-representation of the specified FORM */
+        /* returns json-representation of the specified FORM */
         if(typeof(form) === 'string') form = this.parseLinear(form);
     
         return JSON.stringify(form, undefined, 2);
@@ -564,6 +564,9 @@ export default class FForm extends FCalc {
     // ----------------------------------------------------
 
     static getVariables(form) {
+        /* parses a FORM to get all of its variables and sorts them using the JS Array.sort() method
+        which sorts by comparing UTF-16 code unit values.
+        Note: By convention, the process of deriving formDNA from a given FORM involves ordering of the extracted variables by this same sorting method, if no special ordering is specified. */
         if(typeof(form) === 'string') form = this.parseLinear(form);
 
         var vars = [];
@@ -607,5 +610,72 @@ export default class FForm extends FCalc {
 
         return breakTrav;
     };
+
+    /*  --------------------------------------------------------
+        Additions 01/2020 from:
+        https://observablehq.com/@formsandlines/formform-toolbox 
+    */
+
+    static getTotalVars (formStr) {
+        /* gets total variable number of a FORM */
+        return this.getVariables(formStr.substr()).length;
+    };
+
+    static reOrderVars (formula, varorder) {
+        /* re-orders variables in a formula to match an ordering pattern */
+        return this.decodeVars( this.encodeVars(formula, varorder) );
+    };
+
+    static decodeVars (encStr, decodePattern=undefined) {
+      /* decodes variables in an encoded formula string with an optional decode pattern */
+      let revCode = VARCODE_REV;
+      if (decodePattern) {
+        const keys = Object.keys(VARCODE_REV);
+        const varPart = keys.slice(0,decodePattern.length);
+        const modPart = keys.slice(-3);
+        
+        revCode = varPart.concat(modPart).reduce( (code,key,i) => ({...code, 
+            [key]: i < decodePattern.length ? decodePattern[i] : VARCODE_REV[key], }),{});
+      }
+
+      return encStr.split('')
+                .map(c => Object.keys(revCode).indexOf(c) > -1 ? revCode[c] : c).join('');
+    };
+
+    static encodeVars (formula, varorder=undefined) {
+      /* encodes variables in a formula string according to a given variable order (array) */
+      if (!varorder) varorder = this.getVariables(formula);
+      
+      function escapeRegExp(string) { // thx to CoolAJ86: https://stackoverflow.com/a/6969486
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+      }
+      
+      const fixPtn = {alt: 'alt(?=\|)', rEven: '2r(?=\|)', rOdd: '2r+1(?=\|)'};
+      const ptn = v => {
+        if (v.length > 1) return `\"${escapeRegExp(v)}\"`; // (?<=\")(${v})(?=\")
+        return `${escapeRegExp(v)}`;
+      };
+      
+      return varorder
+        .reduce((encStr,v,i) => encStr
+                .replace(new RegExp(fixPtn.alt, 'g'),VARCODE['alt'] )
+                .replace(new RegExp(fixPtn.rEven, 'g'),VARCODE['2r'])
+                .replace(new RegExp(fixPtn.rOdd, 'g'),VARCODE['2r+1'])
+                .replace(new RegExp(ptn(v), 'g'),(Object.keys(VARCODE_REV)[i]) )
+                         , formula );
+    };
+
+
+    /*  --------------------------------------------------------
+        New Additions 01/2020:
+    */
+
+    static matchDefaultVarOrder (varList) {
+        /* Helper to match default orderings for calculation and vmaps */
+        if (varList.join('') === 'ELR') return ['L','E','R'];
+        if (varList.join('') === '+-LR') return ['-','L','R','+'];
+        if (varList.join('') === '+-ELR') return ['-','L','E','R','+'];
+        return varList;
+    }
 
 }

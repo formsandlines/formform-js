@@ -174,3 +174,30 @@ export function scaleSVG(svg, container, ratio) {
     // container.style.height = parseInt(svg.clientHeight*ratio) + 'px';
 
 }
+
+/*  --------------------------------------------------------
+    Additions 01/2020 from:
+    https://observablehq.com/@formsandlines/js-toolbox
+*/
+
+export const permuteArray = inputArray => inputArray.reduce(function permute(res, item, key, arr) {
+  /* Permutation algorithm for arrays of arbitrary length
+     (credits & thanks to user monkey: https://stackoverflow.com/a/22063440) */
+    return res.concat(arr.length > 1 && arr.slice(0, key)
+      .concat(arr.slice(key + 1))
+      .reduce(permute, [])
+      .map(function(perm) { return [item].concat(perm); }) || [[item]]);
+}, []);
+
+export const truncateStr = (str,limit,appendix='') => str.length > limit ? (str.substr(0,limit) + appendix) : str;
+
+export const reverseMapping = (o,bijective=false) => Object.keys(o).reduce((r, k) => Object.assign(r, { [o[k]]: (bijective ? k : (r[o[k]] || []).concat(k)) }), {}); // modified from answer by Nina Scholz: https://stackoverflow.com/a/45728850
+
+/*  --------------------------------------------------------
+    Additions 01/2020 from:
+    https://observablehq.com/@formsandlines/formform-toolbox 
+*/
+
+export const VARCODE = ({'a':'ᴬ', 'b':'ᴮ', 'c':'ᵓ', 'd':'ᴰ', 'e':'ᴱ', 'f':'ᵎ', 'g':'ᴳ', 'h':'ᴴ', 'i':'ᴵ', 'j':'ᴶ', 'k':'ᴷ', 'l':'ᴸ', 'm':'ᴹ', 'n':'ᴺ', 'o':'ᴼ', 'p':'ᴾ', 'q':'ᴽ', 'r':'ᴿ', 's':'ᵕ', 't':'ᵀ', 'u':'ᵁ', 'v':'ᵛ', 'w':'ᵂ', 'x':'ᵡ', 'y':'ᵞ', 'z':'ᵜ', 'alt':'ᵽ', '2r':'ᵳ', '2r+1':'ᵲ'});
+
+export const VARCODE_REV = reverseMapping(VARCODE,true);

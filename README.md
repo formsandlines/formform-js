@@ -38,11 +38,12 @@ Or you can just embed the library via script-tag, but make sure you also include
 
 ## Documentation
 
-In its current state, *formform* has 3 classes that are build on top of each other and perform different tasks.
+In its current state, *formform* has 4 classes that are build on top of each other and perform different tasks.
 
 - **formform.calc** lets you calculate with numeric values of the uFORM iFORM calculus
 - **formform.form** lets you calculate any FORM with constants and variables using a special JSON representation which can be easily generated from a formula String (paranthesis notation)
 - **formform.graph** lets you use this JSON representation to generate different visualization outputs or notations
+- **formform.dna (new)** lets you store calculation results in a code format called *formDNA* and visualize them to analyze value patterns in FORMs
 
 All classes and their API are described in detail below:
 
@@ -225,6 +226,12 @@ saveGraph(format, svg, name)
 The *graph module* expands on the JSON-representation of the *form module* by constructing nested reEntry FORMs from its more compact descriptive structure. This is necessary for the accurate visualization of those FORMs but the *form module* didn't need to be so explicit since I took advantage of their common patterns in the calculation algorithm.
 
 If you need to expand the JSON-structure of reEntry-FORMs yourself, use: `expand_reEntry(form)`
+
+---
+
+### formform.dna
+
+*(work in progress – soon to be documented)*
 
 
 <br/>
