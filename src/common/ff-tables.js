@@ -10,29 +10,34 @@ const LANG_DEFAULT = loc_EN;
 const CLASSNAMES_DEFAULT = classnames_DEF;
 
 
-export function valueTableWizard(formula_pre, outputCSV, ..._optsArr) {
-  const optsArr = _optsArr.map( opts => Object.assign({search:[], filterByVals:false, varOrder:undefined}, opts) );
-  
-  const varList = optsArr[0].varOrder ? optsArr[0].varOrder 
-                   : formform.form.matchDefaultVarOrder( formform.form.getVariables(formula_pre) );
-  const formula = formform.form.reOrderVars( formula_pre, varList );
+export function valueTableWizard(formula_pre, _config, ..._optsArr) {
+  const config = Object.assign({
+    varOrder:undefined, 
+    outputCSV:false, 
+    lang:LANG_DEFAULT, 
+    classnames:CLASSNAMES_DEFAULT, 
+    interpr:undefined}, _config);
+  let optsArr = _optsArr.length > 0 ? _optsArr : [{}];
+  optsArr = optsArr.map( opts => Object.assign({search:[], filterByVals:false}, opts) );
 
-  let interpr = formform.form.calcAll(formula);
-  
-  for (let i in optsArr) {
-  
-    if (optsArr[i].filterByVals) interpr = filterResultsByValues(interpr, optsArr[i].search, optsArr[i]);
-    else interpr = filterResultsByInterpr(interpr, optsArr[i].search, optsArr[i]);
-    
+  let varList = formform.form.getVariables(formula_pre);
+  let formula = formula_pre;
+
+  if (varList.length > 0) {
+    varList = config.varOrder ? config.varOrder 
+              : formform.form.matchDefaultVarOrder( formform.form.getVariables(formula_pre) );
+    formula = formform.form.reOrderVars( formula_pre, varList );
   }
 
-  const _lang = optsArr[0].lang ? optsArr[0].lang : LANG_DEFAULT;
-  const _classnames = optsArr[0].classnames ? optsArr[0].classnames : CLASSNAMES_DEFAULT;
+  let interpr = config.interpr ? config.interpr : formform.form.calcAll(formula);
+  for (let i in optsArr) {
+    if (optsArr[i].filterByVals) interpr = filterResultsByValues(interpr, optsArr[i].search, optsArr[i]);
+    else interpr = filterResultsByInterpr(interpr, optsArr[i].search, optsArr[i]);
+  }
   
-  const html = genValueTable(interpr, {varOrder: varList, lang: _lang, classnames: _classnames});
+  const html = genValueTable(interpr, {varOrder: varList, lang: config.lang, classnames: config.classnames});
 
-
-  if (outputCSV) return {html: html, csv: genCSV(interpr, _lang)};
+  if (config.outputCSV) return {html: html, csv: genCSV(interpr, config.lang)};
   else return html;
 }
 

@@ -123,11 +123,17 @@ export default class FDna extends FForm {
 	static vmapList (inputList, margin=20, globalOptions=undefined) {
 	  /* Generated a list of FORM vmaps */
 	  // inputList format: [['form/dna', [varorder]/undefined, options/undefined], ...
-	  return `<div class="vmap-list" style="display: flex; flex-wrap: wrap; margin: 0 -${Math.floor(margin/2)}px">
-	  ${ inputList.map(vmap => {
-	    return `<div class="vmap-item" style="padding: ${Math.floor(margin/4)}px ${Math.floor(margin/2)}px"> 
-	      ${this.vmap(vmap[0], vmap[1], (globalOptions === undefined) ? vmap[2] : globalOptions)}
-	      </div> `}) }
+	  const getVAlign = obj => {
+	  	const alignItems = (!obj || !obj.vAlign) ? 'flex-end'
+	  					 : obj.vAlign === 'top' ? 'flex-start'
+	  				 	 : obj.vAlign === 'center' ? 'center'
+	  				 	 : obj.vAlign === 'bottom' ? 'flex-end' : 'flex-end';
+	  	return `align-items: ${alignItems};`;
+	  }
+
+	  return `<div class="vmap-list" style="display: flex; flex-wrap: wrap; ${getVAlign(globalOptions)} margin: 0 -${Math.floor(margin/2)}px">
+	  ${ inputList.reduce((str,vmap) => 
+	  		`${str}<div class="vmap-item" style="padding: ${Math.floor(margin/4)}px ${Math.floor(margin/2)}px">${ this.vmap(vmap[0], vmap[1], {...vmap[2], ...globalOptions}) }</div>`,'') }
 	  </div>`
 	};
 

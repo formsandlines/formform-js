@@ -290,6 +290,12 @@ code {
     }
     .dna-code {
         color: $body-color;
+        .dna-quart1:nth-child(odd) {
+            color: theme-color-level(primary, 6);
+        }
+        .dna-quart1:nth-child(even) {
+            color: theme-color-level(primary, 0);
+        }
     }
 }
 
