@@ -28,8 +28,8 @@ export default class FCalc {
     static rel(...fVals) { // verified
         /* Shortcut for relation with n variables: x_1 ... x_n */
         if (fVals.length > 1) {
-            var val = 0;
-            for (var i in fVals) {
+            let val = 0;
+            for (let i in fVals) {
                 val = this.rel_logic( val,fVals[i] );
             }
             return val;
@@ -54,8 +54,8 @@ export default class FCalc {
     static inv(fx, n) { // verified
         /* Shortcut for n inversions/negations: (x) */
         if (n > 0) {
-            var val = fx;
-            for (var i=0; i<n; i++) {
+            let val = fx;
+            for (let i=0; i<n; i++) {
                 val = this.inv_logic(val);
             }
             return val;
@@ -158,13 +158,13 @@ export default class FCalc {
             lastOpen = false;
         }
 
-        var resEven = (fVals.length%2 == 0); // even resolution?
-        var zeros = 0; // zero counter
-        var firstUndef = -1; // catches first mn/(mn)
+        const resEven = (fVals.length%2 == 0); // even resolution?
+        let zeros = 0; // zero counter
+        let firstUndef = -1; // catches first mn/(mn)
 
         // [3] determine if uFORM or iFORM
-        var uFORM = false;
-        var iFORM = false;
+        let uFORM = false;
+        let iFORM = false;
         if (resEven) {
             if (lastOpen) iFORM = true;
             else uFORM = true;
@@ -175,9 +175,9 @@ export default class FCalc {
         }
       
         // check if there is 1/m somewhere in x_1 … x_n
-        var calcfrom = -1;
-        for(var i=0; i<fVals.length; i++) {
-            var fx = fVals[i]; 
+        let calcfrom = -1;
+        for(let i=0; i<fVals.length; i++) {
+            const fx = fVals[i]; 
 
             if (fx == 1) {
                 calcfrom = i; // [1] if m is somewhere, set calculation start from there
@@ -200,8 +200,8 @@ export default class FCalc {
         }
         if (calcfrom >= 0) {
             // [1|2] if there is a 1/m somewhere in the form, we can easily calculate the rest from this point
-            var val = 1;
-            for(var i=calcfrom; i<fVals.length; i++) {      
+            let val = 1;
+            for(let i=calcfrom; i<fVals.length; i++) {      
                 if (lastOpen && i == fVals.length-1) {
                     val = this.rel(val,fVals[i]); // if no cross on last var, don't invert
                 }
@@ -216,13 +216,13 @@ export default class FCalc {
         // So we calculate from the last occasion of 2 or 3, because with C2 (degenerate) all else can be ignored
 
         // for even closed re-entry-FORMs with uneven resolution (uFORM c1), we need to do the calculation twice
-        var repeat = (reEven && !resEven && !lastOpen)? 2:1;
+        const repeat = (reEven && !resEven && !lastOpen)? 2:1;
       
-        for(var i=(fVals.length*repeat)-1; i>=0; i--) {
-            var index = i%fVals.length; // repeated variable index
+        for(let i=(fVals.length*repeat)-1; i>=0; i--) {
+            const index = i%fVals.length; // repeated variable index
 
             if (fVals[index] == 2 || fVals[index] == 3) {
-                var iRev = (fVals.length*repeat)-1 - i; // reverse index to easier check for interpretation 2 (see next)
+                const iRev = (fVals.length*repeat)-1 - i; // reverse index to easier check for interpretation 2 (see next)
 
                 if (altInterpr && ((lastOpen && iRev%2==0) || (!lastOpen && iRev%2==1))) {
                     // uFORM iFORM interpretation 2: recursive identity ( ƒ=((ƒ)) <-> mn )
@@ -238,10 +238,10 @@ export default class FCalc {
                     // [5] if everything else fails, use case distinction: uFORM iFORM (p.94); also according to:
                     // uFORM iFORM (p.167) interpretation 1: recursion instruction ( ƒ=((ƒ)) and mn need to be differentiated)
 
-                    var case0 = 2; // re-entry ƒ=mn, because other mn=0
+                    let case0 = 2; // re-entry ƒ=mn, because other mn=0
                     if (lastOpen && !resEven && !reEven) case0 = this.inv(case0); // cross for integrated FORMs with uneven res. inside open FORMs (iFORM b2)
-                    for(var j=0; j<(fVals.length*repeat); j++) {
-                        var fx = 0; // all other values will be (degenerated to) zero
+                    for(let j=0; j<(fVals.length*repeat); j++) {
+                        let fx = 0; // all other values will be (degenerated to) zero
                         if (j == i) {
                             if(fVals[index] == 2) fx = 0; // last occasion of mn/2 will be interpreted as 0
                             else fx = this.inv(0); // last occasion of (mn)/3 will be interpreted as (0)
@@ -249,10 +249,10 @@ export default class FCalc {
                         if (lastOpen && j == fVals.length-1) case0 = this.rel(case0,fx); // if no cross on last var, don't invert
                         else case0 = this.inv( this.rel(case0,fx) );
                     }
-                    var case1 = 2; // re-entry ƒ=mn, because other mn=1
+                    let case1 = 2; // re-entry ƒ=mn, because other mn=1
                     if (lastOpen && !resEven && !reEven) case1 = this.inv(case1); // cross for integrated FORMs with uneven res. inside open FORMs (iFORM b2)
-                    for(var j=0; j<(fVals.length*repeat); j++) {
-                        var fx = 0; // all other values will be (degenerated to) zero
+                    for(let j=0; j<(fVals.length*repeat); j++) {
+                        let fx = 0; // all other values will be (degenerated to) zero
                         if (j == i) {
                             if(fVals[index] == 2) fx = 1; // last occasion of mn/2 will be interpreted as 1
                             else fx = this.inv(1); // last occasion of (mn)/3 will be interpreted as (1)

@@ -1,4 +1,5 @@
 import formform from '../lib/main';
+import { processLabel } from './helper';
 
 export const loc_EN = {variables: 'Variables', interpretation: 'Interpretation', result: 'Result'};
 
@@ -20,16 +21,18 @@ export function valueTableWizard(formula_pre, _config, ..._optsArr) {
   let optsArr = _optsArr.length > 0 ? _optsArr : [{}];
   optsArr = optsArr.map( opts => Object.assign({search:[], filterByVals:false}, opts) );
 
-  let varList = formform.form.getVariables(formula_pre);
+  let varList = formform.dna.getVariables(formula_pre);
   let formula = formula_pre;
 
-  if (varList.length > 0) {
+  const isDNA = formula.includes('::') && formform.dna.isValidDNA(formula);
+
+  if (!isDNA && varList.length > 0) {
     varList = config.varOrder ? config.varOrder 
-              : formform.form.matchDefaultVarOrder( formform.form.getVariables(formula_pre) );
+              : formform.form.matchDefaultVarOrder( formform.dna.getVariables(formula_pre) );
     formula = formform.form.reOrderVars( formula_pre, varList );
   }
 
-  let interpr = config.interpr ? config.interpr : formform.form.calcAll(formula);
+  let interpr = config.interpr ? config.interpr : formform.dna.calcAll(formula);
   for (let i in optsArr) {
     if (optsArr[i].filterByVals) interpr = filterResultsByValues(interpr, optsArr[i].search, optsArr[i]);
     else interpr = filterResultsByInterpr(interpr, optsArr[i].search, optsArr[i]);
@@ -74,6 +77,8 @@ export function genValueTable(interpr, opts) { // !old args: (interpr, lang, cla
       let parts = e.split(';');
       parts = parts.map((p,i) => { 
         const delim = i < 1 ? ',' : '', sep = delim;
+        // console.log(p);
+        if (i === 0) p = p.split(delim).map(lbl => processLabel(lbl)).join(delim);
         return p.split(delim).join(`</span>${sep}<span>`).concat(`</span>`).addBefore(0,`<span>`); 
       } );
       return parts;
@@ -153,7 +158,7 @@ export function filterResultsByValues(data, search, _opts) {
 
 export function filterResultsByInterpr(data, search, _opts) {
   const opts = Object.assign({exclude:false, combine:false, unique:false, only:false}, _opts);
-  // filters values from formform.form.calcAll()
+  // filters values from formform.dna.calcAll()
   // - search: Array of values to filter, e.g.: [0], [2,3]
   // - Options:
   //   - exclude: exclude search values from filtered object

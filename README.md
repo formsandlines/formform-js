@@ -2,11 +2,11 @@
 
 <br/>
 
-**formform** is a modular JavaScript library all about the 4-valued logic of cognition first introduced 2017 by Ralf Peyn in [uFORM iFORM](https://uformiform.info/). In its core, the purpose of the library is to calculate with all 5 FORMs (marked, unmarked, undetermined, imaginary and unclear) introduced in the book and is meant to be extended with more specialized modules for different tasks such as FORM representation, algebra, visualization or simulation and analysis using CAs.
+**formform** is a modular JavaScript library all about the 4-valued logic of cognition first introduced 2017 by Ralf Peyn in [uFORM iFORM](https://uformiform.info). In its core, the purpose of the library is to calculate with all 5 FORMs (marked, unmarked, undetermined, imaginary and unclear) introduced in the book and is meant to be extended with more specialized modules for different tasks such as FORM representation, algebra, visualization or simulation and analysis using CAs.
 
-As a helpful tool for researchers and enthusiasts and as a demonstration of the library's capabilities I have also created the [**FORM tricorder**](https://formform.formsandlines.eu/tricorder). It can calculate, represent and visualize FORMs using my `formula` syntax (described below under *formform.form*). You can find all its parts in this repository under /app/.
+As a helpful tool for researchers and enthusiasts and as a demonstration of the library's capabilities I have also created the [**FORM tricorder**](https://formform.formsandlines.eu/tricorder). It can calculate, represent and visualize FORMs using my `formula` syntax (described below under *formform.form*). You can find all its parts in this repository under /app/. I have also developed other applications that you can read about in the *History* section on the bottom of this document.
 
-Please note that my library as well as my app are still *work in progress*. The library is currently in the process of restructuring and you may want to wait for a more stable release if you intent to use it. I am not a professional developer and this is just my part-time hobby. Since I still have much to learn and this is my first real library, I'll be very thankful for any advice.
+Please note that my library as well as my app are still *work in progress*. The library is currently in the process of restructuring and you may want to wait for a more stable release if you intent to use it in your projects. Although I am very passionate about this, I am not a formally trained developer and cannot yet afford to do this full-time. Since this is my first JavaScript library and I still have much to learn, I am very thankful for any advice.
 
 <br/>
 
@@ -27,7 +27,7 @@ var formform = require('formform');
 Or you can just embed the library via script-tag, but make sure you also include [d3.js](https://github.com/d3/d3) as a dependency:
 
 ```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.1/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js"></script>
 
 <script src="<yourpath>/formform.min.js"></script>
 // or just use the unpkg link:
@@ -38,12 +38,12 @@ Or you can just embed the library via script-tag, but make sure you also include
 
 ## Documentation
 
-In its current state, *formform* has 4 classes that are build on top of each other and perform different tasks.
+In its current state, *formform* has 4 classes that partly inherit from each other and perform different tasks.
 
 - **formform.calc** lets you calculate with numeric values of the uFORM iFORM calculus
 - **formform.form** lets you calculate any FORM with constants and variables using a special JSON representation which can be easily generated from a formula String (paranthesis notation)
 - **formform.graph** lets you use this JSON representation to generate different visualization outputs or notations
-- **formform.dna (new)** lets you store calculation results in a code format called *formDNA* and visualize them to analyze value patterns in FORMs
+- **formform.dna** lets you store calculation results in a code format called *formDNA* and visualize them as *vmaps* to analyze value patterns
 
 All classes and their API are described in detail below:
 
@@ -119,6 +119,8 @@ equiv(x,y) // ( ((x)y) (x(y)) )
 > `form` -> either a `formula` or a JSON-representation of the FORM
 
 > `formula` -> String in paranthesis-notation (see below for the syntax)
+
+> `varorder` -> array of the variable interpretation order of a `form`, specified as `[x,…]` (where x is a variable)
 
 #### Introduction to `formula` syntax
 
@@ -198,9 +200,9 @@ createGraph(graphType, form, options)
 `options` -> 
 ```js
 { 
-  parentId: <id>            // id of parent DOM-element (if empty, parent is 'body')
-  width: <px>               // width of the container (if empty, container auto-fits to chart)
-  height: <px>              // height of the container (if empty, container auto-fits to chart)
+  parentId: <id>            // id of parent DOM-element (default: parent is 'body')
+  width: <px>               // width of the container (default: container auto-fits to chart)
+  height: <px>              // height of the container (default: container auto-fits to chart)
   margin: {left: <px>, right: <px>, top: <px>, bottom: <px>}
                             // margin of the container (default: {50,50,50,50})
   padding: {left: <px>, right: <px>, top: <px>, bottom: <px>}
@@ -231,18 +233,94 @@ If you need to expand the JSON-structure of reEntry-FORMs yourself, use: `expand
 
 ### formform.dna
 
-*(work in progress – soon to be documented)*
+> `formDNA` -> string in the form `::dna`, `formula::dna` or `formula.varorder::dna`
+
+> `dna` -> string in quaternary number format representing each interpretation value (of a value table for an equivalence class of possibly infinite FORMs) in reverse order
+
+> `vmap` -> visual representation of formDNA as a recursive variable/value map
+
+> `vmap perspective` -> permutation of a vmap by permutation of its variable interpretation order
 
 
-<br/>
+#### Conversion to and from `formDNA`
 
-## History
+`form` → `formDNA`, retaining `formula` and (optional) `varorder`:
+```js
+formToDNA(input, varorder, options)
+```
 
-This library has become my personal project since I first began studying [uFORM iFORM](https://uformiform.info/). Ralfs SelFis *(visual interpretation of a part system from the selfreferential system of the FORM)* inspired me to develop my own [cellular automaton](https://en.wikipedia.org/wiki/Cellular_automaton) in the programming environment [Processing](https://processing.org/) for a deeper unterstanding of those systems. 
+`formDNA` → `form` using an optional `varorder`: *(not yet implemented)*
+```js
+dnaToFORM(formDNA, varorder, options)
+```
 
-Working with lookup tables for the calculations at first was okay, but I needed more flexibility, so I began working on some functions to calculate with all four values and in 2018 I was finally able to implement an algorithm to calculate all self-equivalent re-entry FORMs that were described in the book.
+integer → `dna` (use `BigInt(n)` for numbers larger than 2<sup>53</sup> - 1):
+```js
+intToDNA(int, vnum)
+```
+> If no `vnum` is specified, the smallest variable number possible for the quaternion is assumed
 
-I saw that there was more potential in this little collection of functions, so I began working on a JavaScript library to elaborate my ideas which gradually became *formform*. In the near future I will also rewrite my CA for SelFis as well as for the recently introduced [MindFORMs](https://carl-auer-akademie.com/blogs/systemzeit/2019/02/13/how-does-system-function-operate-5-mindforms/) in JavaScript and integrate them into my formform modules.
+#### Generation of `formDNA`
+
+Random `dna` from a given variable number:
+```js
+genRandomDNA(vnum)
+```
+
+#### Generation of `vmaps`
+
+`vmap` (HTML format) from `form`/`formDNA` input using an optional `varorder`:
+```js
+vmap(input, varorder, options)
+```
+`options` -> 
+```js
+{ 
+  size:    <px>             // size of each value cell (default: '14' (-1 per new variable))
+  gapGrow: <px>             // additional gap between value cells for each recursive step (default: '1.5')
+  svgPad:  <px>             // padding around the vmap svg element (default: '0')
+
+  strokeW: <px>             // width of border around each value cell (default: '0.5')
+  strokeC: <css color>      // color of border around each value cell (default: '#fff')
+  bgC:     <css color>      // color of background for the vmap container (default: '#fff')
+
+  hideInputLabel: <boolean> // hides input (form/formDNA) label below vmap
+  hideOrderLabel: <boolean> // hides variable order label below vmap
+  fullInputLabel: <boolean> // prevents trimming if input label is too large (def.: false)
+  inputLabelMax: <int>      // max number of characters in input label (form input only, def.: 200)
+  customLabel: <String>     // specification of custom label below vmap
+}
+```
+
+Set of all `vmap perspectives` (HTML format) of a `form`/`formDNA` input using an optional `varorder`:
+```js
+vmapPerspectives(form, varorder, globalOptions)
+```
+`globalOptions` -> 
+```js
+{
+  // -> integrates all options from vmap() and applies them to every vmap instance
+  margin:  <px> // margin between vmap instances
+}
+```
+
+List of `vmaps` (HTML format) from an array of `form`/`formDNA` input:
+```js
+vmapList(inputList, globalOptions=undefined)
+```
+> Syntax of `inputList`: [[input, varorder, options], …] list of lists of vmap() arguments
+
+`globalOptions` -> 
+```js
+{
+  // -> integrates all options from vmap() and applies them to every vmap instance
+  // -> can be overwritten by local options of a vmap definition
+  margin: <px>                // margin between vmap instances
+  vAlign: <top|center|bottom> // vertical alignment of vmap instances
+}
+```
+
+
 
 <br/>
 
@@ -258,18 +336,28 @@ If you want to learn more about the ideas and theories *formform* is based on, h
 
 <br/>
 
-## Credits
+## History
 
-formform uses the following libraries / open-source projects:
+This library has become my personal project since I first began studying [uFORM iFORM](https://uformiform.info), published by Ralf Peyn in 2017. Ralf's “SelFis” *(visual interpretation of a partial System of the self-referential System of the FORM)* inspired me to develop my own [cellular automaton](https://en.wikipedia.org/wiki/Cellular_automaton) in the programming environment [Processing](https://processing.org/) to dig deeper and gain a fuller unterstanding of these systems. 
 
-- (development) [Webpack](https://github.com/webpack/webpack)
-- (development) [Node.js](https://github.com/nodejs/node)
-- (lib/app) [d3.js](https://github.com/d3/d3)
-- (app) [Bootstrap](https://github.com/twbs/bootstrap) (which uses [jQuery](https://github.com/jquery/jquery) and [Popper.js](https://github.com/FezVrasta/popper.js))
-- (app) [clipboard.js](https://github.com/zenorocha/clipboard.js)
+Working with lookup-tables for FORM calculations was okay for a while, but also very tedious and impractical for my research, so I began working on some functions that would do the calculations for me. In 2018 I was finally able to implement an algorithm to calculate all self-equivalent re-entry FORMs as described in uFORM iFORM. I immediately did countless calculations by hand and let Ralf also check that the algorithm is solid and its results are correct.
+
+As soon as I was able to automate calculation with undetermined FORMs, I saw that there was much more potential in this and that it could be very helpful for other people who want to work with FORM logic as well. So I began working on a JavaScript library to elaborate my ideas, which gradually became *formform*. Since its early development, formform has always evolved in a fruitful interplay with the applications built on top of it.
+
+A first application that I have developed in parallel from the beginning was the [**FORM tricorder**](https://formform.formsandlines.eu/tricorder) – a swiss army knife for FORM calculation, representation and visualization. In September 2019 I was finally able to develop a new [cellular automaton for FORM logic SelFis](https://observablehq.com/@formsandlines/1d-ca-for-4-valued-form-logic-selfis) with *formform* that is much more user-friendly and much more versatile than what I have done two years earlier. My experimentation with rule extraction by bitmasking in CAs led me to a code format I call [**formDNA**](https://observablehq.com/@formsandlines/the-dna-of-4-valued-forms) that is an abstraction of the value table. It not only made my CA faster and more flexible, it also inspired me to create the **vmap**: a recursive variable/value map to visualize formDNA, that has great potential for pattern recognition in FORMs.
+
+Driven by my own curiosity and some helpful suggestions from users, I continuously work on implementing new ideas and features into the library. Nowadays, I am prototyping most of these ideas in my [Observable notebooks](https://observablehq.com/@formsandlines) and announce new developments, bugfixes and changes on my [Twitter account](https://twitter.com/diagramaniac).
+
+In the near future I want to rewrite my CA for SelFis as a more professional standalone application and also develop other CAs for [decisionFORMs, lifeFORMs and mindFORMs](https://www.carl-auer.de/magazin/systemzeit/how-does-system-function-operate-5). I also want to find a way to algorithmically generate spirals for circular re-entry FORMs, to have a more iconic representation closer to Ralfs notation in uFORM iFORM. There are many more ideas in the pipeline, that I hope to realize as time and other resources allow.
+
+<br/>
+
+## Support
+
+If you want to support my work, consider [buying me a coffee](https://www.buymeacoffee.com/formsandlines). ☕
 
 ---
 
-(c) 2019 by Peter Hofmann
+(c) 2018–2020 by Peter Hofmann
 
 License: MIT

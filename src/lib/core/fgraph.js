@@ -1,5 +1,5 @@
 import FForm from './fform';
-import D3Graph, { save } from '../modules/d3-graph';
+import D3Graph, { save } from '../modules/graph-d3';
 
 let g1 = {}; let g2 = {};
 
@@ -18,8 +18,9 @@ export default class FGraph extends FForm {
   // Extensions of FForm
   // ----------------------------------------------------
 
-  static jsonString(form) {
-    const expandedForm = this.expand_reEntry(form);
+  static jsonString(_form) {
+
+    const expandedForm = this.expand_reEntry(_form);
     return super.jsonString(expandedForm);
   }
 
@@ -45,8 +46,12 @@ export default class FGraph extends FForm {
     save(format, svg, name, scale);
   }
 
+
   static constructNested(reForm, options={}) {
     /* Constructs a (real) nested form structure from the .nested array of the original re-entry json */
+
+    // >>> should be rewritten completely to get rid of all the mutation!
+    
     let space = reForm.space = [];
     reForm.nested.reverse(); // MUST be reversed, because notation: {deepest, ..., shallowest}
 
@@ -100,10 +105,11 @@ export default class FGraph extends FForm {
     return reForm;
   }
 
+
   static expand_reEntry(_form, options={}) {
-    if(typeof(_form) !== 'string') _form = JSON.stringify(_form);
-    const refForm = this.parseLinear(_form);
-    let targetForm = this.parseLinear(_form);
+    // >>> should be rewritten completely to get rid of all the mutation!
+    const refForm = this.getValidForm(_form);
+    const targetForm = JSON.parse(JSON.stringify(refForm)); // copy json object without identifying it
 
     // we must keep a running index to not confuse identical forms while reconstructing the reEntries
     // Note: this should be done more efficiently in the future

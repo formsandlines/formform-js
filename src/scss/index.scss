@@ -78,6 +78,9 @@ h6 {
             opacity: 1.0;
         }
     }
+    .btn-comb-inner.childFocus {
+        opacity: 1.0;
+    }
 
     .btn-comb-graph button {
         width: 50%;
@@ -88,6 +91,9 @@ h6 {
         &:hover {
             background-color: darken($blue, 10%);
         }
+    }
+    .btn-comb-graph button:focus {
+        background-color: darken($blue, 10%);
     }
 
     #btn-calc { background-color: $red; &:hover { background-color: darken($red, 12%); } }
@@ -257,6 +263,8 @@ code {
 #perspBtn {
     position: absolute;
     top: 0;
+    border: none;
+    background: none;
     cursor: pointer;
     // left: 0;
     svg {
@@ -267,6 +275,9 @@ code {
         }
     }
 }
+#perspBtn:focus:not(:focus-visible) {
+    outline: 0;
+}
 
 #vmap-render .vmap figcaption {
     margin-top: 0.4rem;
@@ -275,6 +286,10 @@ code {
     font-family: $font-family-monospace;
     font-size: $small-font-size;
     // letter-spacing: -0.08em;
+}
+
+#vmap-render code {
+    background: none;
 }
 
 #dna > code {

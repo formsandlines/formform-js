@@ -47,9 +47,11 @@ export function isVisible(elem) {
 // ------------------------
 
 export function pad(num, size) {
-    /* Source: https://stackoverflow.com/a/2998822
-    Credits to: InfinitiesLoop */
-    var s = num+"";
+    /* pads 0s before number string
+       Source: https://stackoverflow.com/a/2998822
+       Credits to: InfinitiesLoop */
+
+    var s = num+""; // converts number to string if not already a string
     while (s.length < size) s = "0" + s;
     return s;
 }
@@ -201,3 +203,69 @@ export const reverseMapping = (o,bijective=false) => Object.keys(o).reduce((r, k
 export const VARCODE = ({'a':'ᴬ', 'b':'ᴮ', 'c':'ᵓ', 'd':'ᴰ', 'e':'ᴱ', 'f':'ᵎ', 'g':'ᴳ', 'h':'ᴴ', 'i':'ᴵ', 'j':'ᴶ', 'k':'ᴷ', 'l':'ᴸ', 'm':'ᴹ', 'n':'ᴺ', 'o':'ᴼ', 'p':'ᴾ', 'q':'ᴽ', 'r':'ᴿ', 's':'ᵕ', 't':'ᵀ', 'u':'ᵁ', 'v':'ᵛ', 'w':'ᵂ', 'x':'ᵡ', 'y':'ᵞ', 'z':'ᵜ', 'alt':'ᵽ', '2r':'ᵳ', '2r+1':'ᵲ'});
 
 export const VARCODE_REV = reverseMapping(VARCODE,true);
+
+/*  --------------------------------------------------------
+    Additions 10/2020
+*/
+
+export const processLabel = label => {
+    if (label.length > 1) {
+        const labelParts = label.split('_');
+        return (labelParts.length > 1) ? `${labelParts[0]}<sub>${labelParts[1]}</sub>` : `"${label}"`;
+    }
+    else return label;
+};
+
+export const createValidation = (fn, errorMsg) => (...args) => {
+    const result = fn(...args);
+    return {
+        cata: branch => result ? branch.success(result) : branch.error(errorMsg)
+    };
+};
+
+export const collapseLiterals = (str, sep='"', repl='‽') => {
+    if (!checkLiteralMatching(str, sep)) return null;
+    const strSep = str.split(sep);
+    return strSep.filter((substr,i,arr) => i % 2 === 0 || i === arr.length-1).join(repl);
+}
+
+export const checkLiteralMatching = (str, sep='"') => {
+    const strSep = str.split(sep);
+    return strSep.length % 2 === 1;
+};
+
+export const getBracketUnits = (formula, br={open:'{', close:'}'}, matches=[]) => {
+    const reEntries = formula.match(new RegExp(`\\${br.open}[^${br.open}${br.close}]*?\\${br.close}`, 'g'));
+    if (!reEntries) return matches;
+
+    const reducedFormula = reEntries.reduce((str, pattern) => str.replace(pattern, '•'),formula);
+
+    return getBracketUnits(reducedFormula, br, [...matches, ...reEntries]);
+}
+
+/*  --------------------------------------------------------
+    Additions 10/2020 from:
+    https://observablehq.com/@formsandlines/js-toolbox
+*/
+
+export const checkBracketMatching = (str, openBr='(', closeBr=')') => {
+  if (str.length === 0) return true; // empty strings can't have brackets, so that's fine
+  return str.split('').reduce((acc,curr,idx,arr) => {
+    if (curr === openBr) acc++;
+    else if (curr === closeBr) {
+      if (acc === null) return NaN;
+      acc--;
+      }
+    if (idx === arr.length-1 && acc === null) return 0;
+    return acc;
+  },null) === 0 ? true : false;
+};
+
+export const equalArrays = (arrA, arrB) => {
+    if (arrA === undefined || arrB === undefined) return false;
+    return arrA.length === arrB.length && arrA.every(a => arrB.some(b => a === b));
+}
+
+
+
+

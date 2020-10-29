@@ -1,6 +1,6 @@
 {
     "name": "formform",
-    "version": "0.8.1",
+    "version": "0.9.0",
     "description": "JS-library to calculate, visualize and simulate LoF-FORMs (Laws of Form by George Spencer-Brown) as well as undetermined and imaginary FORMs (uFORM iFORM by Ralf Peyn)",
     "keywords": [
         "laws of form",
@@ -33,6 +33,7 @@
         "build-lib": "webpack --config webpack.lib-prod.js"
     },
     "dependencies": {
+        "big-integer": "^1.6.48",
         "bootstrap": "^4.5.2",
         "boxmodel-layout-for-d3": "^1.2.2",
         "canvg": "^1.5.3",

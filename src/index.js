@@ -4,12 +4,11 @@ let ClipboardJS = require('clipboard');
 let clipboard = new ClipboardJS('.clipboard-btn');
 
 import './scss/index.scss';
-import {show, hide, hideAll, toggle, isVisible, saveText, getTimestamp, scaleSVG, permuteArray} from './common/helper';
+import {show, hide, hideAll, toggle, isVisible, saveText, getTimestamp, scaleSVG, permuteArray, equalArrays} from './common/helper';
 
 import * as d3 from 'd3';
 import formform from './lib/main';
 import {valueTableWizard, classnames_DEF as tableClasses} from './common/ff-tables';
-// import * as formform from './lib/main';
 
 const txtboxID = 'form_entry';
 const vmapID = {cont: 'vmap-output', render: 'vmap-render'};
@@ -58,10 +57,23 @@ const resultCheckbox = {
 const valueCheckbox = {
 	ID: 'filterValsCheckbox',
 }
+const renderBtns = {
+	pack: document.getElementById('btn-pack'),
+	gsbhooks: document.getElementById('btn-gsbhooks'),
+}
+
+const errorMsgBox = document.getElementById('error-msg-box');
+
+const clearErrorMsg = () => {
+	errorMsgBox.innerHTML = '';
+};
+const showErrorMsg = (e) => {
+	errorMsgBox.innerHTML = `<div class="alert alert-danger" role="alert"><strong>Error:</strong> ${e.message}</div>`;
+};
 
 
-// var test = formform.dna.vmapList([['{a,b,c,d}'],['(a)b',undefined,{bgC:'#ff0000'}],['{a,b,c}']],30);
-// document.getElementById('testarea').innerHTML = test;
+// var debug = formform.dna.vmap('::1012');
+// document.getElementById('testarea').innerHTML = debug;
 
 document.addEventListener('DOMContentLoaded', function() {
 	const explSwitch = document.getElementById('toggle_explanations');
@@ -123,6 +135,18 @@ document.addEventListener('DOMContentLoaded', function() {
 		btnCalc(); 
 	}) );
 
+	Object.values(renderBtns).forEach(btn => {
+		btn.addEventListener('focusin', function(e) {
+			e.stopPropagation();
+			this.parentNode.classList.add('childFocus');
+		});
+		btn.addEventListener('focusout', function(e) {
+			e.stopPropagation();
+			this.parentNode.classList.remove('childFocus');
+		});
+	});
+
+	clearErrorMsg();
 	interpretURIHashParams( decodeURI(window.location.hash) );
 });
 
@@ -215,15 +239,21 @@ function updateVarOrderSel(display, formulaInput=undefined) {
 	const container = document.getElementById(varOrderSel.cont);
 
 	if (formulaInput) {
-		const vars = formform.form.getVariables(formulaInput);
+		const vars = formform.dna.getVariables(formulaInput);
+		const inputIsDNA = formulaInput.includes('::');
+
 		if (vars.length > 0) {
 			const orderInput = varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined;
 		
 			const ctrExists = document.getElementById(varOrderSel.ctrId) !== null && document.getElementById(varOrderSel.ctrId).value !== '';
 
-			if (!ctrExists || !equalVars(vars, orderInput) ) {
-				createVarOrderSel(container, vars, (!ctrExists && equalVars(vars, orderInput) ? orderInput.join(varOrderSel.delim) : undefined));
+			if (!ctrExists || inputIsDNA || !equalArrays(vars, orderInput) ) {
+				createVarOrderSel(container, vars, (!ctrExists && equalArrays(vars, orderInput) ? orderInput.join(varOrderSel.delim) : undefined), !inputIsDNA);
 		    }
+
+			const varOrderCtr = document.getElementById(varOrderSel.ctrId);
+			if (inputIsDNA) varOrderCtr.disabled = true;
+			else varOrderCtr.disabled = false;
 		}
 		else {
 			if (document.getElementById(varOrderSel.ctrId) !== null) document.getElementById(varOrderSel.ctrId).value = '';
@@ -236,13 +266,7 @@ function updateVarOrderSel(display, formulaInput=undefined) {
 }
 
 
-function equalVars(varsA, varsB) {
-	if (varsA === undefined || varsB === undefined) return false;
-	return varsA.length === varsB.length && varsA.every(a => varsB.some(b => a === b));
-}
-
-
-function createVarOrderSel(container, vars, selected) {
+function createVarOrderSel(container, vars, selected, setConvDefault) {
 	const varPermutations = permuteArray(vars).map( (perm,i) => ({
 	              label: perm.reduce( (acc,curr) => acc.concat(` ${curr.length > 1 ? '"'+curr+'"' : curr}`),'' ),
 	              value: perm.join(varOrderSel.delim),
@@ -254,7 +278,7 @@ function createVarOrderSel(container, vars, selected) {
 	            : varPermutations[0].value;
 
 	container.innerHTML = `<label for="${varOrderSel.ctrId}">Variable interpretation order:</label><select class="form-control form-control-sm" id="${varOrderSel.ctrId}">
-        ${ varPermutations.map(perm => `<option value="${perm.value}" ${perm.value === permDef ? 'selected' : ''}>${perm.label}</option>`) }
+        ${ varPermutations.map(perm => `<option value="${perm.value}" ${setConvDefault && perm.value === permDef ? 'selected' : ''}>${perm.label}</option>`) }
 
       </select>`;
 
@@ -293,64 +317,70 @@ function getAppMode() {
 
 
 window.btnCalc = function() {
+	clearErrorMsg();
     const txtbox = document.getElementById(txtboxID);
 
-	updateVarOrderSel(true, txtbox.value);
+	try {
+		updateVarOrderSel(true, txtbox.value);
 
-	const formula = txtbox.value;
-	const tableOpt = {filterRes: {}, filterVal: {}}
+		const formula = txtbox.value;
+		const tableOpt = {filterRes: {}, filterVal: {}}
 
-	if (!document.getElementById(resultFilter.ID).disabled) {
-		tableOpt.filterRes.filterByVals = true;
-		tableOpt.filterRes.search = [];
-		if (resultFilter.search0.checked) tableOpt.filterRes.search = tableOpt.filterRes.search.concat(0);
-		if (resultFilter.search1.checked) tableOpt.filterRes.search = tableOpt.filterRes.search.concat(1);
-		if (resultFilter.search2.checked) tableOpt.filterRes.search = tableOpt.filterRes.search.concat(2);
-		if (resultFilter.search3.checked) tableOpt.filterRes.search = tableOpt.filterRes.search.concat(3);
+		if (!document.getElementById(resultFilter.ID).disabled) {
+			tableOpt.filterRes.filterByVals = true;
+			tableOpt.filterRes.search = [];
+			if (resultFilter.search0.checked) tableOpt.filterRes.search = tableOpt.filterRes.search.concat(0);
+			if (resultFilter.search1.checked) tableOpt.filterRes.search = tableOpt.filterRes.search.concat(1);
+			if (resultFilter.search2.checked) tableOpt.filterRes.search = tableOpt.filterRes.search.concat(2);
+			if (resultFilter.search3.checked) tableOpt.filterRes.search = tableOpt.filterRes.search.concat(3);
 
-		if (resultFilter.neg.checked) tableOpt.filterRes.exclude = true;
-	}
-	if (!document.getElementById(valueFilter.ID).disabled) {
-		tableOpt.filterVal.search = [];
-		if (valueFilter.search0.checked) tableOpt.filterVal.search = tableOpt.filterVal.search.concat(0);
-		if (valueFilter.search1.checked) tableOpt.filterVal.search = tableOpt.filterVal.search.concat(1);
-		if (valueFilter.search2.checked) tableOpt.filterVal.search = tableOpt.filterVal.search.concat(2);
-		if (valueFilter.search3.checked) tableOpt.filterVal.search = tableOpt.filterVal.search.concat(3);
+			if (resultFilter.neg.checked) tableOpt.filterRes.exclude = true;
+		}
+		if (!document.getElementById(valueFilter.ID).disabled) {
+			tableOpt.filterVal.search = [];
+			if (valueFilter.search0.checked) tableOpt.filterVal.search = tableOpt.filterVal.search.concat(0);
+			if (valueFilter.search1.checked) tableOpt.filterVal.search = tableOpt.filterVal.search.concat(1);
+			if (valueFilter.search2.checked) tableOpt.filterVal.search = tableOpt.filterVal.search.concat(2);
+			if (valueFilter.search3.checked) tableOpt.filterVal.search = tableOpt.filterVal.search.concat(3);
 
-		if (valueFilter.neg.checked) tableOpt.filterVal.exclude = true;
+			if (valueFilter.neg.checked) tableOpt.filterVal.exclude = true;
 
-		if (valueFilter.logOR.checked) tableOpt.filterVal.combine = false;
-		else if (valueFilter.logAND.checked) tableOpt.filterVal.combine = true;
-		else if (valueFilter.logDISJUNCT.checked) tableOpt.filterVal.unique = true;
-		else if (valueFilter.reflexAND.checked) tableOpt.filterVal.only = true;
-	}
+			if (valueFilter.logOR.checked) tableOpt.filterVal.combine = false;
+			else if (valueFilter.logAND.checked) tableOpt.filterVal.combine = true;
+			else if (valueFilter.logDISJUNCT.checked) tableOpt.filterVal.unique = true;
+			else if (valueFilter.reflexAND.checked) tableOpt.filterVal.only = true;
+		}
 
-	const options = {
-		outputCSV: true,
-	};
-	if (varOrderSel.input) options.varOrder = varOrderSel.input.split(varOrderSel.delim);
+		const options = {
+			outputCSV: true,
+		};
+		if (varOrderSel.input) options.varOrder = varOrderSel.input.split(varOrderSel.delim);
 
-    tableClasses.table = 'table table-sm table-hover w-auto';
-    const table = valueTableWizard(formula, options, tableOpt.filterRes, tableOpt.filterVal);
+	    tableClasses.table = 'table table-sm table-hover w-auto';
+	    const table = valueTableWizard(formula, options, tableOpt.filterRes, tableOpt.filterVal);
 
 
-    show('#output-vals-csv');
-	tempData.csv = table.csv;
+	    show('#output-vals-csv');
+		tempData.csv = table.csv;
 
-	hide('#output-wrapper-data');
-	show('#output-wrapper-vals');
-	hide(`#${vmapID.cont}`);
-	hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
-	document.getElementById('output-vals').innerHTML = table.html;
+		hide('#output-wrapper-data');
+		show('#output-wrapper-vals');
+		hide(`#${vmapID.cont}`);
+		hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
+		document.getElementById('output-vals').innerHTML = table.html;
 
-	window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#calc');
+		window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#calc');
 
-	if (getVarOrderSel() === '') {
-		document.getElementById(resultCheckbox.ID).disabled = true;
-		document.getElementById(valueCheckbox.ID).disabled = true;
-	} else {
-		document.getElementById(resultCheckbox.ID).disabled = false;
-		document.getElementById(valueCheckbox.ID).disabled = false;
+		if (getVarOrderSel() === '') {
+			document.getElementById(resultCheckbox.ID).disabled = true;
+			document.getElementById(valueCheckbox.ID).disabled = true;
+		} else {
+			document.getElementById(resultCheckbox.ID).disabled = false;
+			document.getElementById(valueCheckbox.ID).disabled = false;
+		}
+
+	} catch (e) {
+		showErrorMsg(e);
 	}
 }
 
@@ -371,145 +401,157 @@ window.filter = function(filterResults=false) {
 }
 
 window.btnViewJSON = function() {
-	updateVarOrderSel(false);
+	clearErrorMsg();
 
-	const txtbox = document.getElementById(txtboxID);
+	try {
+		const txtbox = document.getElementById(txtboxID);
 
-	hide('#output-wrapper-vals');
+		const inputIsDNA = txtbox.value.includes('::');
+		if (inputIsDNA) throw new Error('formDNA cannot (yet) be decoded into FORMs.');
+
+		updateVarOrderSel(false);
+
+		hide('#output-wrapper-vals');
 		show('#output-wrapper-data');
 		hide(`#${vmapID.cont}`);
 		hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
+
 		document.getElementById('output-data').innerHTML = `<pre><code>${formform.graph.jsonString(txtbox.value)}</code></pre>`;
 
-	window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#json');
+		window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#json');
+	} catch (e) {
+		showErrorMsg(e);
+	}
 }
 
 window.btnViewDNA = function() {
-	const txtbox = document.getElementById(txtboxID);
+	clearErrorMsg();
 
-	updateVarOrderSel(true, txtbox.value);
+	try {
+		const txtbox = document.getElementById(txtboxID);
 
-	const form = (getVarOrderSel() !== '' && varOrderSel.input) ? formform.form.reOrderVars(txtbox.value, varOrderSel.input.split(varOrderSel.delim)) : txtbox.value;
+		updateVarOrderSel(true, txtbox.value);
 
-	hide('#output-wrapper-vals');
-	show('#output-wrapper-data');
-	hide(`#${vmapID.cont}`);
-	hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
+		hide('#output-wrapper-vals');
+		show('#output-wrapper-data');
+		hide(`#${vmapID.cont}`);
+		hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
 
-	const quartCycles = str => {
-		return str.split('').reduce((str,c,i,arr) => {
+		const formula = txtbox.value;
+		const varorder = varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined;
 
-			return str + ((i+1)%4 === 1 ? '<span class="dna-quart1">' : '') + c + ((i+1)%4 === 0 ? '</span>' : '');
-		},'');
+		formform.form.getValidForm(formula);
+		const formDNA = formform.dna.formToDNA(formula, varorder, {output: 'html'});
+		document.getElementById('output-data').innerHTML = formDNA;
+
+		window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#dna');
+	} catch (e) {
+		showErrorMsg(e);
 	}
-
-	document.getElementById('output-data').innerHTML = `<div id="dna"><code><span class="dna-form" title="FORM">${txtbox.value}</span>${(getVarOrderSel() !== '' && varOrderSel.input) ? '.<span class="dna-varorder" title="Variable interpretation order">['+varOrderSel.input.split(varOrderSel.delim).join(',')+']</span>' : ''}::<span class="dna-code">${quartCycles(formform.dna.formToDNA(form))}</span></code></div>`;
-
-	window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#dna');
 }
 
 window.btnVmap = function() {
-	const txtbox = document.getElementById(txtboxID);
+	clearErrorMsg();
+	try {
+		const txtbox = document.getElementById(txtboxID);
 
-	updateVarOrderSel(true, txtbox.value);
+		updateVarOrderSel(true, txtbox.value);
 
-	hide('#output-wrapper-vals');
-	hide('#output-wrapper-data');
-	hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
+		hide('#output-wrapper-vals');
+		hide('#output-wrapper-data');
+		hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
 
-	show(`#${vmapID.cont}`);
+		show(`#${vmapID.cont}`);
 
-	document.querySelector(`#${vmapID.cont} > .error-msg`).innerHTML = '';
-	const totalVars = formform.form.getTotalVars(txtbox.value);
-
-	if (totalVars > 8) {
-		document.querySelector(`#${vmapID.render}`).innerHTML = '';
-		document.querySelector(`#${vmapID.cont} > .error-msg`).innerHTML = 'Sorry, vmaps with more than 8 variables are too large to be effectively rendered on the web. I am working on a practical solution to this issue, but you can always implement vmaps yourself using the library <a href="https://github.com/formsandlines/formform" target="_blank">formform</a>.';
-	}
-	else if (totalVars > 0) {
-		const vmap = formform.dna.vmap(txtbox.value, varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined);
+		const varorder = varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined;
+		const vmap = formform.dna.vmap(txtbox.value, varorder);
 
 		document.querySelector(`#${vmapID.render}`).innerHTML = vmap;
 
-		
-		if (totalVars > 1) {
 
-			const vmapDiam = parseInt(document.querySelector(`#${vmapID.render} svg`).getAttribute('width'));
-			const btnDiam = 30;
-			const btnId = 'perspBtn';
+		if (varorder && varorder.length > 1) createVmapPerspBtn(txtbox.value);
 
-			const perspBtn = document.createElement('div');
-			perspBtn.setAttribute('id', btnId);
-			perspBtn.style['margin-left'] = (vmapDiam+10)+'px';
-			perspBtn.style['margin-top'] = (vmapDiam*0.5 - btnDiam*0.5)+'px';
-			perspBtn.innerHTML = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 40 40" width="${btnDiam}" height="${btnDiam}">
-				<path class="st0" d="M20,0L0,20l20,20l20-20L20,0z M30,21h-9v9c0,0.6-0.4,1-1,1s-1-0.4-1-1v-9h-9c-0.6,0-1-0.4-1-1s0.4-1,1-1h9v-9
+
+		window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#vmap');
+
+	} catch (e) {
+		showErrorMsg(e);
+	}
+}
+
+function createVmapPerspBtn(formula) {
+	const vmapDiam = parseInt(document.querySelector(`#${vmapID.render} svg`).getAttribute('width'));
+	const btnDiam = 30;
+	const btnId = 'perspBtn';
+
+	const perspBtn = document.createElement('button');
+	perspBtn.setAttribute('id', btnId);
+	perspBtn.style['margin-left'] = (vmapDiam+10)+'px';
+	perspBtn.style['margin-top'] = (vmapDiam*0.5 - btnDiam*0.5)+'px';
+	perspBtn.innerHTML = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 40 40" width="${btnDiam}" height="${btnDiam}">
+		<path class="st0" d="M20,0L0,20l20,20l20-20L20,0z M30,21h-9v9c0,0.6-0.4,1-1,1s-1-0.4-1-1v-9h-9c-0.6,0-1-0.4-1-1s0.4-1,1-1h9v-9
 	c0-0.6,0.4-1,1-1s1,0.4,1,1v9h9c0.6,0,1,0.4,1,1S30.6,21,30,21z"/>
-			</svg>`;
+	</svg>`;
 
-			document.querySelector(`#${vmapID.render}`).append(perspBtn);
+	document.querySelector(`#${vmapID.render}`).append(perspBtn);
 
-			perspBtn.addEventListener('click', e => {
-				if (totalVars < 6) {
-					const vmapPersp = formform.dna.vmapPerspectives(txtbox.value, varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined);
-					document.querySelector(`#${vmapID.render} > figure.vmap`).remove();
-					document.querySelector(`#${vmapID.render}`).innerHTML = vmapPersp;
-				} else {
-					alert('Sorry, there are too many perspectives for vmaps with more than six variables to render effectively on the web. You can, however, still compute single permutations by changing the variable order of your FORM.');
-				}
-			});
+	perspBtn.addEventListener('click', e => {
+		try {
+			const vmapPersp = formform.dna.vmapPerspectives(formula, varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined);
+			document.querySelector(`#${vmapID.render} > figure.vmap`).remove();
+			document.querySelector(`#${vmapID.render}`).innerHTML = vmapPersp;
+		} catch (e) {
+			showErrorMsg(e);
 		}
-	}
-	else {
-		document.querySelector(`#${vmapID.render}`).innerHTML = '';
-		document.querySelector(`#${vmapID.cont} > .error-msg`).innerHTML = 'You need to have at least one variable in your FORM to generate a vmap.';
-	}
-
-	window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#vmap');
+	});
 }
 
 window.btnRender = function(type) {
-	updateVarOrderSel(false);
-
-	const txtbox = document.getElementById(txtboxID);
-
-	hide('#output-wrapper-vals');
-	hide('#output-wrapper-data');
-	
-	switch(type) {
-		case 'tree':
-			show(`#${graphTreeID.cont}`);
-			hide(`#${graphPackID.cont}`);
-			hide(`#${graphGsbID.cont}`);
-			hide(`#${vmapID.cont}`);
-			break;
-		case 'pack':
-			show(`#${graphPackID.cont}`);
-			hide(`#${graphTreeID.cont}`);
-			hide(`#${graphGsbID.cont}`);
-			hide(`#${vmapID.cont}`);
-			break;
-		case 'gsbhooks':
-			show(`#${graphGsbID.cont}`);
-			hide(`#${graphPackID.cont}`);
-			hide(`#${graphTreeID.cont}`);
-			hide(`#${vmapID.cont}`);
-			break;
-	}
-
-	let style = 'basic';
+	clearErrorMsg();
 	try {
-		style = [...styleSwitcher[type].getElementsByTagName('input')].filter(d => d.checked).pop().getAttribute('value');
+		const txtbox = document.getElementById(txtboxID);
+
+		const inputIsDNA = txtbox.value.includes('::');
+		if (inputIsDNA) throw new Error('formDNA cannot (yet) be decoded into FORMs.');
+
+		updateVarOrderSel(false);
+
+		hide('#output-wrapper-vals');
+		hide('#output-wrapper-data');
+		
+		switch(type) {
+			case 'tree':
+				show(`#${graphTreeID.cont}`);
+				hide(`#${graphPackID.cont}`);
+				hide(`#${graphGsbID.cont}`);
+				hide(`#${vmapID.cont}`);
+				break;
+			case 'pack':
+				show(`#${graphPackID.cont}`);
+				hide(`#${graphTreeID.cont}`);
+				hide(`#${graphGsbID.cont}`);
+				hide(`#${vmapID.cont}`);
+				break;
+			case 'gsbhooks':
+				show(`#${graphGsbID.cont}`);
+				hide(`#${graphPackID.cont}`);
+				hide(`#${graphTreeID.cont}`);
+				hide(`#${vmapID.cont}`);
+				break;
+		}
+
+		const style = styleSwitcher[type] ? [...styleSwitcher[type].getElementsByTagName('input')].filter(d => d.checked).pop().getAttribute('value') : 'basic';
+
+		const graph = renderGraph(type, txtbox.value, {styleClass: style});
+
+		if (graph && window.graphs.length > 0) window.graphs.shift();
+
+		window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#graph-'+type);
+		window.graphs.push(graph);
+
+	} catch (e) {
+		showErrorMsg(e);
 	}
-	catch (error) {
-	}
-
-	const graph = renderGraph(type, txtbox.value, {styleClass: style});
-
-	if (graph && window.graphs.length > 0) window.graphs.shift();
-
-	window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#graph-'+type);
-	window.graphs.push(graph);
 }
 
 function renderGraph(type, formula, options={}) {

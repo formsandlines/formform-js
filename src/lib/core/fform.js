@@ -1,4 +1,4 @@
-import { flatten, include, VARCODE, VARCODE_REV } from '../../common/helper';
+import { pad, flatten, include, VARCODE, VARCODE_REV, createValidation, checkBracketMatching, checkLiteralMatching, collapseLiterals, getBracketUnits } from '../../common/helper';
 import FCalc from './fcalc';
 
 export default class FForm extends FCalc {
@@ -15,13 +15,13 @@ export default class FForm extends FCalc {
     // Form Calculation
     // ----------------------------------------------------
 
-    static calc(form) {
+    static calc(_form) {
         /* recursive form calculation */
-        var fx = 0;
+        let fx = 0;
         // make sure to have a json form, if not: try to convert
-        if(typeof(form) === 'string') form = this.parseLinear(form);
+        const form = this.getValidForm(_form);
 
-        for (var i in form.space) {
+        for (let i in form.space) {
             if (form.space[i].type === 'form') {
                 fx = this.rel( fx,this.calc(form.space[i]) );
             }
@@ -35,11 +35,11 @@ export default class FForm extends FCalc {
                 fx = this.rel( fx,form.space[i].value );
             }
             else if (form.space[i].type === 'reEntry') {
-                var nestedVals = [];
-                var fReEntry = form.space[i];
+                let nestedVals = [];
+                const fReEntry = form.space[i];
 
-                for (var j in fReEntry.nested) {
-                    nestedVals.push( this.calc(fReEntry.nested[j]) );
+                for (let j in fReEntry.nested) {
+                    nestedVals = [...nestedVals, this.calc(fReEntry.nested[j])];
                 }
                 // for even resolutions (total nested arguments), reEntry number will be undefined
                 // since it doesn't matter if its even or odd
@@ -53,191 +53,31 @@ export default class FForm extends FCalc {
         else return this.inv( fx );
     };
 
-    static calcAll(form) {
-        /* Interpret and calculate all possible values for the form 
-           -> needs refactoring to avoid redundancy; suggestions welcome. */
+    static calcAll(_form) {
+        /* Interpret and calculate all possible values for the form
+           (refactored: 10.10.2020) */
 
         // make sure to have a json form, if not: try to convert
-        if(typeof(form) === 'string') form = this.parseLinear(form);
+        const form = this.getValidForm(_form);
 
-        var vars = this.getVariables(form);
-        var vals = {};
+        const vars = this.getVariables(form);
+        const vnum = vars.length;
+        const vals = {};
 
-        var interKey = ''+vars.join()+';';
-
-        switch (vars.length) {
-            case 0:
-                vals['Result'] = this.calc(form);
-                break;
-            case 1:
-                var interpr = [ {var: vars[0], value: null} ];
-                for (var a=0; a<4; a++) {
-                    interpr[0].value = a;
-                    vals[interKey+a] = this.interCalc(form, interpr);//[a]);
-                }
-                break;
-            case 2:
-                var interpr = [ {var: vars[0], value: null}, 
-                                {var: vars[1], value: null} ];
-                for (var a=0; a<4; a++) {
-                    interpr[0].value = a;
-                    for (var b=0; b<4; b++) {
-                        interpr[1].value = b;
-                        vals[interKey+a+''+b] = this.interCalc(form, interpr);//[a,b]);
-                    }
-                }
-                break;
-            case 3:
-                var interpr = [ {var: vars[0], value: null}, 
-                                {var: vars[1], value: null},
-                                {var: vars[2], value: null} ];
-                for (var a=0; a<4; a++) {
-                    interpr[0].value = a;
-                    for (var b=0; b<4; b++) {
-                        interpr[1].value = b;
-                        for (var c=0; c<4; c++) {
-                            interpr[2].value = c;
-                            vals[interKey+a+''+b+''+c] = this.interCalc(form, interpr);//[a,b,c]);
-                        }
-                    }
-                }
-                break;
-            case 4:
-                var interpr = [ {var: vars[0], value: null}, 
-                                {var: vars[1], value: null},
-                                {var: vars[2], value: null},
-                                {var: vars[3], value: null} ];
-                for (var a=0; a<4; a++) {
-                    interpr[0].value = a;
-                    for (var b=0; b<4; b++) {
-                        interpr[1].value = b;
-                        for (var c=0; c<4; c++) {
-                            interpr[2].value = c;
-                            for (var d=0; d<4; d++) {
-                                interpr[3].value = d;
-                                vals[interKey+a+''+b+''+c+''+d] = this.interCalc(form, interpr);//[a,b,c,d]);
-                            }
-                        }
-                    }
-                }
-                break;
-            case 5:
-                var interpr = [ {var: vars[0], value: null}, 
-                                {var: vars[1], value: null},
-                                {var: vars[2], value: null},
-                                {var: vars[3], value: null},
-                                {var: vars[4], value: null} ];
-                for (var a=0; a<4; a++) {
-                    interpr[0].value = a;
-                    for (var b=0; b<4; b++) {
-                        interpr[1].value = b;
-                        for (var c=0; c<4; c++) {
-                            interpr[2].value = c;
-                            for (var d=0; d<4; d++) {
-                                interpr[3].value = d;
-                                for (var e=0; e<4; e++) {
-                                    interpr[4].value = e;
-                                    vals[interKey+a+''+b+''+c+''+d+''+e] = this.interCalc(form, interpr);//[a,b,c,d,e]);
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-            case 6:
-                var interpr = [ {var: vars[0], value: null}, 
-                                {var: vars[1], value: null},
-                                {var: vars[2], value: null},
-                                {var: vars[3], value: null},
-                                {var: vars[4], value: null},
-                                {var: vars[5], value: null} ];
-                for (var a=0; a<4; a++) {
-                    interpr[0].value = a;
-                    for (var b=0; b<4; b++) {
-                        interpr[1].value = b;
-                        for (var c=0; c<4; c++) {
-                            interpr[2].value = c;
-                            for (var d=0; d<4; d++) {
-                                interpr[3].value = d;
-                                for (var e=0; e<4; e++) {
-                                    interpr[4].value = e;
-                                    for (var f=0; f<4; f++) {
-                                        interpr[5].value = f;
-                                        vals[interKey+a+''+b+''+c+''+d+''+e+''+f] = this.interCalc(form, interpr);//[a,b,c,d,e,f]);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-            case 7:
-                var interpr = [ {var: vars[0], value: null}, 
-                                {var: vars[1], value: null},
-                                {var: vars[2], value: null},
-                                {var: vars[3], value: null},
-                                {var: vars[4], value: null},
-                                {var: vars[5], value: null},
-                                {var: vars[6], value: null} ];
-                for (var a=0; a<4; a++) {
-                    interpr[0].value = a;
-                    for (var b=0; b<4; b++) {
-                        interpr[1].value = b;
-                        for (var c=0; c<4; c++) {
-                            interpr[2].value = c;
-                            for (var d=0; d<4; d++) {
-                                interpr[3].value = d;
-                                for (var e=0; e<4; e++) {
-                                    interpr[4].value = e;
-                                    for (var f=0; f<4; f++) {
-                                        interpr[5].value = f;
-                                        for (var g=0; g<4; g++) {
-                                            interpr[6].value = g;
-                                            vals[interKey+a+''+b+''+c+''+d+''+e+''+f+''+g] = this.interCalc(form, interpr);//[a,b,c,d,e,f,g]);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-            case 8:
-                var interpr = [ {var: vars[0], value: null}, 
-                                {var: vars[1], value: null},
-                                {var: vars[2], value: null},
-                                {var: vars[3], value: null},
-                                {var: vars[4], value: null},
-                                {var: vars[5], value: null},
-                                {var: vars[6], value: null},
-                                {var: vars[7], value: null} ];
-                for (var a=0; a<4; a++) {
-                    interpr[0].value = a;
-                    for (var b=0; b<4; b++) {
-                        interpr[1].value = b;
-                        for (var c=0; c<4; c++) {
-                            interpr[2].value = c;
-                            for (var d=0; d<4; d++) {
-                                interpr[3].value = d;
-                                for (var e=0; e<4; e++) {
-                                    interpr[4].value = e;
-                                    for (var f=0; f<4; f++) {
-                                        interpr[5].value = f;
-                                        for (var g=0; g<4; g++) {
-                                            interpr[6].value = g;
-                                            for (var h=0; h<4; h++) {
-                                                interpr[7].value = h;
-                                                vals[interKey+a+''+b+''+c+''+d+''+e+''+f+''+g+''+h] = this.interCalc(form, interpr);//[a,b,c,d,e,f,g,h]);
-                                                }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
+        if (vnum < 1) {
+            vals['Result'] = this.calc(form);
+            return vals;
         }
+
+        const interKey = ''+vars.join()+';';
+        
+        for (let i=0; i < 4**vnum; i++) {
+            const interprVals = pad(i.toString(4), vnum);
+            const interpr = interprVals.split('').map((val,n) => ({var: vars[n], value: parseInt(val)}));
+
+            vals[interKey+interprVals] = this.interCalc(form, interpr);
+        }
+
         return vals;
     };
 
@@ -245,18 +85,18 @@ export default class FForm extends FCalc {
         return this.calc( this.interpret(form, interpr) );
     };
 
-    static interpret(form, interpr) {
+    static interpret(_form, interpr) {
         // make sure to have a json form, if not: try to convert
-        if(typeof(form) === 'string') form = this.parseLinear(form);
+        const form = this.getValidForm(_form);
 
-        var interprForm = JSON.parse(JSON.stringify(form)); // clone form
+        const interprForm = JSON.parse(JSON.stringify(form)); // clone form
 
         this.traverseForm(interprForm, function(fBranch) {
             const space = fBranch.space;
 
-            for (var i in space) {
+            for (let i in space) {
                 if (space[i].type === 'var') {
-                    for (var v in interpr) {
+                    for (let v in interpr) {
                         if (space[i].symbol === interpr[v].var) {
 
                             space[i].value = interpr[v].value;
@@ -302,12 +142,12 @@ export default class FForm extends FCalc {
         /* Converts from paranthesis notation into JSON string and parses as JSON object */
 
         // convert the formula into a JSON string
-        var jsonStr = this.convFromLinear(formula);
+        const jsonStr = this.convFromLinear(formula);
 
         // try parsing the string as a JSON object
-        var json = null;
+        let json = null;
         try {
-            var json = JSON.parse(jsonStr);
+            json = JSON.parse(jsonStr);
         } catch(e) {
             console.log(e);
         }
@@ -317,18 +157,18 @@ export default class FForm extends FCalc {
 
     static convFromLinear(formula) {
         // clean formula string from whitespace
-        var cleanFormula = this.cleanLinear(formula);
-        var arr = this.constructFromLinear(cleanFormula);
+        const cleanFormula = this.cleanLinear(formula);
+        const arr = this.constructFromLinear(cleanFormula);
         return flatten(arr).join('');
     }
 
     static cleanLinear(formula) {
-        var cleanFormula = '';
-        var inQuote = false;
-        var inSlash = false;
+        let cleanFormula = '';
+        let inQuote = false;
+        let inSlash = false;
 
-        for (var i in formula) {
-            var char = formula[i];
+        for (let i in formula) {
+            const char = formula[i];
             if(typeof(char) !== "string") break; // prototype hacks
 
             if (char === '"' && !inSlash) inQuote = !inQuote;
@@ -346,16 +186,15 @@ export default class FForm extends FCalc {
     static constructFromLinear(formula) {
         /* Converts from paranthesis notation to JSON-form */
 
-        var compAll = [];
-        var unmarked = true;
+        let compAll = [];
+        let unmarked = true;
 
         // check for all enclosing outer form
-        var countDepth = 0;
-        var inQuote = false;
-        var inSlash = false;
-        var outerMarkCount = 0;
-        for (var i in formula) {
-            var char = formula[i];
+        let countDepth = 0;
+        let inQuote = false;
+        let inSlash = false;
+        for (let i in formula) {
+            const char = formula[i];
             if(typeof(char) !== "string") break; // prototype hacks
 
             if (!inQuote && !inSlash) {
@@ -378,28 +217,27 @@ export default class FForm extends FCalc {
             if (char === '/' && !inQuote) inSlash = !inSlash;
         }
 
-        compAll.push('  {');
-        compAll.push('"type":"form",');
+        compAll = [...compAll, '  {'];
+        compAll = [...compAll, '"type":"form",'];
 
-        if (unmarked) compAll.push('"unmarked":true,');
+        if (unmarked) compAll = [...compAll, '"unmarked":true,'];
         else formula = formula.slice(1,formula.length-1);
 
-        compAll.push('"space":[');   
+        compAll = [...compAll, '"space":['];
 
 
-        var parts = [];
-        parts.push('');
+        let parts = [''];
 
-        var countDepth = 0;
-        var inQuote = false;
-        var inSlash = false;
+        countDepth = 0;
+        inQuote = false;
+        inSlash = false;
 
-        var optChar = '⤴';
-        var nestChar = '⤵';
+        const optChar = '⤴';
+        const nestChar = '⤵';
 
-        for (var i in formula) {
-            var char = formula[i];
-            var prevChar = formula[i-1];
+        for (let i in formula) {
+            let char = formula[i];
+            const prevChar = formula[i-1];
             if(typeof(char) !== "string") break; // prototype hacks
             
             if (!inQuote && !inSlash) {
@@ -408,13 +246,13 @@ export default class FForm extends FCalc {
                     
                     if (countDepth === 0) {
                         // first (x) doesn't need to be separated
-                        if (i > 0) parts.push('');
+                        if (i > 0) parts = [...parts, ''];
                     }
                     countDepth++;
                 }
                 else if ( (prevChar === ')' || prevChar === '}') && !(char === ')' || char === '}') ) {
                     // if char follows (x), separate; but not if it is another ')'
-                    if (countDepth === 0) parts.push('');
+                    if (countDepth === 0) parts = [...parts, ''];
                 }
                 // unique separation chars for re-entry forms for easy splitting
                 if (countDepth === 1 && char === ',') char = nestChar;
@@ -428,122 +266,117 @@ export default class FForm extends FCalc {
 
 
         
-        for (var i in parts) {
+        for (let i in parts) {
 
             if (parts[i][0] === '(') { 
                 // if part is form
-                // parts[i] = this.constructFromLinear( parts[i].slice(1,parts[i].length-1) );
-                var comp = [];
-                // comp.push('{');
-                comp.push( this.constructFromLinear(parts[i]) );
-                // comp.push('}');
+                let comp = [this.constructFromLinear(parts[i])];
 
                 parts[i] = comp.slice();
             }
             else if (parts[i][0] === '{') {
                 // else if part is re-entry form
 
-                var comp = [];
-                comp.push('  {');
-                comp.push('"type":"reEntry",');
+                let comp = ['  {'];
+                comp = [...comp, '"type":"reEntry",'];
 
-                var content = parts[i].slice(1,parts[i].length-1);
+                const content = parts[i].slice(1,parts[i].length-1);
 
-                var reParts = content.split(optChar);
-                var reNested = reParts[reParts.length-1].split(nestChar);
+                const reParts = content.split(optChar);
+                const reNested = reParts[reParts.length-1].split(nestChar);
 
                 if (reNested.length % 2 === 0) {
-                    comp.push('"reEven":"undefined",');
+                    comp = [...comp, '"reEven":"undefined",'];
                 } 
                 else {
-                    if (reParts[0] === '2r' || reParts[1] === '2r' || reParts[2] === '2r') comp.push('"reEven":true,');
-                    else comp.push('"reEven":false,');
+                    if (reParts[0] === '2r' || reParts[1] === '2r' || reParts[2] === '2r') comp = [...comp, '"reEven":true,'];
+                    else comp = [...comp, '"reEven":false,'];
                 }
 
-                if (reParts[0] === 'open' || reParts[1] === 'open' || reParts[2] === 'open') comp.push('"lastOpen":true,');
-                else comp.push('"lastOpen":false,');
+                if (reParts[0] === 'open' || reParts[1] === 'open' || reParts[2] === 'open') comp = [...comp, '"lastOpen":true,'];
+                else comp = [...comp, '"lastOpen":false,'];
 
-                if (reParts[0] === 'alt' || reParts[1] === 'alt' || reParts[2] === 'alt') comp.push('"altInterpretation":true,');
-                else comp.push('"altInterpretation":false,');
+                if (reParts[0] === 'alt' || reParts[1] === 'alt' || reParts[2] === 'alt') comp = [...comp, '"altInterpretation":true,'];
+                else comp = [...comp, '"altInterpretation":false,'];
 
-                comp.push('"nested":[');
+                comp = [...comp, '"nested":['];
 
-                for (var n in reNested) {
-                    comp.push( this.constructFromLinear(reNested[n]) );
-                    if (n < reNested.length-1) comp.push(',');
+                for (let n in reNested) {
+                    comp = [...comp, this.constructFromLinear(reNested[n]) ];
+                    if (n < reNested.length-1) comp = [...comp, ','];
                     // reNested[n] = this.constructFromLinear( reNested[n] );
                 }
 
-                comp.push(']}  ');
+                comp = [...comp, ']}  '];
 
                 parts[i] = comp.slice();
             }
             else {
                 // else we have variables/constants
 
-                var comp = [];
+                let comp = [];
 
-                var vars = [];
-                var inQuote = false;
-                var inSlash = false;
+                let vars = [];
+                let inQuote = false;
+                let inSlash = false;
 
-                for (var j in parts[i]) {
-                    var char = parts[i][j];
+                for (let j in parts[i]) {
+                    const char = parts[i][j];
                     if(typeof(char) !== "string") break; // prototype hacks
 
                     if (char === '"' && !inSlash) {
                         inQuote = !inQuote;
                         // mark quoted string with a '‖' for identification
-                        if (inQuote) vars.push('‖');
+                        if (inQuote) vars = [...vars, '‖'];
                     }
                     else if (char === '/' && !inQuote) {
                         inSlash = !inSlash;
                         // mark unclear form with a '‽' for identification
-                        if (inSlash) vars.push('‽');
+                        if (inSlash) vars = [...vars, '‽'];
                     }
                     else {
-                        if (!inQuote && !inSlash) vars.push('');
+                        if (!inQuote && !inSlash) vars = [...vars, ''];
                         // quote chars inside slashes will be escaped to not interfere with JSON syntax
                         if (char === '"' && inSlash) vars[vars.length-1] += '\\' + char;
                         else vars[vars.length-1] += char;
                     }
                 }
 
-                for (var v in vars) {
+                for (let v in vars) {
                     if(typeof(vars[v]) !== "string") break; // prototype hacks
 
-                    comp.push('  {');
+                    comp = [...comp, '  {'];
                     if (!isNaN(vars[v]) && vars[v].length > 0 
                         && vars[v][0] !== '‽' && vars[v][0] !== '‖') {
-                        comp.push('"type":"const",'); 
-                        comp.push('"value":');
-                        comp.push(vars[v]);
+                        comp = [...comp, '"type":"const",']; 
+                        comp = [...comp, '"value":'];
+                        comp = [...comp, vars[v]];
                     }
                     else if (vars[v][0] === '‽') {
-                        comp.push('"type":"unclear",');
-                        comp.push('"value":2,');
-                        comp.push('"symbol":');
-                        comp.push('"'+vars[v].slice(1)+'"');
+                        comp = [...comp, '"type":"unclear",'];
+                        comp = [...comp, '"value":2,'];
+                        comp = [...comp, '"symbol":'];
+                        comp = [...comp, '"'+vars[v].slice(1)+'"'];
                     }
                     else {
-                        comp.push('"type":"var",');
-                        comp.push('"value":"*",');
-                        comp.push('"symbol":');
-                        if(vars[v][0] === '‖') comp.push('"'+vars[v].slice(1)+'"');
-                        else comp.push('"'+vars[v]+'"');
+                        comp = [...comp, '"type":"var",'];
+                        comp = [...comp, '"value":"*",'];
+                        comp = [...comp, '"symbol":'];
+                        if(vars[v][0] === '‖') comp = [...comp, '"'+vars[v].slice(1)+'"'];
+                        else comp = [...comp, '"'+vars[v]+'"'];
                     }
-                    comp.push('}  ');
-                    if (v < vars.length-1) comp.push(',');
+                    comp = [...comp, '}  '];
+                    if (v < vars.length-1) comp = [...comp, ','];
                 }
 
                 parts[i] = comp.slice();
             } // end else
 
-            compAll.push(parts[i]);
-            if (i < parts.length-1) compAll.push(',');
+            compAll = [...compAll, parts[i]];
+            if (i < parts.length-1) compAll = [...compAll, ','];
         }
 
-        compAll.push(']}  ');
+        compAll = [...compAll, ']}  '];
 
         return compAll;
     }
@@ -552,9 +385,9 @@ export default class FForm extends FCalc {
     // Representation
     // ----------------------------------------------------
 
-    static jsonString(form) {
+    static jsonString(_form) {
         /* returns json-representation of the specified FORM */
-        if(typeof(form) === 'string') form = this.parseLinear(form);
+        const form = this.getValidForm(_form);
     
         return JSON.stringify(form, undefined, 2);
     }
@@ -563,20 +396,20 @@ export default class FForm extends FCalc {
     // Helper
     // ----------------------------------------------------
 
-    static getVariables(form) {
+    static getVariables(_form) {
         /* parses a FORM to get all of its variables and sorts them using the JS Array.sort() method
         which sorts by comparing UTF-16 code unit values.
         Note: By convention, the process of deriving formDNA from a given FORM involves ordering of the extracted variables by this same sorting method, if no special ordering is specified. */
-        if(typeof(form) === 'string') form = this.parseLinear(form);
+        const form = this.getValidForm(_form);
 
-        var vars = [];
+        let vars = [];
         this.traverseForm(form, function(fBranch) {
             const space = fBranch.space;
 
-            for (var i in space) {
+            for (let i in space) {
                 if (space[i].type === 'var') {
                     if (!include(vars, space[i].symbol)) {
-                        vars.push(space[i].symbol);
+                        vars = [...vars, space[i].symbol];
                     }
                 }
             }
@@ -586,13 +419,13 @@ export default class FForm extends FCalc {
 
     static traverseForm(form,func) {
         /* traverses only form-types in a json tree */
-        let breakTrav = func.apply(this,[form]);
+        const breakTrav = func.apply(this,[form]);
 
         if (form.space) { // form.type: 'form'
             if (form.space.length > 0) {
-                for (var i in form.space) {
+                for (let i in form.space) {
                     if (form.space[i].type === 'form' || form.space[i].type === 'reEntry') {
-                        let breakLoop = this.traverseForm(form.space[i],func);
+                        const breakLoop = this.traverseForm(form.space[i],func);
                         if (breakLoop) break;
                     }
                 }
@@ -600,8 +433,8 @@ export default class FForm extends FCalc {
         }
         else if (form.nested) { // form.type: 'reEntry'
             if (form.nested.length > 0) {
-                for (var i in form.nested) {
-                    let breakLoop = this.traverseForm(form.nested[i],func);
+                for (let i in form.nested) {
+                    const breakLoop = this.traverseForm(form.nested[i],func);
                     if (breakLoop) break;
                 }
             }
@@ -676,6 +509,168 @@ export default class FForm extends FCalc {
         if (varList.join('') === '+-LR') return ['-','L','R','+'];
         if (varList.join('') === '+-ELR') return ['-','L','E','R','+'];
         return varList;
+    }
+
+    /*  --------------------------------------------------------
+        New Additions 10/2020:
+    */
+
+    static isValidForm (input, options) {
+        /* Checks if an input is a valid formula or JSON-FORM */
+
+        return typeof(input) === 'string' ? 
+            isValidFormula(input, options) : isValidJSONForm(input, options);
+    }
+
+    static isValidFormula (input, options) {
+        /* Checks if an input is a valid formula */
+        // const { } = { ...options };
+
+        let validations1 = [
+            createValidation(() => typeof(input) === 'string',
+                'Formula input is not of type ‘string’'),
+        ];
+        if (input.length > 0) validations1 = [...validations1,
+            createValidation(
+                () => {
+                    return !!collapseLiterals(input, '"') && !!collapseLiterals(input, '/');
+                    // const sansLiterals = collapseLiterals(input, '"');
+                    // return sansLiterals ? checkLiteralMatching(sansLiterals, '/') : false;
+                },
+                'Number of quotes for literal variables (e.g.: "x") or number of slashes for unclear FORMs (e.g.: /x/) don\'t match'),
+            // createValidation(
+            //     () => {
+                    // let openSep = '⁅', closeSep = '⁆';
+                    // const dirUnclForms = input.split('/').reduce((acc,curr,idx) => {
+                    //     return acc + (idx % 2 === 1 ? openSep : closeSep) + curr
+                    // });
+                    // const unclFormUnits = getBracketUnits(dirUnclForms, {open: openSep, close: closeSep});
+
+                    // return unclFormUnits.every(unclForm => unclForm.split('"').length < 2); 
+
+                    // let openSep = '⁌', closeSep = '⁍';
+                    // const dirLiterals = input.split('"').reduce((acc,curr,idx) => {
+                    //     return acc + (idx % 2 === 1 ? openSep : closeSep) + curr
+                    // });
+                    // const literalUnits = getBracketUnits(dirLiterals, {open: openSep, close: closeSep});
+
+                    // literalUnits.every(literal => )
+                // },
+                // 'Number of quotes for literal variables (e.g.: "x") don\'t match'),
+        ];
+        validations1.every(validation => validation().cata({
+            error: e => { throw new Error(e); },
+            success: data => data,
+        }) );
+
+        if (input.length > 0) {
+            const cleanInput = collapseLiterals( collapseLiterals(input, '"'), '/');
+
+            const validations2 = [
+                createValidation(
+                    () => checkBracketMatching(cleanInput, '(', ')'),
+                    'Number or opening/closing order of parantheses in formula don\'t match'),
+                createValidation(
+                    () => checkBracketMatching(cleanInput, '{', '}'),
+                    'Number or opening/closing order of curly brackets in formula don\'t match'),
+            ];
+
+            validations2.every(validation => validation().cata({
+                error: e => { throw new Error(e); },
+                success: data => data,
+            }) );
+
+            const roundBrUnits = getBracketUnits(cleanInput, {open: '(', close: ')'});
+            const curlyBrUnits = getBracketUnits(cleanInput, {open: '{', close: '}'});
+
+            const validations3 = [
+                createValidation(
+                    () => roundBrUnits.every(subForm => checkBracketMatching(subForm, '{', '}'))
+                       && curlyBrUnits.every(subForm => checkBracketMatching(subForm, '(', ')')),
+                    'Opening/closing of parantheses overlaps with opening/closing of curly brackets in formula (e.g.: ({a)b})'),
+                createValidation(
+                    () => curlyBrUnits.every(reEntry => this.isValidReEntry(reEntry)),
+                    'Option part of one or more re-entry constructions is not well-formed'),
+            ];
+
+            validations3.every(validation => validation().cata({
+                error: e => { throw new Error(e); },
+                success: data => data,
+            }) );
+        }
+
+        return true;
+    }
+
+    static isValidReEntry (input, options) {
+        /* Checks if an input is a valid re-entry construction */
+        // const { } = { ...options };
+
+        const parts = input.slice(1,-1).split('|');
+
+        if (parts.length > 1) {
+            const entries = parts.filter((p,i,arr) => i < arr.length-1);
+            const optList = ['alt','open','2r','2r+1'];
+
+            const selList = entries.reduce((acc,str) => [...acc, optList.filter(opt => str === opt)[0]],[] ).filter(opt => opt);
+
+            const selList_unique = [...new Set(selList)];
+
+            const validations = [
+                createValidation(
+                    () => selList_unique.length === entries.length,
+                    'One or more re-entry constructions have invalid or duplicate options'),
+                createValidation(
+                    () => selList_unique.filter(str => str === optList[2] || str === optList[3]).length < 2,
+                    'One or more re-entry constructions have both options ‘2r’ and ‘2r+1’ set at the same time'),
+            ];
+
+            return validations.every(validation => validation().cata({
+                error: e => { throw new Error(e); },
+                success: data => data,
+            }) );
+        }
+
+        return true;
+    }
+
+    static isValidJSONForm (input, options) {
+        /* Checks if an input is a valid JSON-FORM */
+        // const { } = { ...options };
+
+        const validations = [
+            createValidation(
+                () => true,
+                ''),
+        ];
+
+        return validations.every(validation => validation().cata({
+            error: e => { throw new Error(e); },
+            success: data => data,
+        }) );
+
+        return true;
+    }
+
+    static formMatchesVarList (form, varList) {
+        /* Checks if a given FORM matches a given variable list */
+        const varsForm = this.getVariables(form);
+
+        const match = varList.length === varsForm.length
+            && varsForm.every(v_a => varList.some(v_b => v_a === v_b));
+        if (!match) throw new Error('FORM doesn\'t match the given variable list');
+
+        return true;
+    }
+
+    static getValidForm(input) {
+        if(typeof(input) === 'string') {
+            if (!this.isValidFormula(input)) throw new Error('Input is not a valid formula');
+            return this.parseLinear(input);
+        } else {
+            // >>> need to check json input too
+            return input;
+        }
     }
 
 }
