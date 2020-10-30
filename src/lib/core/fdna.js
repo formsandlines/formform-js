@@ -29,6 +29,11 @@ export default class FDna extends FForm {
     		const vars = Array.from({length: vnum}, (_, i) => `"x_${i}"` );
     		const vals = {};
 
+	        if (vnum < 1) {
+	            vals['Result'] = parseInt(results[0]);
+	            return vals;
+	        }
+
     		const interKey = ''+vars.join()+';';
 
 	        for (let i=0; i < results.length; i++) {
@@ -158,7 +163,6 @@ export default class FDna extends FForm {
     	/* generates vmap HTML from form/formDNA input */
 
     	const {limitSize} = { limitSize: true, ...options };
-
     	let dna = undefined;
     	let formula = input;
 
@@ -166,7 +170,7 @@ export default class FDna extends FForm {
 			const dnaParts = this.getDNAparts(input);
 			dna = dnaParts.dna;
 			formula = dnaParts.formula;
-			const varList = dnaParts.varList;
+			const varList = dnaParts.varList ? dnaParts.varList : this.getVariables(input);
 
 			if (varorder !== undefined && varList !== undefined && !equalArrays(varorder, varList)) {
 				throw new Error('Variable order is specified in the formDNA input and as an argument for the vmap function and they are different. Please select only one specification to avoid conflicting results.');
@@ -182,7 +186,7 @@ export default class FDna extends FForm {
 		if (!dna) dna = this.encode(formula, varorder);
 		const vnum = this.totalVarsFromDNA(dna);
 
-		if (vnum <= 0) throw new Error('vmaps need to have at least one variable.');
+		if (vnum === NaN) throw new Error('Invalid variable number for vmaps.');
 		if (limitSize && vnum > 8) throw new Error('vmaps with more than 8 variables are too computationally intensive to be rendered with this implementation. If you still want to proceed, add the option "limitSize: false" to your vmap function call (using the formform library).');
 
     	return vmap_html(input, varorder, dna, vnum, options);
@@ -267,7 +271,7 @@ export default class FDna extends FForm {
     			'formDNA input is not of type ‘string’'),
     		createValidation(() => input.includes('::'),
     			'Input does not include the mark ‘::’ for formDNA'),
-    		createValidation(() => input.length >= 6,
+    		createValidation(() => input.length >= 3,
     			'formDNA input is too short'),
     	];
 		validations1.every(validation => validation().cata({
@@ -277,7 +281,7 @@ export default class FDna extends FForm {
 
     	const { dna, formula, varList } = this.getDNAparts(input);
     	const validations2 = [
-    		createValidation(() => !!this.totalVarsFromDNA(dna),
+    		createValidation(() => this.totalVarsFromDNA(dna) >= 0,
     			'formDNA code length is not in the range 4^x'),
     		createValidation(() => !dna.split('').some(n => isNaN(parseInt(n)) || parseInt(n) < 0 || parseInt(n) > 3),
     			'formDNA code is not in quaternion format (consisting only of the numbers 0/1/2/3)'),

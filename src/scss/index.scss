@@ -28,6 +28,11 @@ h6 {
     sup { text-decoration: none; }
 }
 
+#intro > h1 > a {
+    color: $body-color;
+    &:hover { text-decoration: none; }
+}
+
 .hidden {
     display: none !important;
 }

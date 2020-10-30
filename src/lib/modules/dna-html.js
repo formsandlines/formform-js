@@ -54,7 +54,7 @@ export function vmap_html (input, varorder, formDNA, vnum, options) {
 	    if (customLabel !== undefined) return `<figcaption style="word-wrap: break-word;">${customLabel}</figcaption>`;
 	    if (!(hideInputLabel && hideOrderLabel)) {
 	    	let label = '';
-	    	if (!hideOrderLabel) label += `${varorder.reduce((acc,curr,i) => acc + (i > 0 ? ' > ' : '') + processLabel(curr),'' )}${hideInputLabel ? '' : '<br/>'}`;
+	    	if (!hideOrderLabel) label += `${varorder.reduce((acc,curr,i) => acc + (i > 0 ? ' > ' : '') + processLabel(curr),'' )}${hideInputLabel || vnum < 1 ? '' : '<br/>'}`;
 	    	if (!hideInputLabel) {
 	    		if (isFormDNA) label += `<code style="font-size:0.8em;">${fullInputLabel ? input : truncateStr(input,(input.split('::')[0].length + 4**4),`…(${4**vnum})`)}</code>`;
 	    		else label += 'ƒ = '+(fullInputLabel ? input : truncateStr(input,inputLabelMax,`… <i>+more</i>`));
@@ -114,7 +114,7 @@ const constructVmap = (dnaHolon, vcount, cell, margins, qi=0, mapSVG='') => {
     mapSVG += `<g transform="translate(${fx(qi, len*cell.w) + fx(qi, gapSum) + fx(qi, margins[vcount])},
 ${fy(qi, len*cell.h) + fy(qi, gapSum) + fy(qi, margins[vcount])})">`;
 
-    for (let i=0; i<4; i++) {
+    for (let i=0; (vcount > 0 && i < 4) || (vcount === 0 && i < 1); i++) {
 		if (vcount > 1) {
 		    mapSVG = constructVmap(dnaHolon, vcount-1, cell, margins, i, mapSVG);
 		}

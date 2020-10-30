@@ -258,6 +258,8 @@ function updateVarOrderSel(display, formulaInput=undefined) {
 		else {
 			if (document.getElementById(varOrderSel.ctrId) !== null) document.getElementById(varOrderSel.ctrId).value = '';
 			display = false;
+
+			varOrderSel.input = '';
 		}
 	}
 
@@ -452,6 +454,7 @@ window.btnViewDNA = function() {
 
 window.btnVmap = function() {
 	clearErrorMsg();
+
 	try {
 		const txtbox = document.getElementById(txtboxID);
 
