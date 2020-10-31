@@ -16,7 +16,12 @@ export default class FForm extends FCalc {
     // ----------------------------------------------------
 
     static calc(_form) {
-        /* recursive form calculation */
+        /* Calculates a given form recursively 
+
+        Note: Do NOT use this function for formulas with variables!
+              Assumes x=0 for all variables. Use interCalc() instead.
+        */
+
         let fx = 0;
         // make sure to have a json form, if not: try to convert
         const form = this.getValidForm(_form);
@@ -55,9 +60,8 @@ export default class FForm extends FCalc {
 
     static calcAll(_form) {
         /* Interpret and calculate all possible values for the form
-           (refactored: 10.10.2020) */
-
-        // make sure to have a json form, if not: try to convert
+           (refactored: 10.10.2020)
+        */
         const form = this.getValidForm(_form);
 
         const vars = this.getVariables(form);
@@ -82,11 +86,16 @@ export default class FForm extends FCalc {
     };
 
     static interCalc(form, interpr) {
+        /* Interprets a form and calculates the result of the interpretation */
+
         return this.calc( this.interpret(form, interpr) );
     };
 
     static interpret(_form, interpr) {
-        // make sure to have a json form, if not: try to convert
+        /* Interprets a form with specified values for each variable
+
+        interpr: [{var: 'x', value: n}, …]
+        */
         const form = this.getValidForm(_form);
 
         const interprForm = JSON.parse(JSON.stringify(form)); // clone form

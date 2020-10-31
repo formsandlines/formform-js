@@ -1,0 +1,10 @@
+{
+	"extends": ["plugin:compat/recommended"],
+	"env": {
+	  "browser": true,
+	  "es2020": true // es2020
+	},
+    "parserOptions": {
+        "sourceType": "module"
+    }
+  }

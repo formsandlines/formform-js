@@ -3,6 +3,8 @@ import { formDNA_html, vmap_html, vmapPerspectives_html, vmapList_html } from '.
 import { permuteArray, pad, createValidation, equalArrays } from '../../common/helper';
 import { getRandomBigInt } from '../../common/bigint-helper';
 
+const bigInt = require('big-integer'); // obsolete with better BigInt support in browsers
+
 export default class FDna extends FForm {
     /*
     =======================================================
@@ -89,11 +91,11 @@ export default class FDna extends FForm {
 
 		Note: variable number is needed because the intended number of leading zeros cannot be infered from the integer alone. If no variable number is given, the smallest variable number possible for the quaternion is assumed to generate valid formDNA. */
 
-		if (int < 0) throw new Error('Negative integers cannot be converted to formDNA.');
-
 		const quat = int.toString(4);
+		if (quat.substr(0,1) === '-') throw new Error('Negative integers cannot be converted to formDNA.');
+		if (quat.includes('.')) throw new Error('Fractional numbers cannot be converted to formDNA.')
 
-		const dnaLen = vnum ? 4**vnum : (function minDnaLen(strLen, n=1) { 
+		const dnaLen = vnum ? 4**vnum : (function minDnaLen(strLen, n=0) { 
 			return 4**n >= strLen ? 4**n : minDnaLen(strLen, n+1);
 		})(quat.length);
 
@@ -155,14 +157,15 @@ export default class FDna extends FForm {
 	static genRandomDNA (vnum) {
 		/* Generates a random formDNA string for a given variable number */
 
-		const value_bin = getRandomBigInt(4n**4n**BigInt(vnum)).value;
+		const maxN = bigInt(4).pow( bigInt(4).pow(vnum) );
+		const value_bin = getRandomBigInt( maxN.subtract(1) );
 		return this.intToDNA(value_bin, vnum);
 	}
 
     static vmap (input, varorder=undefined, options=undefined) {
     	/* generates vmap HTML from form/formDNA input */
 
-    	const {limitSize} = { limitSize: true, ...options };
+    	const {limitSize, convDefaultVarorder} = { limitSize: true, convDefaultVarorder: true, ...options };
     	let dna = undefined;
     	let formula = input;
 
@@ -181,7 +184,10 @@ export default class FDna extends FForm {
 				varorder = this.getVariables(formula);
 			}
     	}
-		else if (!varorder) varorder = this.matchDefaultVarOrder(this.getVariables(formula));
+		else if (!varorder) {
+			varorder = this.getVariables(formula);
+			if (convDefaultVarorder) varorder = this.matchDefaultVarOrder(varorder);
+		}
 
 		if (!dna) dna = this.encode(formula, varorder);
 		const vnum = this.totalVarsFromDNA(dna);

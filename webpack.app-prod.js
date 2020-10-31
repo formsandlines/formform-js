@@ -10,16 +10,11 @@ module.exports = merge(common, {
         filename: '[name].bundle.min.js'
     },
     module: {
-        rules: [{
-            test: /\.js?$/,
-            exclude: /node_modules/,
-            use: {
-                loader: 'babel-loader',
-                options: {
-                    presets: ['@babel/preset-env']
-                    // plugins: ["add-module-exports"]
-                }
-            }
-        }]
+        // rules: [{
+        //     test: /\.js?$/,
+        //     exclude: /node_modules/,
+        //     use: {
+        //     }
+        // }]
     }
 });

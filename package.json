@@ -1,6 +1,6 @@
 {
     "name": "formform",
-    "version": "0.9.1",
+    "version": "0.9.2",
     "description": "JS-library to calculate, visualize and simulate LoF-FORMs (Laws of Form by George Spencer-Brown) as well as undetermined and imaginary FORMs (uFORM iFORM by Ralf Peyn)",
     "keywords": [
         "laws of form",
@@ -22,6 +22,11 @@
         "type": "git",
         "url": "https://github.com/formsandlines/formform"
     },
+    "browserslist": [
+        "defaults",
+        "not IE 11",
+        "not IE_Mob 11"
+    ],
     "main": "dist/formform.js",
     "unpkg": "dist/formform.min.js",
     "scripts": {
@@ -43,12 +48,10 @@
         "popper.js": "^1.16.1"
     },
     "devDependencies": {
-        "@babel/core": "^7.11.6",
-        "@babel/preset-env": "^7.11.5",
         "autoprefixer": "^9.8.6",
-        "babel-loader": "^8.1.0",
-        "babel-plugin-add-module-exports": "^1.0.4",
         "css-loader": "^2.1.1",
+        "eslint": "^7.12.1",
+        "eslint-plugin-compat": "^3.8.0",
         "file-loader": "^3.0.1",
         "node-sass": "^4.14.1",
         "postcss-loader": "^3.0.0",

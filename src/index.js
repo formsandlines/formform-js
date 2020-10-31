@@ -1,4 +1,5 @@
 import 'bootstrap';
+// window.bigInt = require('big-integer');
 
 let ClipboardJS = require('clipboard');
 let clipboard = new ClipboardJS('.clipboard-btn');
@@ -70,7 +71,6 @@ const clearErrorMsg = () => {
 const showErrorMsg = (e) => {
 	errorMsgBox.innerHTML = `<div class="alert alert-danger" role="alert"><strong>Error:</strong> ${e.message}</div>`;
 };
-
 
 // var debug = formform.dna.vmap('::1012');
 // document.getElementById('testarea').innerHTML = debug;
