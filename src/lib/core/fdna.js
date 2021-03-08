@@ -1,6 +1,6 @@
 import FForm from './fform';
 import { formDNA_html, vmap_html, vmapPerspectives_html, vmapList_html } from '../modules/dna-html';
-import { permuteArray, pad, createValidation, equalArrays } from '../../common/helper';
+import { permuteArray, pad, createValidation, equalArrays, lexX } from '../../common/helper';
 import { getRandomBigInt } from '../../common/bigint-helper';
 
 const bigInt = require('big-integer'); // obsolete with better BigInt support in browsers
@@ -20,52 +20,81 @@ export default class FDna extends FForm {
     // ----------------------------------------------------
 
     static calcAll(input) {
-    	/* extension to represent formDNA as FORM calculation */
+		/* Extension to represent formDNA as FORM calculation */
+		
+		// >>> how to deal with formDNA in JSON?
+		if (typeof(input) !== 'string' || !input.includes('::')) return super.calcAll(input);
 
-    	if (input.includes('::') && this.isValidDNA(input)) {
+		const tokenizedInput = this.preparseDNAinput(input);
+		
+		const pureFormInput = tokenizedInput.map(item => {
+			if (item.token === Symbol.for('dna4v') && this.isValidDNA(item.value)) {
+				const subFormula = this.dnaToFORM(item.value);
+				return subFormula;
+			}
+			return item.value;
+		}).join('');
 
-    		const dna = input.split(':').pop();
-    		const results = dna.split('').reverse();
+    	return super.calcAll(pureFormInput);
+	}
+	
+	static preparseDNAinput(input) {
+		/* Extracts formDNA expressions in a formula and decodes them to computable FORMs */
 
-    		const vnum = this.totalVarsFromDNA(dna);
-    		const vars = Array.from({length: vnum}, (_, i) => `"x_${i}"` );
-    		const vals = {};
+		const tokenizedInput = lexX(input, [
+			// [Symbol.for('dna2v'), `[:]{1}\\d+`, (str) => str],
+			[Symbol.for('dna4v'), `\\[.+?\\][:]{2}\\d+`, (str) => str],
+			[Symbol.for('dna4v'), `[:]{2}\\d+`, (str) => str],
+			[Symbol.for('*'), `.`, (str) => str],
+		]);
 
-	        if (vnum < 1) {
-	            vals['Result'] = parseInt(results[0]);
-	            return vals;
-	        }
+		// const tokenizedOutput = lexItems.map(item => {
+		// 	if (item.token === Symbol.for('dna4v') && !this.isValidDNA(item.value)) {
+		// 		// throw new Error('Invalid formDNA');
+		// 		item.token = Symbol.for('*');
+		// 		return item;
+		// 	}
+		// 	return item;
+		// });
 
-    		const interKey = ''+vars.join()+';';
-
-	        for (let i=0; i < results.length; i++) {
-	            const interprVals = pad(i.toString(4), vnum);
-	            const interpr = interprVals.split('').map((val,n) => ({var: vars[n], value: parseInt(val)}));
-
-	            vals[interKey+interprVals] = results[i];
-	        }
-
-	        return vals;
-    	}
-
-    	return super.calcAll(input);
-    }
+		// const preFormula = lexItems.map(item => item.token !== Symbol.for('dna4v') ? item.value : '').join('');
+		// const preVarList = this.getVariables( preFormula );
+/*
+		const output = lexItems.map(item => {
+			if (item.token === Symbol.for('dna4v') && this.isValidDNA(item.value)) {
+				const subFormula = this.dnaToFORM(item.value);//, preVarList);
+				return subFormula;
+			}
+			return item.value;
+		}).join('');
+*/
+		return tokenizedInput;
+	}
 
     static getVariables(input) {
-    	/* extension to get variables from formDNA */
+		/* Extension to get variables from formDNA */
 
-    	if (typeof(input) === 'string' && input.includes('::')) {
-    		const { dna, formula, varList } = this.getDNAparts(input);
+		// >>> how to deal with formDNA in JSON?
+		if (typeof(input) !== 'string' || !input.includes('::')) return super.getVariables(input);
 
-    		if (varList !== undefined) return varList;
-    		else if (formula !== undefined) return super.getVariables(formula);
+		const tokenizedInput = this.preparseDNAinput(input);
 
-	    	const vnum = this.totalVarsFromDNA(dna);
-    		return Array.from({length: vnum}, (_, i) => `x_${i}` );
-    	}
+		const dnaVarorders = tokenizedInput.filter(item => item.token === Symbol.for('dna4v')).map(item => {
+			if (!this.isValidDNA(item.value)) throw new Error('Formula contains invalid formDNA string');
 
-		return super.getVariables(input);
-    }
+			const { dna, formula, varList } = this.getDNAparts(item.value);
+
+			if (varList !== undefined) return varList;
+			else if (formula !== undefined) return super.getVariables(formula);
+
+			const vnum = this.totalVarsFromDNA(dna);
+			return this.generateVarNames(vnum);
+		});
+
+		const preFormula = tokenizedInput.filter(item => item.token !== Symbol.for('dna4v')).map(item => item.value).join('');
+
+		return [...super.getVariables(preFormula), ...[].concat.apply([], dnaVarorders)].sort();
+	}
 
     // ----------------------------------------------------
     // Conversions
@@ -77,13 +106,20 @@ export default class FDna extends FForm {
     	const form = varorder ? this.reOrderVars(_form, varorder) : _form;
 
     	return Object.values(this.calcAll(form)).reverse().join('');
- 	};
+ 	}
 
- 	static decode (dna) {
+ 	static decode (dna, varList=undefined) {
 		/* Decodes dna into (one of its) simplest corresponding FORM model(s) as a json-representation */
-		// >>> not yet implemented!
 
-		return null;
+		if (varList && varList.length !== this.totalVarsFromDNA(dna)) throw new Error('Number of variables in given variable list doesn\'t match formDNA code length');
+		if (!varList) varList = this.generateVarNames(this.totalVarsFromDNA(dna)); //.map(str => `"${str}"`);
+		
+		const univ = this.universe_n(varList);
+		const vals = dna.split('').reverse();
+
+		return univ.map((term, i) => {
+			return `((${vals[i]})(${term}))`;
+		}).join('');
  	}
 
 	static intToDNA (int, vnum) {
@@ -149,9 +185,16 @@ export default class FDna extends FForm {
     static dnaToFORM (formDNA, varorder=undefined, options=undefined) {
     	/* converts formDNA with a given variable list/order into a graph representation of (one of its) simplest corresponding FORM model(s) */
 
-    	// >>> not yet implemented!
+		let {dna, formula, varList} = this.getDNAparts(formDNA);
+		if (varList) varorder = varList;
+		else if (varorder !== undefined) {
+			const vnum = this.getTotalVars('::'+dna);
+			if (vnum < varorder.length) varorder = varorder.slice(0,vnum);
+			else if (vnum > varorder.length) varorder = [...varorder, ...this.generateVarNames(vnum - varorder.length, varorder)];
+		}
 
-    	return this.decode(formDNA, varorder);
+		if (formula) return varorder ? this.reOrderVars(formula, varorder) : formula;
+    	return this.decode(dna, varorder);
     }
 
 	static genRandomDNA (vnum) {
@@ -306,7 +349,46 @@ export default class FDna extends FForm {
 
     // ----------------------------------------------------
     // Helper
-    // ----------------------------------------------------
+	// ----------------------------------------------------
+	
+	static generateVarNames (vnum, excludeList = undefined) {
+		return Array.from({length: vnum}, (_, i) => {
+			let candidate = `x_${i}`;
+			if (excludeList !== undefined) {
+				while (excludeList.includes(candidate)) {
+					candidate = candidate+`′`;
+				}
+			}
+			return candidate;
+		});
+	}
+
+	static universe_1 (x) {
+		/* Returns the constituents of the 4-valued universe of 1 terms from a variable name */
+		if (x.length > 1) x = `"${x}"`;
+		return [ 
+			`({(${x})}{2r|(${x})})`, 
+			`({${x}}{2r|${x}})`, 
+			`(({(${x})}${x})({2r|${x}}(${x})))`, 
+			`(({${x}}(${x}))({2r|(${x})}${x}))`];
+	}
+
+	static universe_n (vars) {
+		/* Returns the constituents of the 4-valued universe of n terms from a list of n variable names */
+		const vnum = vars.length;
+		const univ1s = vars.map(v => this.universe_1(v));
+		return Array.from({length: 4**vnum}, (_, i) => {
+		  const iq = pad(i.toString(4), vnum).split('');
+		  const univN = univ1s.reduce((formula, univ1, j, arr) => 
+							   formula+`(${univ1[iq[j]]})`
+							   +(j === arr.length-1 ? ')' : ''), '(');
+		  return vnum > 1 ? univN : univN.slice(2,-2);
+		});
+	};
+
+	static extract (dna, quatIdx) {
+		return dna.split('').reverse()[ parseInt(quatIdx,4) ];
+	}
 
 	static totalVarsFromDNA (formDNA) { 
 		/* Calculates variable number from formDNA */
@@ -359,9 +441,16 @@ export default class FDna extends FForm {
 		dna = parts.pop();
 
 		if (parts[0].length > 0) {
-    		const form_parts = parts[0].split('.');
-    		formula = form_parts[0];
-    		varList = form_parts.length > 1 ? form_parts[1].slice(1,-1).split(',') : varList;
+			const form_parts = parts[0].split('.');
+
+			if (form_parts.length > 1) {
+				formula = form_parts[0];
+				varList = form_parts.length > 1 ? form_parts[1].slice(1,-1).split(',') : varList;
+			}
+			else if (form_parts[0][0] === '[' && form_parts[0][form_parts[0].length-1] === ']') {
+				varList = form_parts[0].slice(1,-1).split(',');
+			}
+			else formula = form_parts[0];
     	}
 
 		return ({ dna: dna, formula: formula, varList: varList });
