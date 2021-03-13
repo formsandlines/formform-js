@@ -1,7 +1,6 @@
 import * as d3 from 'd3';
 import boxmodelD3 from 'boxmodel-layout-for-d3';
 
-import { saveSvg, saveImg, pad, getTimestamp } from '../../common/helper';
 import chartFactory, { fitChart, textSize, textSubscript, circleLabel } from '../../common/d3-helper';
 
 import * as styles from './graph-d3-styles.js';
@@ -556,26 +555,6 @@ function isContainer(node) { return node.data.type === 'form' || node.data.type
 function reParentLastOpen(node) {
 let reParent = node.ancestors().filter(d => d.data.type === 'reEntry').shift();
 return reParent.data.lastOpen;
-}
-
-export const save = function(format, svg, name, scale) {
-    // exports graphs into svg
-    
-    name = name || d3.select(svg.parentNode).attr('id');
-    const timestamp = getTimestamp();
-
-	try {
-    switch(format) {
-        case 'svg':
-            saveSvg(svg, timestamp+'_'+name+'.svg', scale);
-            break;
-        case 'img':
-            saveImg(svg, timestamp+'_'+name+'.png', scale);
-            break;
-    }
-	} catch(e) {
-		console.log(e);
-	}
 }
 
 function skewDiff(height,degrees=30) { return Math.tan((degrees*(Math.PI/180))) * height; };

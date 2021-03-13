@@ -5,9 +5,8 @@ let ClipboardJS = require('clipboard');
 let clipboard = new ClipboardJS('.clipboard-btn');
 
 import './scss/index.scss';
-import {show, hide, hideAll, toggle, isVisible, saveText, getTimestamp, scaleSVG, permuteArray, equalArrays} from './common/helper';
+import {show, hide, hideAll, toggle, isVisible, save, getTimestamp, scaleSVG, permuteArray, equalArrays} from './common/helper';
 
-import * as d3 from 'd3';
 import formform from './lib/main';
 import {valueTableWizard, classnames_DEF as tableClasses} from './common/ff-tables';
 
@@ -606,6 +605,15 @@ window.exportRender = function(type, format='svg') {
 	let svg = '';
 	let filename = '';
 	let scale = 1;
+	if(type === 'vmap') {
+		// svg is no direct child of render container
+		// how to get all html content of <figure> + embedded svgs to render as img?
+		// what about vmap perspectives?
+		svg = [...document.querySelectorAll(`#${vmapID.render} > svg`)].pop();
+		filename = 'formform-export_vmap';
+		// scale = document.querySelector(`#${vmapID.cont} .scaleSelect`).value;
+		scale = 1;
+	}	
 	if(type === 'tree') {
 		svg = [...document.querySelectorAll(`#${graphTreeID.render} > svg`)].pop();
 		filename = 'formform-export_tree';
@@ -623,11 +631,10 @@ window.exportRender = function(type, format='svg') {
 	}
 
 	const container = svg.parentNode.parentNode.parentNode;
-	// const svgScale = svg.getAttribute('transform').match(/scale\((.+?)\)/)[1];
-	const svgScale = svg.style['transform'].match(/scale\((.+?)\)/)[1];
-	scaleViz(container, 1.0); // normalize zoom ratio
+	// const svgScale = svg.style['transform'].match(/scale\((.+?)\)/)[1];
+	// scaleViz(container, 1.0); // normalize zoom ratio
 
-	formform.graph.saveGraph(format, svg, filename, scale);
+	save(format, svg, filename, scale);
 
 	scaleViz(container, svgScale); // restore zoom ratio
 }

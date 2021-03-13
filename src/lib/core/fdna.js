@@ -1,5 +1,5 @@
 import FForm from './fform';
-import { formDNA_html, vmap_html, vmapPerspectives_html, vmapList_html } from '../modules/dna-html';
+import { formDNA_html, vmap_svg, vmapPerspectives_svg, vmapList_svg } from '../modules/dna-html';
 import { permuteArray, pad, createValidation, equalArrays } from '../../common/helper';
 import { getRandomBigInt } from '../../common/bigint-helper';
 
@@ -165,7 +165,14 @@ export default class FDna extends FForm {
     static vmap (input, varorder=undefined, options=undefined) {
     	/* generates vmap HTML from form/formDNA input */
 
-    	const {limitSize, convDefaultVarorder} = { limitSize: true, convDefaultVarorder: true, ...options };
+		const { output, limitSize, convDefaultVarorder,
+				size, gapGrow, marginFunc, strokeW } = {
+					output: 'svg',
+					limitSize: true, convDefaultVarorder: true,
+					size: undefined, gapGrow: 1.5, marginFunc: undefined, strokeW: 0.5,
+					// filter: '1111', <- might add later
+					...options};
+
     	let dna = undefined;
     	let formula = input;
 
@@ -195,14 +202,36 @@ export default class FDna extends FForm {
 		if (vnum === NaN) throw new Error('Invalid variable number for vmaps.');
 		if (limitSize && vnum > 8) throw new Error('vmaps with more than 8 variables are too computationally intensive to be rendered with this implementation. If you still want to proceed, add the option "limitSize: false" to your vmap function call (using the formform library).');
 
-    	return vmap_html(input, varorder, dna, vnum, options);
+
+		const reversedDNA = dna.split('').reverse().join('');
+		
+		const cellSize = size || (vnum => {
+			// reduction of size by 1px for each additional variable
+			const n = 14 - (vnum-1);
+			return Math.max(2, n); // min size of 2px
+		})(vnum);
+
+		// margins can also be calculated through a custom function
+		const margins = [strokeW, 
+			...Array.from({length:vnum-1}, marginFunc ? marginFunc : ((_,i) => (i+1) * gapGrow) )];
+		const cell = {w:cellSize, h:cellSize};
+
+
+		const vmapTree = this.constructVmap(reversedDNA, vnum, cell, margins);
+
+		switch (output) {
+			case 'svg':
+				return vmap_svg(vmapTree, input, varorder, options);
+			default:
+				return vmapTree;
+		}
     }
 
 	static vmapPerspectives (form, varorder=undefined, globalOptions=undefined) {
 		/* Generates a list of vmap perspectives as permutations of a form/formDNA input */
 		// Note: formDNA input not yet supported (permutation algorithm required)
 
-		const {limitSize} = { limitSize: true, ...globalOptions };
+		const {output, limitSize} = { output: 'svg', limitSize: true, ...globalOptions };
 
 		if (typeof(form) === 'string' && form.includes('::')) throw new Error('formDNA input is not yet supported for vmap perspectives.');
 
@@ -212,22 +241,115 @@ export default class FDna extends FForm {
 
 		const formula = form; // <<< support for JSON?
 
-		const vmapPerms_html = permuteArray(varorder)
+		const vmapPermutations = permuteArray(varorder)
 			.map(varorder => this.vmap(formula, varorder, {
 				hideInputLabel: true, 
 				customLabel: undefined,
 				...globalOptions}) );
 
-		return vmapPerspectives_html(vmapPerms_html, formula, globalOptions);
+		switch (output) {
+			case 'svg':
+				return vmapPerspectives_svg(vmapPermutations, formula, globalOptions);
+			default:
+				return vmapPermutations;
+		}
 	}
 
 	static vmapList (inputList, globalOptions=undefined) {
 		/* Generates a list of vmaps from an array of FORM inputs */
 		// inputList format: [['form/formDNA', [varorder]/undefined, options/undefined], ...]
 
-		const vmaps_html = inputList.map(input => this.vmap(input[0], input[1], {...input[2], ...globalOptions}) );
+		const {output} = { output: 'svg', ...globalOptions }
 
-		return vmapList_html (vmaps_html, globalOptions);
+		const vmaps = inputList.map(input => this.vmap(input[0], input[1], {...input[2], ...globalOptions}) );
+
+		switch (output) {
+			case 'svg':
+				return vmapList_svg (vmaps, globalOptions);
+			default:
+				return vmaps;
+		}
+	}
+
+    // ----------------------------------------------------
+    // Data Structure
+    // ----------------------------------------------------
+
+	static constructVmap (reversedDNA, vnum, cell, margins) {
+		/* Recursively constructs vmap data-structure from formDNA */
+
+		const calcGapSum = (v,margins) => margins.slice(1,v).reverse().reduce((acc,curr,idx) => acc + (2**idx) * curr, 0);
+		const fx = (qi,n) =>  (qi%2) * (n !== undefined ? n : 0);         // xpos: 0123 -> 0101 * shift n
+		const fy = (qi,n) => +(qi>0 && qi<3) * (n !== undefined ? n : 0); // ypos: 0123 -> 0110 * shift n
+
+		const constructVmap_recursive = (dnaHolon, vcount, cell, margins, qi=0) => {
+			const subTree = {};
+			const gapSum = calcGapSum(vcount,margins);
+			const qtn = 4**vcount;
+			const len = Math.sqrt(qtn);
+			dnaHolon = dnaHolon.substr(qi*qtn, qtn); // quarter of the formDNA string
+		
+			subTree.data = { 
+				dna: '::'+dnaHolon.split('').reverse().join(''),
+				vnum: vcount, cell: cell,
+				margins: vnum > 0 ? margins.slice(0,vcount) : margins.slice(0,1)
+			};
+
+			subTree.height = vcount;
+			subTree.depth = vnum - (Math.log(qtn) / Math.log(4)); // log base 4
+			subTree.order = qi;
+		
+			subTree.position = [
+				// base shift  =  (1) cell size * length units  +  (2) sum of all previous gaps/margins
+				// real shift  =  base shift  +  (3) margins of current iteration level
+				// -- qi: current value index 0/1/2/3
+				// -- -- fx/fy map qi to x/y positions of a square and multiply by shift value (2. argument)
+				// -- margins: [strokeW, 1 * gapGrow, 2 * gapGrow, … (vnum-1) * gapGrow]
+				// -- -- if vcount == 0    -> shift (3) == strokeW
+				// -- -- if vcount == vnum -> shift (3) == 0
+				fx(qi, len*cell.w) + fx(qi, gapSum) + fx(qi, margins[vcount]),
+				fy(qi, len*cell.h) + fy(qi, gapSum) + fy(qi, margins[vcount])];
+
+			subTree.scale = [
+				len*cell.w + gapSum, 
+				len*cell.h + gapSum ];
+
+			if (vnum === 0) { // if formDNA only has a single value, like ::3
+				subTree.value = dnaHolon;
+				return subTree;
+			}
+
+			subTree.children = [];
+		
+			for (let i=0; (vcount > 0 && i < 4) || (vcount === 0 && i < 1); i++) {
+				if (vcount > 1) {
+				subTree.children = 
+					[...subTree.children, constructVmap_recursive(dnaHolon, vcount-1, cell, margins, i) ];
+				}
+				else {
+				const val = dnaHolon.substr(i,1);
+		
+				subTree.children = [...subTree.children, ({
+					// type: 'value',
+					data: {
+						dna: '::'+val,
+						vnum: 0, cell: cell,
+						margins: margins.slice(0,1),
+					},
+					value: val,
+					height: vcount-1,
+					depth: subTree.depth + 1,
+					order: i,
+					// count: 1,
+					position: [fx(i,cell.w), fy(i,cell.h)],
+					scale: [cell.w, cell.h],
+					// parent: subTree
+				}) ];
+				}
+			}
+		  return subTree;
+		}
+		return constructVmap_recursive (reversedDNA, vnum, cell, margins);
 	}
 
     // ----------------------------------------------------

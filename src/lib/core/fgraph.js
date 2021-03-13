@@ -1,5 +1,5 @@
 import FForm from './fform';
-import D3Graph, { save } from '../modules/graph-d3';
+import D3Graph from '../modules/graph-d3';
 
 let g1 = {}; let g2 = {};
 
@@ -41,11 +41,6 @@ export default class FGraph extends FForm {
 
     return graph;
   }
-
-  static saveGraph(format, svg, name, scale) {
-    save(format, svg, name, scale);
-  }
-
 
   static constructNested(reForm, options={}) {
     /* Constructs a (real) nested form structure from the .nested array of the original re-entry json */

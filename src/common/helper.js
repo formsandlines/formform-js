@@ -1,4 +1,3 @@
-import * as d3 from 'd3';
 import * as canvg from 'canvg';
 
 // ------------------------
@@ -99,6 +98,26 @@ export function saveImg(svg, name, scale=1) {
     downloadLink.click();
     document.body.removeChild(downloadLink);
     document.body.removeChild(canvas);
+}
+
+export function save(format, svg, name, scale) {
+    // exports graphs into svg
+    
+    name = name || svg.parentNode.id;
+    const timestamp = getTimestamp();
+
+	try {
+    switch(format) {
+        case 'svg':
+            saveSvg(svg, timestamp+'_'+name+'.svg', scale);
+            break;
+        case 'img':
+            saveImg(svg, timestamp+'_'+name+'.png', scale);
+            break;
+    }
+	} catch(e) {
+		console.log(e);
+	}
 }
 
 export function flatten(arr) {
