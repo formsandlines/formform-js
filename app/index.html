@@ -522,7 +522,47 @@ document.getElementById('vmap-color-lookup').innerHTML = '<ul style="list-style-
   </section>
 
   <section id="vmap-output">
-    <div id="vmap-render" class="container"></div>
+    <div class="container">
+      <button type="button" id="vmap-perspBtn" class="expandPersp btn btn-outline-secondary btn-sm fitSwitch" onclick="btnVmapPersp(this);">expand perspectives</button>
+    </div>
+
+    <div class="container form-group form-inline">
+      <div class="form-group mb-2 mr-2 zoomSlider-group">
+        <label class="col-form-label-sm" for="vmap-zoomSlider">Zoom level: ×<span class="zoomLevel">1.0</span></label>
+        <input type="range" class="form-control-range zoomSlider" value="1.0" min="0.1" max="2.0" step="0.01" id="vmap-zoomSlider">
+      </div>
+      <div class="btn-group mb-2 mr-2" role="group">
+        <button type="button" class="btn btn-outline-secondary btn-sm fitSwitch" onclick="fitToWindow(this);" id="vmap-fitSwitch">fit</button>
+      </div>
+      <div class="btn-group mb-2" role="group">
+        <button type="button" class="btn btn-outline-secondary btn-sm resetScaleSwitch" onclick="resetScale(this);" id="pack-fitSwitch">100%</button>
+      </div>
+    </div>
+
+    <!-- <div id="vmap-render" class="container"></div> -->
+    <div class="container render-container"><div id="vmap-render" class="render"></div></div>
+
+    <div class="container form-group form-inline">
+      <div class="btn-group mb-2 mr-2" role="group" aria-label="Export controls">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportRender('vmap','svg');">save SVG</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportRender('vmap','img');">save Image</button>
+      </div>
+      <div class="form-group mb-2 mr-2">
+        <select class="form-control form-control-sm scaleSelect" id="scaleSelect-vmap">
+          <option value="1">Size &times;1 (small)</option>
+          <option value="2" selected>Size &times;2 (standard)</option>
+          <option value="3">Size &times;3 (medium)</option>
+          <option value="4">Size &times;4 (large)</option>
+          <option value="5">Size &times;5 (extralarge)</option>
+          <option value="10">Size &times;10 (print)</option>
+        </select>
+      </div>
+      <div class="form-group mb-2 form-check">
+          <input type="checkbox" class="form-check-input bgCheckbox" id="bgCheckbox-vmap" onclick="btnRender('vmap');" checked>
+          <label class="form-check-label col-form-label-sm" for="bgCheckbox-vmap">Background</label>
+      </div>
+    </div>
+
   </section>
 
   <section id="graph-output">
