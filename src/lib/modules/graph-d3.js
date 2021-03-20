@@ -13,6 +13,7 @@ export default class D3Graph {
 
     constructor(graphType, data, opts, ...args) {
         // create basic svg-structure from chartFactory and merge options with configuration
+
         const proto = chartFactory( { 
             ...{ margin: { left: 50, right: 50, top: 50, bottom: 50 }, 
                 padding: { left: 10, right: 10, top: 10, bottom: 10 },

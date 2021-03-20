@@ -15,7 +15,7 @@ export default function chartFactory(opts, proto = protoChart) {
 
   const chart = Object.assign({}, proto, opts);
   if(opts.parentId) chart.parent = d3.select(`#${opts.parentId}`);
-  else d3.select('body');
+  else chart.parent = d3.select('body');
 
   chart.svg = chart.parent
     .append('svg').lower()

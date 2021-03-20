@@ -468,8 +468,7 @@ window.btnVmap = function() {
 		const varorder = varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined;
 		const vmap = formform.dna.vmap(txtbox.value, varorder);
 
-		document.querySelector(`#${vmapID.render}`).innerHTML = vmap;
-
+		document.querySelector(`#${vmapID.render}`).innerHTML = vmap.elem;
 
 		if (varorder && varorder.length > 1) createVmapPerspBtn(txtbox.value);
 
@@ -482,14 +481,17 @@ window.btnVmap = function() {
 }
 
 function createVmapPerspBtn(formula) {
-	const vmapDiam = parseInt(document.querySelector(`#${vmapID.render} svg`).getAttribute('width'));
+	const vmapDiamW = parseInt(document.querySelector(`#${vmapID.render} .vmap`).getAttribute('width'));
+
 	const btnDiam = 30;
 	const btnId = 'perspBtn';
 
 	const perspBtn = document.createElement('button');
 	perspBtn.setAttribute('id', btnId);
-	perspBtn.style['margin-left'] = (vmapDiam+10)+'px';
-	perspBtn.style['margin-top'] = (vmapDiam*0.5 - btnDiam*0.5)+'px';
+	perspBtn.classList.add('container');
+	perspBtn.style['width'] = 'auto';
+	perspBtn.style['margin-left'] = (vmapDiamW+10)+'px';
+	perspBtn.style['margin-top'] = (vmapDiamW*0.5 - btnDiam*0.5)+'px';
 	perspBtn.innerHTML = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 40 40" width="${btnDiam}" height="${btnDiam}">
 		<path class="st0" d="M20,0L0,20l20,20l20-20L20,0z M30,21h-9v9c0,0.6-0.4,1-1,1s-1-0.4-1-1v-9h-9c-0.6,0-1-0.4-1-1s0.4-1,1-1h9v-9
 	c0-0.6,0.4-1,1-1s1,0.4,1,1v9h9c0.6,0,1,0.4,1,1S30.6,21,30,21z"/>
@@ -500,8 +502,8 @@ function createVmapPerspBtn(formula) {
 	perspBtn.addEventListener('click', e => {
 		try {
 			const vmapPersp = formform.dna.vmapPerspectives(formula, varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined);
-			document.querySelector(`#${vmapID.render} > figure.vmap`).remove();
-			document.querySelector(`#${vmapID.render}`).innerHTML = vmapPersp;
+			document.querySelector(`#${vmapID.render} > .vmap-figure`).remove();
+			document.querySelector(`#${vmapID.render}`).innerHTML = vmapPersp.elem;
 		} catch (e) {
 			showErrorMsg(e);
 		}
@@ -582,7 +584,7 @@ function renderGraph(type, formula, options={}) {
 			break;
 	}
 
-	const svg = graph.svg.node();
+	// const svg = graph.svg.node();
 	const renderNode = graph.parent.node();
 	const container = renderNode.parentNode.parentNode;
 	const zoomSlider = container.querySelector('.zoomSlider');

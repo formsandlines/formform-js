@@ -227,12 +227,23 @@ export const VARCODE_REV = reverseMapping(VARCODE,true);
     Additions 10/2020
 */
 
-export const processLabel = label => {
+export const processLabel = (label, mode='html') => {
+    /* Label processing to handle sub/superscript */
+
+    let tagRev = []; // tagRev resets y-position of label after subscripts (needed for svg)
+    if (mode === 'svg') tagRev = ['<tspan y="0">','</tspan>'];
+    else tagRev = ['',''];
+
     if (label.length > 1) {
         const labelParts = label.split('_');
-        return (labelParts.length > 1) ? `${labelParts[0]}<sub>${labelParts[1]}</sub>` : `"${label}"`;
+
+        let tagSub = [];
+        if (mode === 'svg') tagSub = [`<tspan style="font-size: .8em;" dx="0" dy="6">`,'</tspan>'];
+        else tagSub = ['<sub>','</sub>'];
+
+        return (labelParts.length > 1) ? `${tagRev[0] + labelParts[0] + tagRev[1] + tagSub[0] + labelParts[1] + tagSub[1]}` : tagRev[0]+label+tagRev[1];
     }
-    else return label;
+    else return tagRev[0]+label+tagRev[1];
 };
 
 export const createValidation = (fn, errorMsg) => (...args) => {
@@ -301,3 +312,34 @@ export function lexX (input, ruleMap) {
 }
 
 export const compRegExp = patterns => new RegExp(patterns.reduce((comp,r,i) => comp+(i > 0 ? '|' : '')+`(${r})`,''), 'g');
+
+/*  --------------------------------------------------------
+    Additions 03/2021
+*/
+
+// export function fitSvg(selector, padding) {
+//     // calculate real dimensions of a chart (assumes chart is a g-element wrapped inside an svg)
+//     d3.select(chart.node().parentElement)
+//         .attr('width', chart.node().getBBox().width + padding.left + padding.right)
+//         .attr('height', chart.node().getBBox().height + padding.top + padding.bottom);
+//   }
+
+export function getSvgSize(svgText) {
+	const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+	svg.innerHTML = svgText;
+	svg.setAttribute('x','-9999');
+	svg.setAttribute('y','-9999');
+
+	const container = document.querySelector('body').appendChild(svg);
+
+	const size = svg.getBBox();
+	container.remove();
+	return { w: size.width, h: size.height };
+}
+
+/* Breaks string up in parts of length n (x <= n for the last part) 
+   from: https://observablehq.com/@formsandlines/js-toolbox
+*/
+export const breakStr = (str,n=1) => [...new Array(Math.ceil(str.length/n))].map((d,i) => str.substr(n*i,n));
+
+export const svgLinebreak = (str, lineShift) => `<tspan x="0" dy="${lineShift}">${str}</tspan>`;

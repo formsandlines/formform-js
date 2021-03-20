@@ -1,5 +1,5 @@
 import FForm from './fform';
-import { formDNA_html, vmap_svg, vmapPerspectives_svg, vmapList_svg } from '../modules/dna-html';
+import { formDNA_html, vmap_svg, vmapPerspectives_svg, vmapList_svg } from '../modules/dna-svg';
 import { permuteArray, pad, createValidation, equalArrays } from '../../common/helper';
 import { getRandomBigInt } from '../../common/bigint-helper';
 
