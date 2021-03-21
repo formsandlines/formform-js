@@ -223,7 +223,6 @@ function scaleViz(container, ratio) {
 	if (zoomSlider.value != ratio) zoomSlider.value = ratio;
 }
 
-
 function refitContainer(renderNode, renderContainer) {
 	let renderW = parseInt(renderNode.style.width);
 	let compareW = 0;
@@ -241,8 +240,6 @@ function refitContainer(renderNode, renderContainer) {
 	}
 	else renderContainer.classList.add('container');
 }
-
-
 
 
 function updateVarOrderSel(display, formulaInput=undefined) {
@@ -462,109 +459,6 @@ window.btnViewDNA = function() {
 	}
 }
 
-window.btnVmap = function() {
-	clearErrorMsg();
-
-	try {
-		const txtbox = document.getElementById(txtboxID);
-
-		updateVarOrderSel(true, txtbox.value);
-
-		hide('#output-wrapper-vals');
-		hide('#output-wrapper-data');
-		hideAll(`#${graphTreeID.cont}, #${graphPackID.cont}, #${graphGsbID.cont}`);
-
-		show(`#${vmapID.cont}`);
-
-		const varorder = varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined;
-		const vmap = formform.dna.vmap(txtbox.value, varorder);
-
-		document.querySelector(`#${vmapID.render}`).innerHTML = vmap.elem;
-
-		updatePerspBtn(vmap);
-
-		window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#vmap');
-
-	} catch (e) {
-		showErrorMsg(e);
-	}
-}
-
-function updatePerspBtn(vmap) {
-	const perspBtn = document.querySelector(`#${vmapID.perspBtn}`);
-	if (perspBtnListener) perspBtn.removeEventListener('click', perspBtnListener);
-	if (perspBtn.classList.contains('collapsePersp')) {
-		perspBtn.classList.remove('collapsePersp');
-		perspBtn.classList.add('expandPersp');
-		perspBtn.innerHTML = 'Expand perspectives';
-	};
-
-	if (vmap && vmap.varorder && vmap.varorder.length > 1) {
-		perspBtnListener = e => {
-			try {
-				if (!perspBtn.classList.contains('collapsePersp')) {
-					const vmapPersp = formform.dna.vmapPerspectives(vmap.input, varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined);
-					document.querySelector(`#${vmapID.render} > .vmap-figure`).remove();
-					document.querySelector(`#${vmapID.render}`).innerHTML = vmapPersp.elem;
-	
-					perspBtn.classList.remove('expandPersp');
-					perspBtn.classList.add('collapsePersp');
-					perspBtn.innerHTML = 'Collapse perspectives';
-				} else {
-					document.querySelector(`#${vmapID.render} > .vmap-perspectives-figure`).remove();
-					document.querySelector(`#${vmapID.render}`).innerHTML = vmap.elem;
-	
-					perspBtn.classList.remove('collapsePersp');
-					perspBtn.classList.add('expandPersp');
-					perspBtn.innerHTML = 'Expand perspectives';
-				}
-			} catch (e) {
-				showErrorMsg(e);
-			}
-		};
-
-		perspBtn.addEventListener('click', perspBtnListener);
-	}
-}
-
-
-window.btnVmapPersp = function(varorder) {
-
-
-}
-
-
-
-// function createVmapPerspBtn(formula) {
-// 	const vmapDiamW = parseInt(document.querySelector(`#${vmapID.render} .vmap`).getAttribute('width'));
-
-// 	const btnDiam = 30;
-// 	const btnId = 'perspBtn';
-
-// 	const perspBtn = document.createElement('button');
-// 	perspBtn.setAttribute('id', btnId);
-// 	perspBtn.classList.add('container');
-// 	perspBtn.style['width'] = 'auto';
-// 	perspBtn.style['margin-left'] = (vmapDiamW+10)+'px';
-// 	perspBtn.style['margin-top'] = (vmapDiamW*0.5 - btnDiam*0.5)+'px';
-// 	perspBtn.innerHTML = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 40 40" width="${btnDiam}" height="${btnDiam}">
-// 		<path class="st0" d="M20,0L0,20l20,20l20-20L20,0z M30,21h-9v9c0,0.6-0.4,1-1,1s-1-0.4-1-1v-9h-9c-0.6,0-1-0.4-1-1s0.4-1,1-1h9v-9
-// 	c0-0.6,0.4-1,1-1s1,0.4,1,1v9h9c0.6,0,1,0.4,1,1S30.6,21,30,21z"/>
-// 	</svg>`;
-
-// 	document.querySelector(`#${vmapID.render}`).append(perspBtn);
-
-// 	perspBtn.addEventListener('click', e => {
-// 		try {
-// 			const vmapPersp = formform.dna.vmapPerspectives(formula, varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined);
-// 			document.querySelector(`#${vmapID.render} > .vmap-figure`).remove();
-// 			document.querySelector(`#${vmapID.render}`).innerHTML = vmapPersp.elem;
-// 		} catch (e) {
-// 			showErrorMsg(e);
-// 		}
-// 	});
-// }
-
 window.btnRender = function(type) {
 	clearErrorMsg();
 	try {
@@ -573,12 +467,18 @@ window.btnRender = function(type) {
 		const inputIsDNA = txtbox.value.includes('::');
 		if (inputIsDNA) throw new Error('formDNA cannot (yet) be decoded into FORMs.');
 
-		updateVarOrderSel(false);
+		updateVarOrderSel(false); // vmap: updateVarOrderSel(true, txtbox.value);
 
 		hide('#output-wrapper-vals');
 		hide('#output-wrapper-data');
 		
 		switch(type) {
+			case 'vmap':
+				show(`#${vmapID.cont}`);
+				hide(`#${graphTreeID.cont}`);
+				hide(`#${graphPackID.cont}`);
+				hide(`#${graphGsbID.cont}`);
+				break;
 			case 'tree':
 				show(`#${graphTreeID.cont}`);
 				hide(`#${graphPackID.cont}`);
@@ -601,58 +501,127 @@ window.btnRender = function(type) {
 
 		const style = styleSwitcher[type] ? [...styleSwitcher[type].getElementsByTagName('input')].filter(d => d.checked).pop().getAttribute('value') : 'basic';
 
-		const graph = renderGraph(type, txtbox.value, {styleClass: style});
-
-		if (graph && window.graphs.length > 0) window.graphs.shift();
-
-		window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#graph-'+type);
-		window.graphs.push(graph);
+		if (type === 'vmap') {
+			const vmap = render(type, txtbox.value, {styleClass: style});
+			updatePerspBtn(vmap);
+	
+			window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#vmap');
+		} 
+		else {	
+			const graph = render(type, txtbox.value, {styleClass: style});
+	
+			if (graph && window.graphs.length > 0) window.graphs.shift();
+	
+			window.location.href = encodeURI('#'+txtbox.value+';'+getVarOrderSel()+'#graph-'+type);
+			window.graphs.push(graph);
+		}
 
 	} catch (e) {
 		showErrorMsg(e);
 	}
 }
 
-function renderGraph(type, formula, options={}) {
-	let graph;
-	let drawBg = '';
+function render(type, input, options={}) {
+	const elemID =
+	(type === 'vmap') ? vmapID
+	: (type === 'tree') ? graphTreeID
+	: (type === 'pack') ? graphPackID
+	: (type === 'gsbhooks') ? graphGsbID
+	: undefined;
+	
+	let output = null;
+	let renderNode = null;
+
+	document.querySelectorAll(`#${elemID.render} > svg`).forEach(elem => elem.remove());
+	const drawBg = document.querySelector(`#${elemID.cont} .bgCheckbox`).checked;
 
 	switch(type) {
+		case 'vmap':		
+			const varorder = varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined;
+			output = formform.dna.vmap(input, varorder,
+				{ ...{...options, bgC: (drawBg ? '#ffffff' : undefined)} });
+
+			renderNode = document.querySelector(`#${elemID.render}`)
+			renderNode.innerHTML = output.elem;
+			break;
 		case 'tree':
-			document.querySelectorAll(`#${graphTreeID.render} > svg`).forEach(elem => elem.remove());
-			drawBg = document.querySelector(`#${graphTreeID.cont} .bgCheckbox`).checked;
-			graph = formform.graph.createGraph('tree', formula,
-				{parentId: graphTreeID.render, width: window.innerWidth, height: 800, ...{...options, drawBackground: drawBg} });
+			output = formform.graph.createGraph('tree', input,
+				{parentId: elemID.render, width: window.innerWidth, height: 800, ...{...options, drawBackground: drawBg} });
+			renderNode = output.parent.node();
 			break;
 		case 'pack':
-			document.querySelectorAll(`#${graphPackID.render} > svg`).forEach(elem => elem.remove());
-			drawBg = document.querySelector(`#${graphPackID.cont} .bgCheckbox`).checked;
-			graph = formform.graph.createGraph('pack', formula, 
-				{parentId: graphPackID.render, ...{...options, drawBackground: drawBg} });
+			output = formform.graph.createGraph('pack', input, 
+				{parentId: elemID.render, ...{...options, drawBackground: drawBg} });
+			renderNode = output.parent.node();
 			break;
 		case 'gsbhooks':
-			document.querySelectorAll(`#${graphGsbID.render} > svg`).forEach(elem => elem.remove());
-			drawBg = document.querySelector(`#${graphGsbID.cont} .bgCheckbox`).checked;
-			const compactReEntries = document.querySelector(`#${graphGsbID.cont} #compactCheckbox`).checked;
-			graph = formform.graph.createGraph('gsbhooks', formula, 
-				{parentId: graphGsbID.render, ...{...options, drawBackground: drawBg, compactChecked: compactReEntries} });
+			const compactReEntries = document.querySelector(`#${elemID.cont} #compactCheckbox`).checked;
+			output = formform.graph.createGraph('gsbhooks', input, 
+				{parentId: elemID.render, ...{...options, drawBackground: drawBg, compactChecked: compactReEntries} });
+			renderNode = output.parent.node();
 			break;
 	}
 
-	const renderNode = graph.parent.node();
 	const container = renderNode.parentNode.parentNode;
 	const zoomSlider = container.querySelector('.zoomSlider');
 
 	scaleViz(container, zoomSlider.value);
 
-	return graph;
+	return output;
+}
+
+function updatePerspBtn(vmap) {
+	const perspBtn = document.querySelector(`#${vmapID.perspBtn}`);
+	if (perspBtnListener) perspBtn.removeEventListener('click', perspBtnListener);
+	if (perspBtn.classList.contains('collapsePersp')) {
+		perspBtn.classList.remove('collapsePersp');
+		perspBtn.classList.add('expandPersp');
+		perspBtn.innerHTML = 'Expand perspectives';
+	};
+
+	if (vmap && vmap.varorder && vmap.varorder.length > 1) {
+		perspBtnListener = e => {
+			try {
+				if (!perspBtn.classList.contains('collapsePersp')) {
+					const vmapPersp = formform.dna.vmapPerspectives(vmap.input, varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined);
+					document.querySelector(`#${vmapID.render} > .vmap-figure`).remove();
+					const renderNode = document.querySelector(`#${vmapID.render}`)
+					renderNode.innerHTML = vmapPersp.elem;
+
+					const container = renderNode.parentNode.parentNode;
+					const zoomSlider = container.querySelector('.zoomSlider');
+					scaleViz(container, zoomSlider.value);
+	
+					perspBtn.classList.remove('expandPersp');
+					perspBtn.classList.add('collapsePersp');
+					perspBtn.innerHTML = 'Collapse perspectives';
+				} else {
+					document.querySelector(`#${vmapID.render} > .vmap-perspectives-figure`).remove();
+					const renderNode = document.querySelector(`#${vmapID.render}`);
+					renderNode.innerHTML = vmap.elem;
+	
+					const container = renderNode.parentNode.parentNode;
+					const zoomSlider = container.querySelector('.zoomSlider');
+					scaleViz(container, zoomSlider.value);
+
+					perspBtn.classList.remove('collapsePersp');
+					perspBtn.classList.add('expandPersp');
+					perspBtn.innerHTML = 'Expand perspectives';
+				}
+			} catch (e) {
+				showErrorMsg(e);
+			}
+		};
+
+		perspBtn.addEventListener('click', perspBtnListener);
+	}
 }
 
 window.graphStyle = function(type, style) {
 	const graphsNext = [];
 	window.graphs.forEach(g => {
 		
-		graphsNext.push( renderGraph(type, g.formula, {styleClass: style}) );
+		graphsNext.push( render(type, g.formula, {styleClass: style}) );
 	});
 	window.graphs = graphsNext;
 }
@@ -681,8 +650,6 @@ window.exportRender = function(type, format='svg') {
 		filename = 'formform-export_gsbhooks';
 		scale = document.querySelector(`#${graphGsbID.cont} .scaleSelect`).value;
 	}
-
-	console.log(svg);
 
 	const container = svg.parentNode.parentNode.parentNode;
 	const svgScale = svg.style['transform'].match(/scale\((.+?)\)/)[1];
