@@ -25,10 +25,11 @@ export default function chartFactory(opts, proto = protoChart) {
 
   if (opts.styleClass) chart.svg.attr('class', opts.styleClass);
 
-  if (opts.drawBackground) chart.svg.append('rect')
+  // if (opts.drawBackground) 
+  chart.svg.append('rect')
     .attr('id', 'background')
     .attr('width','100%').attr('height','100%')
-    .attr('fill', '#ffffff'); 
+    .attr('fill', (opts.drawBackground ? '#ffffff' : 'none')); 
     // .attr('fill', 'rgba(255,0,0,.2)');
 
   chart.container = chart.svg.append('g')

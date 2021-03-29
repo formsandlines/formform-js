@@ -1,5 +1,4 @@
 import 'bootstrap';
-// window.bigInt = require('big-integer');
 
 let ClipboardJS = require('clipboard');
 let clipboard = new ClipboardJS('.clipboard-btn');
@@ -22,23 +21,24 @@ let perspBtnListener = null;
 
 const tempData = { csv: null };
 
+const icons = {
+	persp_expand: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="bi bi-asterisk" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+	<g transform="translate(8,8)">
+	  <line x1="-6.8" y1="0" x2="6.8" y2="0" transform="rotate(30)" />
+	  <line x1="-6.8" y1="0" x2="6.8" y2="0" transform="rotate(-30)" />
+	  <line x1="-6.8" y1="0" x2="6.8" y2="0" transform="rotate(90)" />
+	</g>
+  </svg>`,
+	persp_collapse: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="bi bi-asterisk" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+	<g transform="translate(8,8)">
+	  <line x1="-6.8" y1="0" x2="6.8" y2="0" />
+	</g>
+  </svg>`
+};
+
 window.graphs = [];
 window.formform = formform;
 
-// const transformCtrl = {
-// 	zoomSlider: { 
-// 		vmap: document.getElementById('vmap-zoomSlider'),
-// 		tree: document.getElementById('tree-zoomSlider'),
-// 		pack: document.getElementById('pack-zoomSlider'),
-// 		gsbhooks: document.getElementById('gsbhooks-zoomSlider')
-// 	},
-// 	fitSwitch: {
-// 		vmap: document.getElementById('vmap-fitSwitch'),
-// 		tree: document.getElementById('tree-fitSwitch'),
-// 		pack: document.getElementById('pack-fitSwitch'),
-// 		gsbhooks: document.getElementById('gsbhooks-fitSwitch')
-// 	}
-// }
 const styleSwitcher = {
 	pack: document.querySelector('#graph-pack > #style-switch')
 };
@@ -81,9 +81,6 @@ const clearErrorMsg = () => {
 const showErrorMsg = (e) => {
 	errorMsgBox.innerHTML = `<div class="alert alert-danger" role="alert"><strong>Error:</strong> ${e.message}</div>`;
 };
-
-// var debug = formform.dna.vmap('::1012');
-// document.getElementById('testarea').innerHTML = debug;
 
 document.addEventListener('DOMContentLoaded', function() {
 	const explSwitch = document.getElementById('toggle_explanations');
@@ -184,7 +181,7 @@ function interpretURIHashParams(hash) {
 				if (method === 'calc') btnCalc();
 				else if (method === 'json') btnViewJSON();
 				else if (method === 'dna')  btnViewDNA();
-				else if (method === 'vmap') btnVmap();
+				else if (method === 'vmap') btnRender('vmap');
 			}
 		}
 	}
@@ -201,10 +198,8 @@ window.fitToWindow = function(elem) {
 	const renderNode = container.querySelector('.render');
 	const svg = renderNode.querySelector('svg');
 
-	// const svgScale = svg.getAttribute('transform').match(/scale\((.+?)\)/)[1];
 	const svgScale = svg.style['transform'].match(/scale\((.+?)\)/)[1];
 	let scaleRatio = (window.innerWidth / svg.getBBox().width) * 0.98;
-	// let scaleRatio = (window.innerWidth / svg.clientWidth) * 0.98;
 	scaleRatio = Math.round(scaleRatio*100)/100;
 
 	scaleViz(container, scaleRatio);
@@ -306,7 +301,7 @@ function createVarOrderSel(container, vars, selected, setConvDefault) {
     			btnCalc();
     			break;
     		case 'vmap':
-    			btnVmap();
+    			btnRender('vmap');
     			break;
     	}
     });
@@ -464,10 +459,13 @@ window.btnRender = function(type) {
 	try {
 		const txtbox = document.getElementById(txtboxID);
 
-		const inputIsDNA = txtbox.value.includes('::');
-		if (inputIsDNA) throw new Error('formDNA cannot (yet) be decoded into FORMs.');
-
-		updateVarOrderSel(false); // vmap: updateVarOrderSel(true, txtbox.value);
+		if (type === 'vmap') {
+			updateVarOrderSel(true, txtbox.value);
+		} else {
+			const inputIsDNA = txtbox.value.includes('::');
+			if (inputIsDNA) throw new Error('formDNA cannot (yet) be decoded into FORMs.');
+			updateVarOrderSel(false);
+		}
 
 		hide('#output-wrapper-vals');
 		hide('#output-wrapper-data');
@@ -539,7 +537,7 @@ function render(type, input, options={}) {
 		case 'vmap':		
 			const varorder = varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined;
 			output = formform.dna.vmap(input, varorder,
-				{ ...{...options, bgC: (drawBg ? '#ffffff' : undefined)} });
+				{ ...{...options, size: 17, strokeC: (drawBg ? '#fff' : 'none'), figC: (drawBg ? '#fff' : 'none'), figPad: 20} });
 
 			renderNode = document.querySelector(`#${elemID.render}`)
 			renderNode.innerHTML = output.elem;
@@ -570,20 +568,52 @@ function render(type, input, options={}) {
 	return output;
 }
 
+window.btnVmapBgCheckbox = function() {
+	const vmapBgElems = document.querySelectorAll(`#${vmapID.render} .vmap-figure > rect:first-child`);
+	const perspBgElem = document.querySelector(`#${vmapID.render} > .vmap-perspectives-figure > rect:first-child`);
+
+	if (vmapBgElems) {
+		const drawBg = document.querySelector(`#${vmapID.cont} .bgCheckbox`).checked;
+		const bgC = (drawBg ? '#fff' : 'none');
+
+		if (perspBgElem) {
+			perspBgElem.setAttribute('fill', bgC);
+		}
+
+		vmapBgElems.forEach(elem => {
+			elem.setAttribute('fill', bgC);
+		});
+
+		const vmapGroups = document.querySelectorAll(`#${vmapID.render} .vmap > g`);
+		vmapGroups.forEach(g => {
+			g.setAttribute('stroke', bgC);
+		});
+	} else {
+		throw new Error('DOM elements not found.');
+	}
+}
+
 function updatePerspBtn(vmap) {
 	const perspBtn = document.querySelector(`#${vmapID.perspBtn}`);
 	if (perspBtnListener) perspBtn.removeEventListener('click', perspBtnListener);
 	if (perspBtn.classList.contains('collapsePersp')) {
 		perspBtn.classList.remove('collapsePersp');
 		perspBtn.classList.add('expandPersp');
-		perspBtn.innerHTML = 'Expand perspectives';
+		perspBtn.innerHTML = `${icons.persp_expand} Expand perspectives`;
 	};
 
 	if (vmap && vmap.varorder && vmap.varorder.length > 1) {
+		perspBtn.disabled = false;
 		perspBtnListener = e => {
 			try {
 				if (!perspBtn.classList.contains('collapsePersp')) {
-					const vmapPersp = formform.dna.vmapPerspectives(vmap.input, varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined);
+					const drawBg = document.querySelector(`#${vmapID.cont} .bgCheckbox`).checked;
+					const bgC = (drawBg ? '#fff' : 'none');
+
+					const vmapPersp = formform.dna.vmapPerspectives(vmap.input, 
+						varOrderSel.input ? varOrderSel.input.split(varOrderSel.delim) : undefined, 
+						{figC: bgC, figPad: 20}, {...vmap.options, figC: bgC, strokeC: bgC} );
+					
 					document.querySelector(`#${vmapID.render} > .vmap-figure`).remove();
 					const renderNode = document.querySelector(`#${vmapID.render}`)
 					renderNode.innerHTML = vmapPersp.elem;
@@ -594,7 +624,7 @@ function updatePerspBtn(vmap) {
 	
 					perspBtn.classList.remove('expandPersp');
 					perspBtn.classList.add('collapsePersp');
-					perspBtn.innerHTML = 'Collapse perspectives';
+					perspBtn.innerHTML = `${icons.persp_collapse} Collapse perspectives`;
 				} else {
 					document.querySelector(`#${vmapID.render} > .vmap-perspectives-figure`).remove();
 					const renderNode = document.querySelector(`#${vmapID.render}`);
@@ -606,7 +636,7 @@ function updatePerspBtn(vmap) {
 
 					perspBtn.classList.remove('collapsePersp');
 					perspBtn.classList.add('expandPersp');
-					perspBtn.innerHTML = 'Expand perspectives';
+					perspBtn.innerHTML = `${icons.persp_expand} Expand perspectives`;
 				}
 			} catch (e) {
 				showErrorMsg(e);
@@ -614,6 +644,8 @@ function updatePerspBtn(vmap) {
 		};
 
 		perspBtn.addEventListener('click', perspBtnListener);
+	} else {
+		perspBtn.disabled = true;
 	}
 }
 

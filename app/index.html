@@ -523,7 +523,15 @@ document.getElementById('vmap-color-lookup').innerHTML = '<ul style="list-style-
 
   <section id="vmap-output">
     <div class="container">
-      <button type="button" id="vmap-perspBtn" class="expandPersp btn btn-outline-secondary btn-sm fitSwitch" onclick="btnVmapPersp(this);">expand perspectives</button>
+      <button type="button" id="vmap-perspBtn" class="expandPersp btn btn-outline-secondary btn-sm mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="bi bi-asterisk" viewBox="0 0 16 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <g transform="translate(8,8)">
+            <line x1="-6.8" y1="0" x2="6.8" y2="0" transform="rotate(30)" />
+            <line x1="-6.8" y1="0" x2="6.8" y2="0" transform="rotate(-30)" />
+            <line x1="-6.8" y1="0" x2="6.8" y2="0" transform="rotate(90)" />
+          </g>
+          </svg>
+        expand perspectives</button>
     </div>
 
     <div class="container form-group form-inline">
@@ -558,7 +566,7 @@ document.getElementById('vmap-color-lookup').innerHTML = '<ul style="list-style-
         </select>
       </div>
       <div class="form-group mb-2 form-check">
-          <input type="checkbox" class="form-check-input bgCheckbox" id="bgCheckbox-vmap" onclick="btnRender('vmap');" checked>
+          <input type="checkbox" class="form-check-input bgCheckbox" id="bgCheckbox-vmap" onclick="btnVmapBgCheckbox();" checked>
           <label class="form-check-label col-form-label-sm" for="bgCheckbox-vmap">Background</label>
       </div>
     </div>
@@ -738,7 +746,7 @@ document.getElementById('vmap-color-lookup').innerHTML = '<ul style="list-style-
 </div>
 
   <!-- <script src="dist/clipboard.min.js"></script> -->
-  <script src="js/app.bundle.js"></script>
+  <script src="js/app.bundle.min.js"></script>
 
 </body>
 </html>

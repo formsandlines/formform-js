@@ -186,14 +186,12 @@ export function getTimestamp() {
 export function scaleSVG(svg, container, ratio) {
     const prefixes = ['-ms-transform','-webkit-transform','-moz-transform','-o-transform','transform'];
     prefixes.forEach(prefix => {
-        // svg.setAttribute(prefix, `scale(${ratio}) translate(0,0)`);
         svg.style[prefix] = `scale(${ratio}) translate(0,0)`;
     });
-    container.style.width = parseInt(svg.getBBox().width * ratio) + 'px';
-    container.style.height = parseInt(svg.getBBox().height * ratio) + 'px';
-    // container.style.width = parseInt(svg.clientWidth*ratio) + 'px';
-    // container.style.height = parseInt(svg.clientHeight*ratio) + 'px';
-
+    // container.style.width = parseInt(svg.getBBox().width * ratio) + 'px';
+    // container.style.height = parseInt(svg.getBBox().height * ratio) + 'px';
+    container.style.width = svg.getBBox().width * ratio + 'px';
+    container.style.height = svg.getBBox().height * ratio + 'px';
 }
 
 /*  --------------------------------------------------------

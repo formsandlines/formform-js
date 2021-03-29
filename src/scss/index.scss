@@ -204,11 +204,6 @@ main {
     margin-top: $spacer*2;
 }
 
-.graph > .render-container {
-    margin-bottom: $spacer*2;
-    height: none;
-}
-
 code {
     padding: $mark-padding;
     background-color: $mark-bg;
@@ -255,7 +250,14 @@ code {
 
 .render-container {
     height: auto;
+    margin-bottom: $spacer*2;
+    // height: none;
 }
+
+// .graph > .render-container {
+//     height: none;
+//     margin-bottom: $spacer*2;
+// }
 
 .zoomSlider-group {
     width: 300px;
@@ -263,26 +265,52 @@ code {
 
 #vmap-render {
     position: relative;
+    margin-left: 2em;
+    margin-right: 2em;
+}
+.container > #vmap-render {
+    margin-left: 0;
+    margin-right: 0;
 }
 
-#perspBtn {
-    // position: absolute;
-    // top: 0;
-    // left: 0;
-    border: none;
-    background: none;
-    cursor: pointer;
-    // left: 0;
-    svg {
-        fill: $input-border-color;
-        transition: all 0.2s;
+// #perspBtn {
+//     border: none;
+//     background: none;
+//     cursor: pointer;
+//     svg {
+//         fill: $input-border-color;
+//         transition: all 0.2s;
+//         &:hover {
+//             fill: darken($input-border-color, 10%);
+//         }
+//     }
+// }
+// #perspBtn:focus:not(:focus-visible) {
+//     outline: 0;
+// }
+
+#vmap-perspBtn {
+    .bi {
+        vertical-align: -.2em;
+        margin-right: .1em;
+    }
+    &:focus {
+        box-shadow: 0 0 0 0.2rem lighten($red-dark, 60%);
+    }
+
+    &.expandPersp {
+        color: $red-dark;
+        border-color: $red-dark;
         &:hover {
-            fill: darken($input-border-color, 10%);
+            // color: white;
+            background-color: lighten($red-dark, 60%);
         }
     }
-}
-#perspBtn:focus:not(:focus-visible) {
-    outline: 0;
+    &.collapsePersp {
+        color: white;
+        border-color: $red-dark;
+        background-color: $red-dark; // theme-color-level(secondary, 0);
+    }
 }
 
 #vmap-render .vmap figcaption {

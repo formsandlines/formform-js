@@ -79,12 +79,26 @@ export default class FDna extends FForm {
     	return Object.values(this.calcAll(form)).reverse().join('');
  	};
 
- 	static decode (dna) {
-		/* Decodes dna into (one of its) simplest corresponding FORM model(s) as a json-representation */
-		// >>> not yet implemented!
+// EXPERIMENTAL >
 
-		return null;
+ 	static decode (dna, varList=undefined) {
+		/* Decodes dna into (one of its) simplest corresponding FORM model(s) as a json-representation */
+
+
+		// -> remove 0-terms and groupings?
+
+		if (varList && varList.length !== this.totalVarsFromDNA(dna)) throw new Error('Number of variables in given variable list doesn\'t match formDNA code length');
+		if (!varList) varList = this.generateVarNames(this.totalVarsFromDNA(dna)); //.map(str => `"${str}"`);
+		
+		const univ = this.universe_n(varList);
+		const vals = dna.split('').reverse();
+
+		return univ.map((term, i) => {
+			return `((${vals[i]})(${term}))`;
+		}).join('');
  	}
+
+// < END
 
 	static intToDNA (int, vnum) {
 		/* Takes an integer (usually BigInt) and a desired variable number and returns the corresponding formDNA 
@@ -206,8 +220,8 @@ export default class FDna extends FForm {
 		const reversedDNA = dna.split('').reverse().join('');
 		
 		const cellSize = size || (vnum => {
-			// reduction of size by 1px for each additional variable
-			const n = 14 - (vnum-1);
+			// reduction by 2px for each additional variable if vnum > 3
+			const n = 17 - (vnum > 3 ? 2 * (vnum-3) : 0); // changed from: 14 - (vnum-1);
 			return Math.max(2, n); // min size of 2px
 		})(vnum);
 
@@ -227,7 +241,7 @@ export default class FDna extends FForm {
 		}
     }
 
-	static vmapPerspectives (form, varorder=undefined, globalOptions=undefined) {
+	static vmapPerspectives (form, varorder=undefined, globalOptions=undefined, localOptions=undefined) {
 		/* Generates a list of vmap perspectives as permutations of a form/formDNA input */
 		// Note: formDNA input not yet supported (permutation algorithm required)
 
@@ -245,7 +259,7 @@ export default class FDna extends FForm {
 			.map(varorder => this.vmap(formula, varorder, {
 				hideInputLabel: true, 
 				customLabel: undefined,
-				...globalOptions}) );
+				...localOptions }) );
 
 		switch (output) {
 			case 'svg':
@@ -429,6 +443,45 @@ export default class FDna extends FForm {
     // ----------------------------------------------------
     // Helper
     // ----------------------------------------------------
+
+// EXPERIMENTAL >
+
+static generateVarNames (vnum, excludeList = undefined) {
+	return Array.from({length: vnum}, (_, i) => {
+		let candidate = `x_${i}`;
+		if (excludeList !== undefined) {
+			while (excludeList.includes(candidate)) {
+				candidate = candidate+`′`;
+			}
+		}
+		return candidate;
+	});
+}
+
+static universe_1 (x) {
+	/* Returns the constituents of the 4-valued universe of 1 terms from a variable name */
+	if (x.length > 1) x = `"${x}"`;
+	return [ 
+		`({(${x})}{2r|(${x})})`, 
+		`({${x}}{2r|${x}})`, 
+		`(({(${x})}${x})({2r|${x}}(${x})))`, 
+		`(({${x}}(${x}))({2r|(${x})}${x}))`];
+}
+
+static universe_n (vars) {
+	/* Returns the constituents of the 4-valued universe of n terms from a list of n variable names */
+	const vnum = vars.length;
+	const univ1s = vars.map(v => this.universe_1(v));
+	return Array.from({length: 4**vnum}, (_, i) => {
+	  const iq = pad(i.toString(4), vnum).split('');
+	  const univN = univ1s.reduce((formula, univ1, j, arr) => 
+						   formula+`(${univ1[iq[j]]})`
+						   +(j === arr.length-1 ? ')' : ''), '(');
+	  return vnum > 1 ? univN : univN.slice(2,-2);
+	});
+};
+
+// < END
 
 	static totalVarsFromDNA (formDNA) { 
 		/* Calculates variable number from formDNA */
