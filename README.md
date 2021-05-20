@@ -36,7 +36,7 @@ Or you can just embed the library via script-tag, but make sure you also include
 
 <br/>
 
-## Documentation
+## Documentation **(not updated yet)**
 
 In its current state, *formform* has 4 classes that partly inherit from each other and perform different tasks.
 

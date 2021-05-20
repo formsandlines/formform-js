@@ -44,7 +44,7 @@ export function vmap_svg (vmapTree, input, varorder, options) {
 
 	const chart = {tree: vmapTree, input: input, varorder: varorder, options: options};
 
-	if (output == 'mixed') {
+	// if (output == 'mixed') {
 		// svg with html wrapper
 
 		// const caption = () => {
@@ -71,7 +71,7 @@ export function vmap_svg (vmapTree, input, varorder, options) {
 		// 	${ caption() }
 		// 	</figure>`;
 
-	} else {
+	// } else {
 		// pure svg output
 
 		const caption = (input, customLabel) => {
@@ -117,7 +117,7 @@ export function vmap_svg (vmapTree, input, varorder, options) {
 			<g>${ vmap.elem }</g>
 			<g transform="translate(${figCaption.pos.x},${figCaption.pos.y})">${ figCaption.elem }</g>
 		</svg>`;
-	}
+	// }
 
 	return chart;
 }
@@ -191,8 +191,7 @@ export function vmapPerspectives_svg (vmapPermutations, input, globalOptions=und
 
 	const chart = {vmaps: vmapPermutations, input: input, options: globalOptions};
 
-	if (output == 'mixed') {
-
+	// if (output == 'mixed') {
 		// const vmapItems = vmapPermutations.map(vmap => {
 		// 	return `<div class="vmap-item" style="padding: ${Math.floor(margin/4)}px ${Math.floor(margin/2)}px"> 
 		// 			${vmap.elem}</div>`}).reduce((str,item) => str+item,'');
@@ -205,8 +204,8 @@ export function vmapPerspectives_svg (vmapPermutations, input, globalOptions=und
 		// 		</div>
 		// 		<figcaption style="border-top: 1px solid; padding-top: ${Math.floor(margin/4)}px; margin-top: ${Math.floor(margin/2)}px; word-wrap: break-word;">${label}</figcaption>
 		// 		</figure>`;
-	}
-	else {
+	// }
+	// else {
 		const padding = {x: (Math.floor(margin/4)), y: (Math.floor(margin/2))};
 		const count = vmapPermutations.length;
 		const vmapSize = vmapPermutations[0].size;
@@ -259,7 +258,7 @@ export function vmapPerspectives_svg (vmapPermutations, input, globalOptions=und
 		</svg>`;
 
 		return chart;
-	}
+	// }
 }
 
 
