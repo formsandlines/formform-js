@@ -241,6 +241,7 @@ export default class FForm extends FCalc {
         inQuote = false;
         inSlash = false;
 
+        const reChar = '↻';
         const optChar = '⤴';
         const nestChar = '⤵';
 
@@ -266,14 +267,13 @@ export default class FForm extends FCalc {
                 // unique separation chars for re-entry forms for easy splitting
                 if (countDepth === 1 && char === ',') char = nestChar;
                 else if (countDepth === 1 && char === '|') char = optChar;
+                else if (countDepth === 1 && char === '@') char = reChar;
             }
             if (char === '"' && !inSlash) inQuote = !inQuote;
             if (char === '/' && !inQuote) inSlash = !inSlash;
             // add char to the latest pushed part
             parts[parts.length-1] += char;
         }
-
-
         
         for (let i in parts) {
 
@@ -290,23 +290,56 @@ export default class FForm extends FCalc {
                 comp = [...comp, '"type":"reEntry",'];
 
                 const content = parts[i].slice(1,parts[i].length-1);
+                let reNested = undefined;
 
-                const reParts = content.split(optChar);
-                const reNested = reParts[reParts.length-1].split(nestChar);
+                if (content.includes(reChar)) {
+                    // new re-entry syntax
+                    const altInterpr = content.startsWith(`alt${optChar}`);
+                    const _content = altInterpr ? content.slice(4,) : content.slice();
 
-                if (reNested.length % 2 === 0) {
-                    comp = [...comp, '"reEven":"undefined",'];
-                } 
-                else {
-                    if (reParts[0] === '2r' || reParts[1] === '2r' || reParts[2] === '2r') comp = [...comp, '"reEven":true,'];
+                    let type = [-1,-1];
+                    if (_content.startsWith(`..${reChar}._`)) type = [3,1]
+                    else if (_content.startsWith(`..${reChar}.`)) type = [3,0]
+                    else if (_content.startsWith(`..${reChar}_`)) type = [2,1]
+                    else if (_content.startsWith(`..${reChar}`)) type = [2,0]
+                    else if (_content.startsWith(`${reChar}_`)) type = [0,1]
+                    else if (_content.startsWith(reChar)) type = [0,0]
+
+                    const typeCharSum = type[0] + type[1] + 1;
+                    reNested = _content.slice(typeCharSum,).split(nestChar);
+
+                    if (reNested.length % 2 === 0) {
+                        comp = [...comp, '"reEven":"undefined",'];
+                    }
+                    else if (type[0] === 2) comp = [...comp, '"reEven":true,'];
                     else comp = [...comp, '"reEven":false,'];
+
+                    if (type[1] > 0) comp = [...comp, '"lastOpen":true,'];
+                    else comp = [...comp, '"lastOpen":false,'];
+
+                    if (altInterpr) comp = [...comp, '"altInterpretation":true,'];
+                    else comp = [...comp, '"altInterpretation":false,'];
                 }
+                else {
+                    // old re-entry syntax
+                    const reParts = content.split(optChar);
 
-                if (reParts[0] === 'open' || reParts[1] === 'open' || reParts[2] === 'open') comp = [...comp, '"lastOpen":true,'];
-                else comp = [...comp, '"lastOpen":false,'];
+                    reNested = reParts[reParts.length-1].split(nestChar);
 
-                if (reParts[0] === 'alt' || reParts[1] === 'alt' || reParts[2] === 'alt') comp = [...comp, '"altInterpretation":true,'];
-                else comp = [...comp, '"altInterpretation":false,'];
+                    if (reNested.length % 2 === 0) {
+                        comp = [...comp, '"reEven":"undefined",'];
+                    } 
+                    else {
+                        if (reParts[0] === '2r' || reParts[1] === '2r' || reParts[2] === '2r') comp = [...comp, '"reEven":true,'];
+                        else comp = [...comp, '"reEven":false,'];
+                    }
+
+                    if (reParts[0] === 'open' || reParts[1] === 'open' || reParts[2] === 'open') comp = [...comp, '"lastOpen":true,'];
+                    else comp = [...comp, '"lastOpen":false,'];
+
+                    if (reParts[0] === 'alt' || reParts[1] === 'alt' || reParts[2] === 'alt') comp = [...comp, '"altInterpretation":true,'];
+                    else comp = [...comp, '"altInterpretation":false,'];
+                }
 
                 comp = [...comp, '"nested":['];
 
