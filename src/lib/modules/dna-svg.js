@@ -78,7 +78,7 @@ export function vmap_svg (vmapTree, input, varorder, options) {
 			if (customLabel !== undefined) return customLabel;
 
 			let label = '';
-			if (!hideOrderLabel) {
+			if (!hideOrderLabel && vnum > 0) {
 				const pos = `y="0"`;
 
 				label += orderLabel(varorder, pos, {font: font, textSize: textSize.base});
@@ -90,7 +90,7 @@ export function vmap_svg (vmapTree, input, varorder, options) {
 				const truncMax = isFormDNA ? (input.split('::')[0].length + 4**4) : inputLabelMax;
 				const truncSuffix = isFormDNA ? `…(${4**vnum})` : `… <tspan style="font-style: italic">+more</tspan>`;
 
-				const pos = `y="0" dy="${textSize.base + textSize.sm - 2}px"`;
+				const pos = `y="0"` + (label.length > 0 ? ` dy="${textSize.base + textSize.sm - 2}px"` : '');
 
 				label += inputLabel(input, pos, {prefix: prefix, truncated: !fullInputLabel, truncMax: truncMax, truncSuffix: truncSuffix, font: font, textSize: textSize.sm});
 			}
@@ -108,7 +108,7 @@ export function vmap_svg (vmapTree, input, varorder, options) {
 		figCaption.size = getSvgSize(figCaption.elem);
 
 		const appendSize = [Math.max(0, (figCaption.size.w - vmap.w)),
-							figCaption.size.h + (figCaption.pos.y - vmap.h)];
+							(figCaption.size.h > 0 ? (figCaption.size.h + (figCaption.pos.y - vmap.h)) : 0)];
 
 		chart.size = {w: (vmap.w + appendSize[0] + figPad), h: (vmap.h + appendSize[1] + figPad)};
 
