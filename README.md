@@ -4,9 +4,9 @@
 
 **formform** is a modular JavaScript library all about the 4-valued logic of cognition first introduced 2017 by Ralf Peyn in [uFORM iFORM](https://uformiform.info). In its core, the purpose of the library is to calculate with all 5 FORMs (marked, unmarked, undetermined, imaginary and unclear) introduced in the book and is meant to be extended with more specialized modules for different tasks such as FORM representation, algebra, visualization or simulation and analysis using CAs.
 
-As a helpful tool for researchers and enthusiasts and as a demonstration of the library's capabilities I have also created the [**FORM tricorder**](https://formform.formsandlines.eu/tricorder). It can calculate, represent and visualize FORMs using my `formula` syntax (described below under *formform.form*). You can find all its parts in this repository under /app/. I have also developed other applications that you can read about in the *History* section on the bottom of this document.
+As a helpful tool for researchers and enthusiasts and as a demonstration of the library's capabilities I have also created the [**FORM tricorder**](https://github.com/formsandlines/form-tricorder). It can calculate, represent and visualize FORMs using my `formula` syntax (described below under *formform.form*). You can find all its parts in this repository under /app/. I have also developed other applications that you can read about in the *History* section on the bottom of this document.
 
-Please note that my library as well as my app are still *work in progress*. The library is currently in the process of restructuring and you may want to wait for a more stable release if you intent to use it in your projects. Although I am very passionate about this, I am not a formally trained developer and cannot yet afford to do this full-time. Since this is my first JavaScript library and I still have much to learn, I am very thankful for any advice.
+Please note that my library as well as my apps are still *work in progress*. The library is currently in the process of restructuring and you may want to wait for a more stable release if you intent to use it in your projects. Although I am very passionate about this, I am not a formally trained developer and cannot yet afford to do this full-time. Since this is my first JavaScript library and I still have much to learn, I am very thankful for any advice.
 
 <br/>
 
@@ -326,7 +326,7 @@ vmapList(inputList, globalOptions=undefined)
 
 ## Further information
 
-If you want to learn more about the ideas and theories *formform* is based on, here are some helpful resources:
+If you want to learn more about the calculus, ideas and theories *formform* is based on, here are some helpful resources:
 
 - [About uFORM iFORM](https://uformiform.info) (mostly German as is the language of the book by Ralf Peyn, but you can try [DeepL](https://www.deepl.com/translator) to translate the gist of it)
 - [Here is a list of links](https://uformiform.info/#section_recommendations) on the theoretical background behind uFORM iFORM (mostly German resources, but you can just translate the keywords and google them)
@@ -344,7 +344,7 @@ Working with lookup-tables for FORM calculations was okay for a while, but also 
 
 As soon as I was able to automate calculation with undetermined FORMs, I saw that there was much more potential in this and that it could be very helpful for other people who want to work with FORM logic as well. So I began working on a JavaScript library to elaborate my ideas, which gradually became *formform*. Since its early development, formform has always evolved in a fruitful interplay with the applications built on top of it.
 
-A first application that I have developed in parallel from the beginning was the [**FORM tricorder**](https://formform.formsandlines.eu/tricorder) – a swiss army knife for FORM calculation, representation and visualization. In September 2019 I was finally able to develop a new [cellular automaton for FORM logic SelFis](https://observablehq.com/@formsandlines/1d-ca-for-4-valued-form-logic-selfis) with *formform* that is much more user-friendly and much more versatile than what I have done two years earlier. My experimentation with rule extraction by bitmasking in CAs led me to a code format I call [**formDNA**](https://observablehq.com/@formsandlines/the-dna-of-4-valued-forms) that is an abstraction of the value table. It not only made my CA faster and more flexible, it also inspired me to create the **vmap**: a recursive variable/value map to visualize formDNA, that has great potential for pattern recognition in FORMs.
+A first application that I have developed in parallel from the beginning was the [**FORM tricorder**](https://tricorder.formform.dev) – a swiss army knife for FORM calculation, representation and visualization. In September 2019 I was finally able to develop a new [cellular automaton for FORM logic SelFis](https://plotter.formform.dev) with *formform* that is much more user-friendly and much more versatile than what I have done two years earlier. My experimentation with rule extraction by bitmasking in CAs led me to a code format I call [**formDNA**](https://observablehq.com/@formsandlines/the-dna-of-4-valued-forms) that is an abstraction of the value table. It not only made my CA faster and more flexible, it also inspired me to create the **vmap**: a recursive variable/value map to visualize formDNA, that has great potential for pattern recognition in FORMs.
 
 Driven by my own curiosity and some helpful suggestions from users, I continuously work on implementing new ideas and features into the library. Nowadays, I am prototyping most of these ideas in my [Observable notebooks](https://observablehq.com/@formsandlines) and announce new developments, bugfixes and changes on my [Twitter account](https://twitter.com/diagramaniac).
 
@@ -358,6 +358,6 @@ If you want to support my work, consider [buying me a coffee](https://www.buymea
 
 ---
 
-(c) 2018–2020 by Peter Hofmann
+(c) 2018–2021 by Peter Hofmann
 
 License: MIT

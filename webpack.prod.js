@@ -1,6 +1,6 @@
 const PATHS = require('./webpack-paths.js');
 const merge = require('webpack-merge');
-const common = require('./webpack.common-lib.js');
+const common = require('./webpack.common.js');
 
 module.exports = merge(common, {
     mode: 'production',
@@ -11,13 +11,5 @@ module.exports = merge(common, {
         library: 'formform',
         libraryExport: 'default',
         libraryTarget: 'umd'
-    },
-    module: {
-        // rules: [{
-        //     test: /\.js?$/,
-        //     exclude: /node_modules/,
-        //     use: {
-        //     }
-        // }]
     }
 });

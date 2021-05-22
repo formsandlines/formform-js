@@ -1,17 +1,19 @@
 {
     "name": "formform",
-    "version": "0.11.0",
-    "description": "JS-library to calculate, visualize and simulate LoF-FORMs (Laws of Form by George Spencer-Brown) as well as undetermined and imaginary FORMs (uFORM iFORM by Ralf Peyn)",
+    "version": "0.12.0",
+    "description": "JS-library to calculate, visualize and simulate 4-valued FORMs of the FORM calculus introduced by Ralf Peyn in uFORM iFORM",
     "keywords": [
-        "laws of form",
         "uFORM iFORM",
-        "uFORM",
+        "FORM logic",
         "undetermined form",
+        "eigenFORM",
         "WELTFORM",
+        "uFORM",
         "FORMWELT",
+        "laws of form",
         "logic"
     ],
-    "homepage": "https://formform.formsandlines.eu",
+    "homepage": "https://formform.dev",
     "author": {
         "name": "Peter Hofmann",
         "email": "peter.hofmann@formsandlines.eu",
@@ -31,36 +33,20 @@
     "unpkg": "dist/formform.min.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "webpack-dev-server --config webpack.app-dev.js",
-        "dev-app": "webpack --config webpack.app-dev.js",
-        "build-app": "webpack --config webpack.app-prod.js",
-        "dev-lib": "webpack --config webpack.lib-dev.js",
-        "build-lib": "webpack --config webpack.lib-prod.js"
+        "dev": "webpack --config webpack.dev.js",
+        "build": "webpack --config webpack.prod.js"
     },
     "dependencies": {
         "big-integer": "^1.6.48",
-        "bootstrap": "^4.5.2",
         "boxmodel-layout-for-d3": "^1.2.2",
         "canvg": "^1.5.3",
-        "clipboard": "^2.0.6",
-        "d3": "^5.16.0",
-        "jquery": "^3.5.1",
-        "popper.js": "^1.16.1"
+        "d3": "^5.16.0"
     },
     "devDependencies": {
-        "autoprefixer": "^9.8.6",
-        "css-loader": "^2.1.1",
         "eslint": "^7.12.1",
         "eslint-plugin-compat": "^3.8.0",
-        "file-loader": "^3.0.1",
-        "node-sass": "^4.14.1",
-        "postcss-loader": "^3.0.0",
-        "sass-loader": "^7.3.1",
-        "style-loader": "^0.23.1",
-        "url-loader": "^1.1.2",
         "webpack": "^4.44.2",
         "webpack-cli": "^3.3.12",
-        "webpack-dev-server": "^3.11.0",
         "webpack-merge": "^4.2.2"
     }
 }

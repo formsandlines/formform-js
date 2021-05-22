@@ -1,29 +1,10 @@
+const PATHS = require('./webpack-paths.js');
+
 module.exports = {
-    module: {
-        rules: [
-        {
-            test: /\.css$/,
-            use: [
-                {loader: 'style-loader'},
-                {loader: 'css-loader'}
-            ]
-        },
-        {
-            test: /\.scss$/,
-            use: [
-                {loader: 'style-loader'},
-                {loader: 'css-loader'},
-                {loader: 'postcss-loader',
-                    options: {
-                        plugins: function () {
-                            return [
-                                require('autoprefixer')
-                            ];
-                        }
-                    }
-                },
-                {loader: 'sass-loader'}
-            ]
-        }]
+    entry: {
+        formform: PATHS.libSrc
+    },
+    externals: {
+        d3: 'd3'
     }
 };
