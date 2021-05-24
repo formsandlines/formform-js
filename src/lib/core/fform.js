@@ -1,4 +1,4 @@
-import { pad, flatten, include, VARCODE, VARCODE_REV, createValidation, checkBracketMatching, checkLiteralMatching, collapseLiterals, getBracketUnits } from '../../common/helper';
+import { pad, flatten, include, VARCODE, VARCODE_REV, createValidation, checkBracketMatching, collapseLiterals, getBracketUnits } from '../../common/helper';
 import FCalc from './fcalc';
 
 export default class FForm extends FCalc {
@@ -423,13 +423,105 @@ export default class FForm extends FCalc {
         return compAll;
     }
 
+
+    static constructNested(reForm, options={}) {
+        /* Constructs a (real) nested form structure from the .nested array of the original re-entry json */
+
+        // >>> should be rewritten completely to get rid of all the mutation!
+        
+        let space = reForm.space = [];
+        reForm.nested.reverse(); // MUST be reversed, because notation: {deepest, ..., shallowest}
+
+        for(let i in reForm.nested) {
+            if (i > 0) {
+                // prepend the reEntry nesting before everything else in the space
+                space.unshift( {type: 'form', reChild: true, space: []} ); // space.push <- order last
+                const nestedForm = space[0]; // space[space.length-1] <- order last
+                
+                if(!reForm.nested[i].unmarked) nestedForm.space.push(reForm.nested[i]);
+                else {
+                    // nestedForm.space.push(reForm.nested[i]);
+                    nestedForm.space.push(...reForm.nested[i].space); // push(reForm.nested[i]) for grouping
+                }
+
+                space = nestedForm.space;
+            }
+            else {
+                if(!reForm.nested[i].unmarked) space.push(reForm.nested[i]);
+                // else space.push(reForm.nested[i]);
+                else space.push(...reForm.nested[i].space); // push(reForm.nested[i]) for grouping
+            }
+
+            if (options.addEmptyReChildSpace && (space.length === 0)) {
+                space.push( {type: 'space'} );
+            }
+        }    
+
+        // we need to add a point of re-entry to the last nested form
+        // first, lets assume this is the form itself
+        let lastNested = reForm;
+        
+        if(reForm.space.length > 0) {
+            // then loop until the last reChild is found and make this our last nested form
+            
+            while (lastNested.space[0].hasOwnProperty('reChild')) {        
+                lastNested = lastNested.space[0];
+                if (lastNested.space.length < 1) break; // prevent errors when nothing is found
+            }
+        }
+        // for open re-entries, we need to add another nesting (see uFORM iFORM for reference)
+        if(reForm.lastOpen) {
+            lastNested.space.unshift( {type: 'form', reChild: true, space: []} );
+            // then add the re-entry point to either space
+            lastNested.space[0].space.unshift( {type: 'reEntryPoint'} );
+        }
+        else lastNested.space.unshift( {type: 'reEntryPoint'} );
+
+        // last, delete the nested structure, we don't need it anymore
+        delete reForm.nested;
+        return reForm;
+    }
+
+    static expand_reEntry(_form, options={}) {
+        // >>> should be rewritten completely to get rid of all the mutation!
+        const refForm = this.getValidForm(_form);
+        const targetForm = JSON.parse(JSON.stringify(refForm)); // copy json object without identifying it
+
+        // we must keep a running index to not confuse identical forms while reconstructing the reEntries
+        // Note: this should be done more efficiently in the future
+        let runningIndex = 0;
+        this.traverseForm(refForm, function(branch) { branch.runningIndex = runningIndex, runningIndex++; });
+        runningIndex = 0;
+        this.traverseForm(targetForm, function(branch) { branch.runningIndex = runningIndex, runningIndex++; });
+
+        this.traverseForm(refForm, function(refBranch) {
+
+            if(refBranch.type === 'reEntry') {
+                this.traverseForm(targetForm, function(targetBranch) {
+
+                    if( (JSON.stringify(refBranch) === JSON.stringify(targetBranch)) && 
+                            (refBranch.runningIndex === (targetBranch.hasOwnProperty('runningIndex') ? targetBranch.runningIndex : null)) ) {
+                        targetBranch = this.constructNested(targetBranch, options);
+                        return true;
+                    }
+                });
+
+            }
+        });
+        // delete running index property
+        this.traverseForm(targetForm, function(branch) { delete branch.runningIndex; });
+
+        return targetForm;
+    }
+
+
     // ----------------------------------------------------
     // Representation
     // ----------------------------------------------------
 
-    static jsonString(_form) {
+    static jsonString(_form, expandRE=false) {
         /* returns json-representation of the specified FORM */
-        const form = this.getValidForm(_form);
+        const form = this.getValidForm(expandRE ? this.expand_reEntry(_form) : _form);
     
         return JSON.stringify(form, undefined, 2);
     }
