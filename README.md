@@ -4,16 +4,18 @@
 
 **formform** is a modular JavaScript library all about the 4-valued logic of cognition first introduced 2017 by Ralf Peyn in [uFORM iFORM](https://uformiform.info). In its core, the purpose of the library is to calculate with all 5 FORMs (marked, unmarked, undetermined, imaginary and unclear) introduced in the book and is meant to be extended with more specialized modules for different tasks such as FORM representation, algebra, visualization or simulation and analysis using CAs.
 
-As a helpful tool for researchers and enthusiasts and as a demonstration of the library's capabilities I have also created the [**FORM tricorder**](https://github.com/formsandlines/form-tricorder). It can calculate, represent and visualize FORMs using my `formula` syntax (described below under *formform.form*). You can find all its parts in this repository under /app/. I have also developed other applications that you can read about in the *History* section on the bottom of this document.
+As a helpful tool for researchers and enthusiasts and as a demonstration of the library's capabilities I have also created the [**FORM tricorder**](https://github.com/formsandlines/form-tricorder). It can calculate, represent and visualize FORMs using my special `formula` syntax (described below under *formform.form*). Further applications (like a cellular automaton) are listed on the [formform website](https://formform.dev).
 
-Please note that my library as well as my apps are still *work in progress*. The library is currently in the process of restructuring and you may want to wait for a more stable release if you intent to use it in your projects. Although I am very passionate about this, I am not a formally trained developer and cannot yet afford to do this full-time. Since this is my first JavaScript library and I still have much to learn, I am very thankful for any advice.
+Please note that my library as well as my apps are still *work in progress*. The library is currently in the process of restructuring and you may want to wait for a more stable release if you intent to use it in your projects. Although I am very passionate about this, I am not a formally trained developer and cannot yet afford to do this full-time.
 
 <br/>
 
 ## Usage
 
+In addition to the formform library, you will need to install [d3.js](https://github.com/d3/d3) as a dependency:
+
 ```bash
-npm install formform --save
+npm install formform@^0.12.0 d3@^5.16.0
 ```
 
 ```js
@@ -21,10 +23,10 @@ npm install formform --save
 import formform from 'formform';
 
 // CommonJS:
-var formform = require('formform');
+let formform = require('formform');
 ```
 
-Or you can just embed the library via script-tag, but make sure you also include [d3.js](https://github.com/d3/d3) as a dependency:
+Or you can just embed the library via script-tag, but make sure you also include d3.js:
 
 ```html
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js"></script>
@@ -36,14 +38,14 @@ Or you can just embed the library via script-tag, but make sure you also include
 
 <br/>
 
-## Documentation **(not updated yet)**
+## Documentation
 
 In its current state, *formform* has 4 classes that partly inherit from each other and perform different tasks.
 
 - **formform.calc** lets you calculate with numeric values of the uFORM iFORM calculus
-- **formform.form** lets you calculate any FORM with constants and variables using a special JSON representation which can be easily generated from a formula String (paranthesis notation)
+- **formform.form** lets you calculate any FORM with constants and variables using a special JSON representation which can be easily generated from a `formula` String (paranthesis notation)
 - **formform.graph** lets you use this JSON representation to generate different visualization outputs or notations
-- **formform.dna** lets you store calculation results in a code format called *formDNA* and visualize them as *vmaps* to analyze value patterns
+- **formform.dna** lets you store calculation results in a code format I call [*formDNA*](https://observablehq.com/@formsandlines/the-dna-of-4-valued-forms) and visualize them as [*vmaps*](https://observablehq.com/@formsandlines/recursive-mapping-of-4-valued-forms-with-vmaps) to analyze value patterns
 
 All classes and their API are described in detail below:
 
@@ -184,6 +186,16 @@ traverseForm(form, function(fBranch) {
 ```
 > - `fBranch`: current FORM-branch of the FORM
 
+Get total number of variables from a `formula`:
+```js
+getTotalVars(formula)
+```
+
+Re-order/permute variables in a `formula` to match the order given in `varorder`:
+```js
+reOrderVars(formula, varorder)
+```
+
 ---
 
 ### formform.graph
@@ -191,7 +203,7 @@ traverseForm(form, function(fBranch) {
 - `graphType` -> can be `'tree'` *([D3 tree layout](https://github.com/d3/d3-hierarchy/blob/master/README.md#tree))*, `'pack'` *([D3 circle packing layout](https://github.com/d3/d3-hierarchy/blob/master/README.md#pack))* or `'gsbhooks'` *([my own boxmodel layout for D3](https://github.com/formsandlines/boxmodel-layout-for-d3))*
 - `style` -> for graphType 'pack', you can select from 2 available CSS classes: 'basic' (outlines) and 'gestalt' (what I call *GestaltFORM*)
 
-You can learn more about the visualization types if you take a look at my [FORM tricorder](https://formform.formsandlines.eu/tricorder) and click on "show explanations", I will not go into more detail in this documentation.
+You can learn more about the visualization types if you take a look at my [FORM tricorder](https://formform.dev/tricorder) and click on "show explanations", I will not go into more detail in this documentation.
 
 #### Visualization (D3/SVG)
 ```js
@@ -215,19 +227,11 @@ createGraph(graphType, form, options)
 
 #### Output
 
-Save rendered graph as SVG or image (PNG) file:
-```js
-saveGraph(format, svg, name)
-```
-> - `format`: 'svg' or 'img'
-> - `svg`: svg-element with the rendered graph
-> - `name`: name of the output file
-
 #### A note about representation
 
-The *graph module* expands on the JSON-representation of the *form module* by constructing nested reEntry FORMs from its more compact descriptive structure. This is necessary for the accurate visualization of those FORMs but the *form module* didn't need to be so explicit since I took advantage of their common patterns in the calculation algorithm.
+The *graph module* expands on the JSON-representation of the *form module* by constructing nested re-entry FORMs from its more compact descriptive structure. This is necessary for the accurate visualization of those FORMs but the *form module* didn't need to be so explicit since I took advantage of their common patterns in the calculation algorithm.
 
-If you need to expand the JSON-structure of reEntry-FORMs yourself, use: `expand_reEntry(form)`
+If you need to expand the JSON-structure of re-entry FORMs yourself, use: `expand_reEntry(form)`
 
 ---
 
@@ -248,8 +252,9 @@ If you need to expand the JSON-structure of reEntry-FORMs yourself, use: `expand
 ```js
 formToDNA(input, varorder, options)
 ```
+> Specify output type in the `options` object as either `html`, `text` or `num` (just the `dna` as a quaternary number string).
 
-`formDNA` → `form` using an optional `varorder`: *(not yet implemented)*
+`formDNA` → `form` using an optional `varorder`: *(experimental)*
 ```js
 dnaToFORM(formDNA, varorder, options)
 ```
@@ -258,7 +263,7 @@ integer → `dna` (use `BigInt(n)` for numbers larger than 2<sup>53</sup> - 1):
 ```js
 intToDNA(int, vnum)
 ```
-> If no `vnum` is specified, the smallest variable number possible for the quaternion is assumed
+> If no `vnum` is specified, the smallest variable number possible for the quaternary is assumed
 
 #### Generation of `formDNA`
 
@@ -269,10 +274,12 @@ genRandomDNA(vnum)
 
 #### Generation of `vmaps`
 
-`vmap` (HTML format) from `form`/`formDNA` input using an optional `varorder`:
+`vmap` from `form`/`formDNA` input using an optional `varorder`:
 ```js
 vmap(input, varorder, options)
 ```
+> Generates an object containing the `vmap` tree (data structure) as well as an SVG element of the standard visualization.
+
 `options` -> 
 ```js
 { 
@@ -292,7 +299,7 @@ vmap(input, varorder, options)
 }
 ```
 
-Set of all `vmap perspectives` (HTML format) of a `form`/`formDNA` input using an optional `varorder`:
+Set of all `vmap perspectives` (SVG format) of a `form`/`formDNA` input using an optional `varorder`:
 ```js
 vmapPerspectives(form, varorder, globalOptions)
 ```
@@ -304,7 +311,7 @@ vmapPerspectives(form, varorder, globalOptions)
 }
 ```
 
-List of `vmaps` (HTML format) from an array of `form`/`formDNA` input:
+List of `vmaps` (SVG format) from an array of `form`/`formDNA` input:
 ```js
 vmapList(inputList, globalOptions=undefined)
 ```

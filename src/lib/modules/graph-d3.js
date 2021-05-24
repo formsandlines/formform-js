@@ -6,6 +6,11 @@ import chartFactory, { fitChart, textSize, textSubscript, circleLabel } from '..
 import * as styles from './graph-d3-styles.js';
 
 
+// ===================================================================
+//     formform core module 'formgraph-svg'
+//     -- since 2020, by Peter Hofmann (formsandlines.eu)
+// ===================================================================
+
 export default class D3Graph {
     // -----------------------------------------------------------
     //                    Visualization Setup

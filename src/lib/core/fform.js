@@ -2,11 +2,11 @@ import { pad, flatten, include, VARCODE, VARCODE_REV, createValidation, checkBra
 import FCalc from './fcalc';
 
 export default class FForm extends FCalc {
-    /*
-    =======================================================
-       'form' module for formform (c) 2018 Peter Hofmann
-    =======================================================
-    */
+
+    // ===================================================================
+    //     formform core module 'form'
+    //     -- since 2018, by Peter Hofmann (formsandlines.eu)
+    // ===================================================================
 
     constructor() {
     };
