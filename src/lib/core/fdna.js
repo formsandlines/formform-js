@@ -1,8 +1,7 @@
 import FForm from './fform';
-import { permuteArray, pad, createValidation, equalArrays } from '../../common/helper';
-import { getRandomBigInt } from '../../common/bigint-helper';
+import { permuteArray, pad, createValidation, equalArrays, getRandomBigInt } from 'formsandlines-utils';
 
-const bigInt = require('big-integer'); // obsolete with better BigInt support in browsers
+import * as bigInt from 'big-integer'; // obsolete with better BigInt support in browsers
 
 export default class FDna extends FForm {
     

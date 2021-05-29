@@ -1,4 +1,5 @@
-import { pad, flatten, include, VARCODE, VARCODE_REV, createValidation, checkBracketMatching, collapseLiterals, getBracketUnits } from '../../common/helper';
+import { pad, flatten, include, createValidation, checkBracketMatching, collapseLiterals, getBracketUnits } from 'formsandlines-utils';
+import { VARCODE, VARCODE_REV } from '../../common/helper';
 import FCalc from './fcalc';
 
 export default class FForm extends FCalc {

@@ -1,6 +1,6 @@
 {
     "name": "formform",
-    "version": "0.14.1",
+    "version": "0.14.2",
     "description": "JS-library to calculate, visualize and simulate 4-valued FORMs of the FORM calculus introduced by Ralf Peyn in uFORM iFORM",
     "keywords": [
         "uFORM iFORM",
@@ -37,7 +37,8 @@
         "build": "webpack --config webpack.prod.js"
     },
     "dependencies": {
-        "big-integer": "^1.6.48"
+        "big-integer": "^1.6.48",
+        "formsandlines-utils": "^0.1.1"
     },
     "devDependencies": {
         "eslint": "^7.12.1",
