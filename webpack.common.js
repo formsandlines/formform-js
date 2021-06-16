@@ -5,6 +5,5 @@ module.exports = {
         formform: PATHS.libSrc
     },
     externals: {
-        d3: 'd3'
     }
 };

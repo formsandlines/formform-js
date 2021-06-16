@@ -12,10 +12,8 @@ Please note that my library as well as my apps are still *work in progress*. The
 
 ## Usage
 
-In addition to the formform library, you will need to install [d3.js](https://github.com/d3/d3) as a dependency:
-
 ```bash
-npm install formform@^0.12.0 d3@^5.16.0
+npm install formform
 ```
 
 ```js
@@ -26,11 +24,9 @@ import formform from 'formform';
 let formform = require('formform');
 ```
 
-Or you can just embed the library via script-tag, but make sure you also include d3.js:
+Or you can just embed the library via script-tag:
 
 ```html
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js"></script>
-
 <script src="<yourpath>/formform.min.js"></script>
 // or just use the unpkg link:
 <script src="https://unpkg.com/formform@latest/dist/formform.min.js"></script>
