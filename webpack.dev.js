@@ -9,6 +9,7 @@ module.exports = {
     output: {
         path: PATHS.libDev,
         filename: '[name].js',
+        globalObject: 'this',
         library: 'formform',
         libraryExport: 'default',
         libraryTarget: 'umd'

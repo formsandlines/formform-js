@@ -9,6 +9,7 @@ module.exports = {
     output: {
         path: PATHS.libProd,
         filename: '[name].min.js',
+        globalObject: 'this',
         library: 'formform',
         libraryExport: 'default',
         libraryTarget: 'umd'
