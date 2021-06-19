@@ -1,10 +1,11 @@
 const PATHS = require('./webpack-paths.js');
-const merge = require('webpack-merge');
-const common = require('./webpack.common.js');
 
-module.exports = merge(common, {
+module.exports = {
     mode: 'production',
     devtool: 'source-map',
+    entry: {
+        formform: PATHS.libSrc
+    },
     output: {
         path: PATHS.libProd,
         filename: '[name].min.js',
@@ -12,4 +13,4 @@ module.exports = merge(common, {
         libraryExport: 'default',
         libraryTarget: 'umd'
     }
-});
+};
