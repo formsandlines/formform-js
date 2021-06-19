@@ -1,5 +1,5 @@
-import calc from './core/fcalc';
-import form from './core/fform';
-import dna from './core/fdna';
+import * as calc from './core/fcalc';
+import * as form from './core/fform';
+import * as dna from './core/fdna';
 
 export default { calc, form, dna };
