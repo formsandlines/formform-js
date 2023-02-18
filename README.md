@@ -2,6 +2,12 @@
 
 <br/>
 
+---
+
+*This is an archive of my original JavaScript version of formform. It has been rewritten from the ground up in Clojure and is now much more powerful, expressive and flexible. Please click [here](https://github.com/formsandlines/formform) to check out the current state of the library.*
+
+---
+
 **formform** is a modular JavaScript library all about the 4-valued logic of cognition first introduced 2017 by Ralf Peyn in [uFORM iFORM](https://uformiform.info). In its core, the purpose of the library is to calculate with all 5 FORMs (marked, unmarked, undetermined, imaginary and unclear) introduced in the book and is meant to be extended with more specialized modules for different tasks such as FORM representation, algebra, visualization or simulation and analysis using CAs.
 
 As a helpful tool for researchers and enthusiasts and as a demonstration of the library's capabilities I have also created the [**FORM tricorder**](https://github.com/formsandlines/form-tricorder). It can calculate, represent and visualize FORMs using my special `formula` syntax (described below under *formform.form*). Further applications (like a cellular automaton) are listed on the [formform website](https://formform.dev).
